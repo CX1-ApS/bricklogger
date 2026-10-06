@@ -38,6 +38,7 @@ from bricklogger.daemon.codes import (
 from bricklogger.daemon.rules import BRICK, REC
 from bricklogger.daemon.state import RuntimeState
 from bricklogger.model.working_graph import MODEL_GRAPH, WorkingGraph
+from bricklogger.ops.updates import available_line
 
 log = logging.getLogger("bricklogger.notify")
 
@@ -711,6 +712,9 @@ def _digest_sections(
         )
     else:
         sections.append(("Warnings", ["Nothing stands."], []))
+    newer = available_line(status.get("updates"))
+    if newer is not None:
+        sections.append(("Updates", [newer], []))
     return sections
 
 

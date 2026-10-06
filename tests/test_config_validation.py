@@ -36,7 +36,7 @@ def test_an_empty_directory_is_valid(tmp_path: Path) -> None:
     assert result.warnings == []
 
 
-def test_unknown_plugin_types_are_reported_with_the_installed_ones(
+def test_a_type_that_is_not_installed_is_a_warning_in_the_files_as_they_are(
     tmp_path: Path,
 ) -> None:
     write(
@@ -45,6 +45,35 @@ def test_unknown_plugin_types_are_reported_with_the_installed_ones(
         destinations="d:\n  type: influx\n",
     )
     result = validate_configuration(tmp_path, REGISTRY, ENV)
+    assert result.valid and result.configuration is not None
+    assert result.warnings == [
+        ConfigIssue(
+            "sources",
+            "the instance will be failed: the type 'modbus' is not installed; "
+            "add its plugin with `bricklogger plugins add`",
+            "m",
+            "type",
+        ),
+        ConfigIssue(
+            "destinations",
+            "the instance will be failed: the type 'influx' is not installed; "
+            "add its plugin with `bricklogger plugins add`",
+            "d",
+            "type",
+        ),
+    ]
+
+
+def test_a_change_that_adds_an_unknown_type_is_refused_with_the_installed_ones(
+    tmp_path: Path,
+) -> None:
+    write(tmp_path, sources="", destinations="")
+    result = validate_configuration(
+        tmp_path,
+        REGISTRY,
+        ENV,
+        {"sources": "m:\n  type: modbus\n", "destinations": "d:\n  type: influx\n"},
+    )
     assert result.errors == [
         ConfigIssue(
             "sources", "unknown source type 'modbus'; installed: bacnet-ip", "m", "type"
@@ -56,6 +85,25 @@ def test_unknown_plugin_types_are_reported_with_the_installed_ones(
             "type",
         ),
     ]
+
+
+def test_a_change_warns_about_the_instances_it_leaves_alone(tmp_path: Path) -> None:
+    """A plugin missing after an upgrade must not stop the rest of the file
+    from being edited; only an instance the change touches is held to it."""
+    write(tmp_path, sources="old:\n  type: modbus\n")
+    kept = "old:\n  type: modbus\n"
+    result = validate_configuration(
+        tmp_path, REGISTRY, ENV, {"sources": kept + "new:\n  type: modbsu\n"}
+    )
+    assert [(i.subject, i.message.split(";")[0]) for i in result.errors] == [
+        ("new", "unknown source type 'modbsu'")
+    ]
+    assert [i.subject for i in result.warnings] == ["old"]
+
+    edited = validate_configuration(
+        tmp_path, REGISTRY, ENV, {"sources": "old:\n  type: modbus\n  x: 1\n"}
+    )
+    assert [i.subject for i in edited.errors] == ["old"]
 
 
 def test_plugin_settings_are_validated_against_the_plugin_schema(

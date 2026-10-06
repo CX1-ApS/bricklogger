@@ -28,6 +28,7 @@ from bricklogger.ops.status import PID_FILE as PID_FILE
 from bricklogger.ops.status import probe
 from bricklogger.ops.status import process_alive as process_alive
 from bricklogger.ops.status import read_pid as read_pid
+from bricklogger.ops.updates import available_line
 
 daemon_app = typer.Typer(
     no_args_is_help=True,
@@ -363,6 +364,9 @@ def _echo_summary(data: dict[str, Any]) -> None:
     ]
     for row in data.get("instances", []):
         lines.append(f"  {row['role']} {row['name']} ({row['type']}): {row['state']}")
+    newer = available_line(data.get("updates"))
+    if newer is not None:
+        lines.append(newer)
     for line in lines:
         typer.echo(line)
 

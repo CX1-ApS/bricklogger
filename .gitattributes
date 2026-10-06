@@ -6,6 +6,10 @@
 # a RUN line runs; keep it LF too.
 Dockerfile text eol=lf
 
+# The unit templates are rendered onto Linux hosts and compared with what
+# is installed there; keep them LF too.
+*.service text eol=lf
+
 # Development-only files stay out of the archive scripts/publish.sh publishes
 # to GitHub; the development history and these stay on Gitea.
 CLAUDE.md export-ignore

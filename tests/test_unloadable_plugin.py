@@ -108,6 +108,60 @@ def test_the_daemon_runs_on_and_shows_the_instance_failed(
         daemon.stop()
 
 
+def test_a_type_that_is_not_installed_fails_its_instance_and_nothing_else(
+    tmp_path: Path, template: Path
+) -> None:
+    """The upgrade to 0.2 left `type: ibos` behind without the plugin; the
+    daemon starts, and the instance says what to add."""
+    missing = SOURCES + "home:\n  type: ibos\n  token: x\n"
+    config_dir = make_config(
+        tmp_path, template, sources=missing, destinations=DESTINATIONS
+    )
+    expected = (
+        "the type 'ibos' is not installed; add its plugin with "
+        "`bricklogger plugins add`"
+    )
+    daemon = Daemon(config_dir, registry=REGISTRY, env={})
+    daemon.start()
+    try:
+        wait_for(lambda: any(s["state"] == "running" for s in daemon.status_sources()))
+        rows = {row["name"]: row for row in daemon.status_sources()}
+        assert rows["fake_a"]["state"] == "running"
+        assert rows["home"]["state"] == "failed"
+        assert rows["home"]["last_error"] == expected
+        assert daemon.health() == "degraded"
+        warnings = {
+            (w["code"], w["subject"]): w["message"] for w in daemon.status_warnings()
+        }
+        assert warnings[("instance_failed", "home")] == f"failed: {expected}"
+
+        # A written change may leave it alone, but not add another.
+        kept = daemon.replace_config_file("sources", missing + "more:\n  type: ibso\n")
+        assert not kept.valid
+        assert [issue.subject for issue in kept.errors] == ["more"]
+    finally:
+        daemon.stop()
+
+
+def test_a_plugin_cannot_take_a_word_of_update_as_its_type(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    real = metadata.entry_points
+
+    def patched(group: str) -> list[EntryPoint]:
+        found = list(real(group=group))
+        if group == registry_module.SOURCES_GROUP:
+            found.append(EntryPoint("core", "tests.broken_plugin:SOURCE", group))
+        return found
+
+    monkeypatch.setattr(registry_module, "entry_points", patched)
+    loaded = PluginRegistry.from_entry_points()
+    assert "core" not in loaded.sources
+    failure = loaded.failure_of("core")
+    assert failure is not None
+    assert "words of `bricklogger update`" in failure.error
+
+
 def test_the_cli_shows_a_plugin_that_did_not_load(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

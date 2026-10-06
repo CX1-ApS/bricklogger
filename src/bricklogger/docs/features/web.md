@@ -63,7 +63,7 @@ job, as for the API. The settings live in
 | Model | Versions with activation history; upload with the job's progress and the resulting diff; activate, diff and export | `model` |
 | Explorer | The active model as a hierarchy of building, floor, room or zone, equipment and points, with sorting, filtering and search; a graph of the selected element's neighbourhood; a detail panel; findings and the runtime state per point in the signal colour | `model tree` |
 | Configuration | The four files in a YAML editor, validation before saving with errors shown at their keys, and `init` on an empty directory | `daemon config`, `sources config`, `destinations config`, `rules config` (`show` and `edit`), `init` |
-| Plugins | The installed plugins with type, role, version, description and instances, and the error of one that could not load; a package to install, a Remove per row, and the note that the daemon must be restarted | `plugins`, `plugins add`, `plugins remove` |
+| Plugins | The installed plugins with type, role, version, description and instances, and the error of one that could not load; the newest release beside Bricklogger and each plugin, with an Update per plugin row; a package to install, a Remove per row, and the note that the daemon must be restarted | `plugins`, `plugins add`, `plugins remove`, `update status`, `update <type>` |
 | Notifications | Whether they are on, the recipients and the server, the last mail and the last error, when the next summary is due, and what waits in the open window; a Send test mail that reports what the mail server answered | `notify status`, `notify test` |
 | Query | SPARQL against the working graph with Yasgui: editor, results table and downloads. `?query=` fills the editor, which is how the explorer hands a query over | `query` |
 | Daemon | Reload and stop, with the daemon's version, uptime and directories | `daemon reload`, `daemon stop` |
@@ -99,10 +99,20 @@ nothing. Pointed at a daemon on another machine with `--api`, the screen
 installs on the machine `serve` runs on, which is not where that daemon looks,
 so that case too belongs to the CLI beside the daemon. A removal is refused
 while an instance of the type is configured, naming the instances, and then
-offers to remove anyway, as `--force` does. Neither action restarts the
-daemon: the result says that the daemon reads its plugins when it starts and
-names the command to restart it, and the catalogue shows the daemon's set
-until then. The MCP server has [no tool for this](mcp.md#tools), on purpose.
+offers to remove anyway, as `--force` does.
+
+Beside Bricklogger and each plugin the screen shows the newest release that
+fits, from the daemon's daily [check](cli.md#update), and a Check now looks
+it up as `update status` does. A plugin row with a newer release has an
+Update, which is `update <type>` run the same way as an install, with the
+same validation and the same return to the previous version when it fails.
+Bricklogger itself is upgraded from the CLI, with the command the screen
+names: `serve` would be replacing the code it runs.
+
+No action here restarts the daemon: the result says that the daemon reads its
+plugins when it starts and names the command to restart it, and the catalogue
+shows the daemon's set until then. The MCP server has
+[no tool for this](mcp.md#tools), on purpose.
 
 ## Model explorer
 

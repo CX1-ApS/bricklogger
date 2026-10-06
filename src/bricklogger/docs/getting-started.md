@@ -28,7 +28,7 @@ Two options are worth knowing: `--version V` installs a given version, and
 after `--` when the script is piped into a shell:
 
 ```bash
-curl -fsSL https://github.com/CX1-ApS/bricklogger/releases/latest/download/install.sh | sudo sh -s -- --version 0.2.0
+curl -fsSL https://github.com/CX1-ApS/bricklogger/releases/latest/download/install.sh | sudo sh -s -- --version 0.2.1
 ```
 
 `bricklogger --version` confirms the installation, and `bricklogger plugins`
@@ -235,20 +235,24 @@ described under [notifications](features/notifications.md).
 
 ## Upgrade
 
-Run the install script again. It upgrades Bricklogger in place and leaves the
-installed plugins, the configuration and the data untouched:
+`status` and the daily summary say when there is a newer release, and
+`bricklogger update status` shows what there is. Then:
 
 ```bash
-curl -fsSL https://github.com/CX1-ApS/bricklogger/releases/latest/download/install.sh | sudo sh
+sudo bricklogger update all
 ```
 
-Then restart — `sudo systemctl restart bricklogger` for a service,
-`bricklogger daemon restart` for a daemon started by hand. A container
-installation pulls a new image instead, as the [Docker page](docker.md#upgrading)
-describes. A plugin is built
-for a minor version of Bricklogger, so after an upgrade across one,
-`bricklogger plugins` shows whether every plugin still loads, as the
-[plugins page](features/plugins.md#upgrading) describes.
+It upgrades Bricklogger and the plugins together, checks the configuration
+with the new version before anything is restarted, puts the previous versions
+back if it does not hold, and restarts the services that run. The
+configuration and the data stay where they are. `update core` upgrades
+Bricklogger alone, as far as the installed plugins allow, and `update <type>`
+one plugin; the [CLI page](features/cli.md#update) has the rest. An install
+in a home directory runs it without `sudo`.
+
+Running the install script again works too, and leaves the plugins as they
+are; restart afterwards. A container installation pulls a new image instead,
+as the [Docker page](docker.md#upgrading) describes.
 
 The destination migrates its schema at start. An incompatible configuration
 is rejected at start with a message naming the file and the key.

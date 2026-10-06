@@ -58,6 +58,8 @@ bricklogger notify test|status
 bricklogger plugins [<type>]
 bricklogger plugins add PACKAGE...
 bricklogger plugins remove TYPE [--force]
+bricklogger update status
+bricklogger update all|core|<type> [--no-restart]
 bricklogger model upload|list|activate|diff|export|tree
 bricklogger query <sparql | @file>
 bricklogger serve [--host HOST] [--port PORT] [--api URL]
@@ -108,6 +110,9 @@ they stand — secrets are never printed — and names the directory it read.
 directory with the change applied, and writes atomically — through the API
 when the daemon runs, so the change takes effect at once, directly to the file
 otherwise. A file that does not exist is shown as such and edited as empty.
+A type that is [not installed](plugins.md#a-type-that-is-not-installed) is an
+error for an instance the change adds or changes, and only a warning for one
+it leaves as it was.
 Like every group, `… config` alone shows its help.
 
 ## `daemon`
@@ -323,6 +328,67 @@ outside an installation the install script made they print the uv command to
 run instead. The [plugins page](plugins.md#installing-a-plugin) has the whole
 procedure, from the install to what happens to a plugin that cannot be
 loaded.
+
+## `update`
+
+`update` upgrades the installation from PyPI with the environment's own uv,
+as [`plugins add`](#plugins) does, without the install script. Alone it shows
+its help, like every group.
+
+| Command | Effect |
+|---------|--------|
+| `update status` | Installs nothing: for Bricklogger and every installed plugin, the version installed, the newest release, and the newest release that fits the rest; when the last two differ, what holds it back |
+| `update core` | Upgrades Bricklogger alone, the plugins held at their versions, to the newest release they allow; a newer one they exclude is named, with the plugin that excludes it and `update all` as the way past |
+| `update <type>` | Upgrades the plugin that provides the type — and every other type the same distribution provides, which it names — to its newest release that fits the installed Bricklogger and the other plugins; a newer one that needs more is named the same way |
+| `update all` | Upgrades Bricklogger and every plugin to the newest releases that fit together |
+
+The three that install go through the same steps:
+
+1. **The versions are noted**, of Bricklogger and of every plugin, before
+   anything is installed.
+2. **The new set is installed and validated** by the new version's own
+   [`validate`](#validate), in a process of its own, since the one running is
+   still the old code. Warnings are reported and stop nothing, so a configured
+   type that is not installed is reported
+   [as everywhere](plugins.md#a-type-that-is-not-installed). Errors, such as a
+   setting the new version no longer accepts, put the noted versions back,
+   are printed, and restart nothing: the machine stays as it was. A version
+   installed from a wheel on disk is on no index and cannot be fetched
+   again; then `update` says so, and the new version stays installed while
+   what runs is still the previous one, until the configuration is made to
+   fit or the install script puts the old version back.
+3. **The units are brought up to date.** The systemd units are written from
+   templates in the package, by the install script and by `update` alike;
+   when the new version's differ from those installed, `update` rewrites them
+   and reloads systemd.
+4. **What runs is restarted.** Of `bricklogger`, `bricklogger-web` and
+   `bricklogger-mcp`, the units that are active are restarted in that order,
+   and `update` waits until each answers again. A daemon or a server started
+   by hand is not restarted; `update` names the command that restarts it.
+   `--no-restart` leaves every process alone. A unit that does not answer is
+   reported with where its log is, and nothing is rolled back then, because
+   the destination may already have migrated its schema to the new version.
+
+Like `plugins add`, `update` works on an installation the install script
+made and prints the uv command to run anywhere else. Under `/opt/bricklogger`
+the environment and the units belong to root, so it is run as
+`sudo bricklogger update all`; an install in a home directory needs nothing.
+`update status` changes nothing and needs no rights.
+
+**In a container** Bricklogger comes with the image. `update core` refuses and
+names `docker compose pull` and `docker compose up -d`; `update <type>` and
+`update all` upgrade the plugins in the [plugin volume](../docker.md#plugins)
+and its manifest, held to the image's version of Bricklogger, and `all` says
+that the rest comes with a new image. Nothing is restarted in a container;
+`update` names `docker compose restart`. The newest release that
+`update status` shows for Bricklogger is also the newest image's tag.
+
+**Knowing there is one.** The daemon looks for newer releases once a day,
+unless [`updates.check`](configuration.md#daemonyaml) is off.
+What it finds stands as a line beneath the daemon summary in [`status`](#status-and-points)
+and in the daily [summary mail](notifications.md#what-is-sent). A lookup that
+cannot reach PyPI is silent: it is not a warning. `update status` looks
+whenever it is run, whatever the setting.
 
 ## `model`
 

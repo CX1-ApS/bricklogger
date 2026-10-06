@@ -27,6 +27,9 @@ DESTINATIONS_GROUP = "bricklogger.destinations"
 BUILT_IN_DISTRIBUTION = "bricklogger"
 """The distribution the built-in plugins come from; it cannot be removed."""
 
+RESERVED_TYPE_NAMES = frozenset({"all", "core", "status"})
+"""Words of ``bricklogger update`` that therefore cannot name a type."""
+
 Declaration = TypeVar("Declaration", SourceDeclaration, DestinationDeclaration)
 
 
@@ -181,6 +184,12 @@ def _distribution(point: EntryPoint) -> str | None:
 
 
 def _load(name: str, value: str, expected: type[Declaration]) -> Declaration:
+    if name in RESERVED_TYPE_NAMES:
+        raise PluginError(
+            f"plugin {name!r} cannot use that type name: "
+            f"{', '.join(sorted(RESERVED_TYPE_NAMES))} are words of "
+            "`bricklogger update`"
+        )
     try:
         loaded = EntryPoint(name=name, value=value, group="").load()
     except Exception as exc:

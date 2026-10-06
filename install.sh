@@ -165,6 +165,12 @@ if [ ! -x "$VENV/bin/python" ]; then
 	"$UV" venv --quiet --python "$PYTHON_VERSION" "$VENV"
 fi
 
+# What was there before, so an upgrade is told what an upgrade needs.
+PREVIOUS=""
+if [ -x "$VENV/bin/bricklogger" ]; then
+	PREVIOUS="$("$VENV/bin/bricklogger" --version 2>/dev/null || true)"
+fi
+
 if [ -n "$WHEEL" ]; then
 	PACKAGE="$WHEEL"
 elif [ -n "$VERSION" ]; then
@@ -185,54 +191,16 @@ ln -sf "$VENV/bin/bricklogger" "$COMMAND"
 
 # The units --------------------------------------------------------------------
 
+# The units come from templates in the package, written by the version just
+# installed, so the script and `bricklogger update` write them alike.
 write_units() {
-	mkdir -p "$UNIT_DIR"
-	{
-		echo "[Unit]"
-		echo "Description=Bricklogger daemon"
-		echo "After=network-online.target"
-		echo "Wants=network-online.target"
-		echo ""
-		echo "[Service]"
-		[ -z "$SERVICE_USER" ] || echo "User=$SERVICE_USER"
-		[ "$MODE" = system ] || echo "Environment=BRICKLOGGER_CONFIG_DIR=$CONFIG_DIR"
-		echo "ExecStart=$COMMAND daemon run"
-		echo "Restart=on-failure"
-		echo "RestartSec=5"
-		echo ""
-		echo "[Install]"
-		echo "WantedBy=$WANTED_BY"
-	} >"$UNIT_DIR/bricklogger.service"
-	{
-		echo "[Unit]"
-		echo "Description=Bricklogger web interface"
-		echo "After=bricklogger.service"
-		echo ""
-		echo "[Service]"
-		[ -z "$SERVICE_USER" ] || echo "User=$SERVICE_USER"
-		[ "$MODE" = system ] || echo "Environment=BRICKLOGGER_CONFIG_DIR=$CONFIG_DIR"
-		echo "ExecStart=$COMMAND serve"
-		echo "Restart=on-failure"
-		echo "RestartSec=5"
-		echo ""
-		echo "[Install]"
-		echo "WantedBy=$WANTED_BY"
-	} >"$UNIT_DIR/bricklogger-web.service"
-	{
-		echo "[Unit]"
-		echo "Description=Bricklogger MCP server over HTTP"
-		echo "After=bricklogger.service"
-		echo ""
-		echo "[Service]"
-		[ -z "$SERVICE_USER" ] || echo "User=$SERVICE_USER"
-		[ "$MODE" = system ] || echo "Environment=BRICKLOGGER_CONFIG_DIR=$CONFIG_DIR"
-		echo "ExecStart=$COMMAND mcp serve --http"
-		echo "Restart=on-failure"
-		echo "RestartSec=5"
-		echo ""
-		echo "[Install]"
-		echo "WantedBy=$WANTED_BY"
-	} >"$UNIT_DIR/bricklogger-mcp.service"
+	if [ "$MODE" = system ]; then
+		set -- --user "$SERVICE_USER"
+	else
+		set -- --config-dir "$CONFIG_DIR"
+	fi
+	"$VENV/bin/python" -m bricklogger.ops.units write --dir "$UNIT_DIR" \
+		--command "$COMMAND" --wanted-by "$WANTED_BY" "$@" >/dev/null
 }
 
 UNITS=no
@@ -251,6 +219,36 @@ fi
 
 INSTALLED="$("$VENV/bin/bricklogger" --version)"
 say ""
+if [ -n "$PREVIOUS" ]; then
+	# An upgrade: the configuration exists, and what runs keeps the old code
+	# until it is restarted.
+	say "$INSTALLED installed, upgraded from $PREVIOUS"
+	say ""
+	SUDO=""
+	[ "$MODE" = user ] || SUDO="sudo "
+	RESTART=""
+	if [ "$UNITS" = yes ]; then
+		for unit in bricklogger.service bricklogger-web.service bricklogger-mcp.service; do
+			if $SYSTEMCTL is-active --quiet "$unit" >/dev/null 2>&1; then
+				RESTART="$RESTART $unit"
+			fi
+		done
+	fi
+	if [ -n "$RESTART" ]; then
+		say "What runs keeps the old version until it is restarted:"
+		for unit in $RESTART; do
+			say "  ${SUDO}$SYSTEMCTL restart $unit"
+		done
+	else
+		say "A daemon started by hand keeps the old version until it is restarted:"
+		say "  bricklogger daemon restart"
+	fi
+	say ""
+	say "Then \`bricklogger plugins\` shows whether every plugin still loads. From"
+	say "here on, \`bricklogger update\` upgrades in place:"
+	say "  ${SUDO}bricklogger update all"
+	exit 0
+fi
 say "$INSTALLED installed"
 say "  command:       $COMMAND"
 say "  configuration: $CONFIG_DIR"

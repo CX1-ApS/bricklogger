@@ -186,8 +186,8 @@ whenever a daemon answers, so the change takes effect at once. A refused
 write answers with the errors — file, instance or rule, key and message — so
 the assistant can correct and try again, and `validate_config` with the
 proposed text is the way to check first. Nothing here uploads a model, starts
-or stops an instance, stops the daemon, sends mail, or installs or removes a
-[plugin](plugins.md#installing-a-plugin): those remain the CLI's and the web
+or stops an instance, stops the daemon, sends mail, or installs, upgrades or
+removes a [plugin](plugins.md#installing-a-plugin): those remain the CLI's and the web
 interface's, on purpose, so that an assistant configures and observes but does
 not operate the plant or change what is installed on the machine.
 

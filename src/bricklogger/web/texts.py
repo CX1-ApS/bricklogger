@@ -36,6 +36,26 @@ TEXTS: dict[str, str] = {
         "with it went {packages}, which nothing else needed"
     ),
     "plugins.refused": "refused: {message}",
+    "plugins.newest": "Newest",
+    "plugins.update": "Update to {version}",
+    "plugins.update.confirm": (
+        "Upgrade the plugin that provides {type} to {version}? The new version "
+        "validates the configuration first, and the previous one is put back if "
+        "it does not hold."
+    ),
+    "plugins.updated": "updated {moved}",
+    "plugins.uptodate": "already up to date",
+    "plugins.update.refused": "refused: {message}; the previous versions are back",
+    "plugins.core": "Bricklogger {installed}",
+    "plugins.core.newer": (
+        "Bricklogger {installed}; {newest} is out, and is upgraded from the "
+        "command line:"
+    ),
+    "plugins.core.command": "sudo bricklogger update core",
+    "plugins.checked": "newer releases looked for {when}",
+    "plugins.unchecked": "newer releases not looked for yet",
+    "plugins.check": "Check now",
+    "plugins.look.error": "not looked up: {error}",
     "plugins.restart": (
         "The daemon reads its plugins when it starts; restart it to see this:"
     ),

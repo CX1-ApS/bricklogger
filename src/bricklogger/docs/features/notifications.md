@@ -20,7 +20,7 @@ on the same principle as status itself.
 |------|-----------|---------|
 | **Alarm** | A warning of kind `operation` is raised for the first time, health becomes `degraded`, or the daemon starts or stops | The conditions that opened, grouped by code, and the health before and after |
 | **All clear** | Such a warning is withdrawn, or health leaves `degraded` | The conditions that closed, and what still stands |
-| **Summary** | Every day at `digest`, whatever the state | Health, uptime, the active model, the point counts, every instance with its state, and every warning that stands, of both kinds |
+| **Summary** | Every day at `digest`, whatever the state | Health, uptime, the active model, the point counts, every instance with its state, every warning that stands, of both kinds, and the newer releases the daily [update check](cli.md#update) found |
 
 An alarm and an all clear are **the two ends of one condition**. That is
 possible because every warning in Bricklogger is a condition that holds now,

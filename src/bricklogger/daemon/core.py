@@ -29,6 +29,7 @@ from bricklogger.config import (
     DestinationInstance,
     SourceInstance,
     ValidationResult,
+    not_installed,
     read_texts,
     validate_configuration,
     write_text,
@@ -51,6 +52,7 @@ from bricklogger.daemon.sink import DaemonSink
 from bricklogger.daemon.sparql import run_query
 from bricklogger.daemon.spool import SPOOL_DIR, Spool
 from bricklogger.daemon.state import STATE_FILE, RuntimeState
+from bricklogger.daemon.updates import Lookup, UpdateWatch
 from bricklogger.model import (
     INFERRED_GRAPH,
     MODEL_GRAPH,
@@ -197,6 +199,7 @@ class Daemon:
         config_dir: Path,
         registry: PluginRegistry | None = None,
         env: Mapping[str, str] | None = None,
+        update_lookup: Lookup | None = None,
     ) -> None:
         self.config_dir = config_dir
         if registry is None:
@@ -215,6 +218,8 @@ class Daemon:
         self.unloadable: dict[str, Unloadable] = {}
         self.spools: dict[str, Spool] = {}
         self.notifier: Notifier | None = None
+        self.updates: UpdateWatch | None = None
+        self._update_lookup = update_lookup
         self.plan: Plan | None = None
         self.active_version: int | None = None
         self.model_error: str | None = None
@@ -258,10 +263,14 @@ class Daemon:
         self.notifier = Notifier(self, config.daemon.notifications)
         self.notifier.record_event("started")
         self.notifier.start()
+        self.updates = UpdateWatch(config.daemon.updates.check, self._update_lookup)
+        self.updates.start()
         log.info("daemon started with config %s", self.config_dir)
 
     def stop(self) -> None:
         self.jobs.stop()
+        if self.updates is not None:
+            self.updates.stop()
         if self.notifier is not None:
             # Held rather than sent, so an upgrade gives one mail that says
             # the daemon stopped and started; see docs/features/notifications.md.
@@ -297,6 +306,8 @@ class Daemon:
             self._start_sources()
             if self.notifier is not None:
                 self.notifier.reconfigure(new.daemon.notifications)
+            if self.updates is not None:
+                self.updates.reconfigure(new.daemon.updates.check)
         log.info("configuration reloaded from %s", self.config_dir)
         return result
 
@@ -656,11 +667,7 @@ class Daemon:
         and the same warning a crashed instance raises."""
         assert self.state is not None
         failure = self.registry.failure_of(type_name)
-        error = (
-            failure.error
-            if failure is not None
-            else f"the plugin {type_name!r} is not installed"
-        )
+        error = failure.error if failure is not None else not_installed(type_name)
         self.unloadable[name] = Unloadable(role, type_name, error)
         self.state.set_instance(
             name, role=role, type_name=type_name, state="failed", error=error
@@ -780,10 +787,7 @@ class Daemon:
         else:
             entry = self.unloadable.get(instance)
             if entry is not None and entry.type_name == type_name:
-                raise InstanceNotRunning(
-                    f"{instance} cannot start: its plugin could not be loaded: "
-                    f"{entry.error}"
-                )
+                raise InstanceNotRunning(f"{instance} cannot start: {entry.error}")
             raise NotFound(f"unknown plugin type {type_name!r}")
         if runner is None or runner.type_name != type_name:
             raise NotFound(f"no instance {instance!r} of {type_name!r}")
@@ -982,6 +986,7 @@ class Daemon:
             ],
             "warnings": len(self.state.warnings()),
             "observations_received": self.state.counter("observations_received"),
+            "updates": self.updates.summary() if self.updates else None,
         }
 
     def status_sources(self) -> list[dict[str, Any]]:

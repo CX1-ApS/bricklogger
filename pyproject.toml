@@ -1,6 +1,6 @@
 [project]
 name = "bricklogger"
-version = "0.2.0"
+version = "0.2.1"
 description = "Data bridge for building automation: collects data based on a Brick model and writes it to time-series databases"
 readme = "README.md"
 license = "MIT"

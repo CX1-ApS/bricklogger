@@ -24,6 +24,7 @@ from bricklogger.cli.plugins import plugins_app
 from bricklogger.cli.query import query_command
 from bricklogger.cli.roles import destinations_app, sources_app
 from bricklogger.cli.serve import serve_command
+from bricklogger.cli.update import update_app
 from bricklogger.config import resolve_config_dir
 
 app = typer.Typer(
@@ -96,6 +97,7 @@ app.add_typer(destinations_app, name="destinations")
 app.add_typer(rules_app, name="rules")
 app.add_typer(notify_app, name="notify")
 app.add_typer(plugins_app, name="plugins")
+app.add_typer(update_app, name="update")
 app.add_typer(model_app, name="model")
 app.command("query")(query_command)
 app.command("serve")(serve_command)

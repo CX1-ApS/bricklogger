@@ -114,13 +114,12 @@ bricklogger plugins remove TYPE
 `remove` uninstalls the distribution that provides the type, and with it
 every other type the same distribution provides, which it names. It
 **refuses while an instance of the type is configured** in `sources.yaml` or
-`destinations.yaml`, naming the instances: an instance whose type is not
-installed makes the configuration invalid, and the daemon would reject it at
-its next start. Remove the instances first, with
-[`sources remove`](cli.md#sources-and-destinations) or
-`destinations remove`. `--force` uninstalls anyway; the daemon then rejects
-the configuration at its next start, naming the file, the instance and the
-key, until the instances are gone. The built-in types cannot be removed: their
+`destinations.yaml`, naming the instances: after the next start they would
+be [failed](#a-type-that-is-not-installed) and raise an alarm. Remove the
+instances first, with [`sources remove`](cli.md#sources-and-destinations) or
+`destinations remove`. `--force` uninstalls anyway; from the next start the
+instances are failed, and the rest runs, until they are removed or the plugin
+is added again. The built-in types cannot be removed: their
 distribution is Bricklogger itself, and `remove` says so.
 
 `remove` also **takes with it what only that plugin needed.** The plugin's
@@ -136,13 +135,20 @@ else installed requires it.
 
 ### Upgrading
 
-Running the install script again upgrades Bricklogger and leaves the
+[`bricklogger update`](cli.md#update) upgrades Bricklogger and its plugins
+from PyPI, validates the result before anything is restarted, and puts the
+previous versions back when it does not hold. `update all` moves the plugins
+with Bricklogger; `update core` holds them, and since a plugin is built for a
+[minor version](#compatibility) of Bricklogger, it goes no further than the
+plugins allow and names the one that holds it back; `update <type>` upgrades
+one plugin. `update status` shows what there is to upgrade.
+
+Running the install script again also upgrades Bricklogger, and leaves the
 installed plugins as they are, and a container that pulls a new image lays
-its plugin volume down again against it. A plugin is built for a
-[minor version](#compatibility) of Bricklogger, so after an upgrade across
-one, look at `bricklogger plugins`: a plugin that no longer loads shows as
+its plugin volume down again against it. After either, look at
+`bricklogger plugins`: a plugin that no longer loads shows as
 [failed](#when-a-plugin-cannot-load) with the reason, and the author's
-release for the new version is installed like the first.
+release for the new version is installed with `update <type>`.
 
 ## When a plugin cannot load
 
@@ -162,10 +168,30 @@ or whose declaration does not match its entry point, **stops nothing**:
   starts.
 - **Everything else runs.** Fix the cause and restart the daemon.
 
-The checks at load are three: the entry point must load to a
+### A type that is not installed
+
+A configured instance whose type no installed plugin provides is treated as
+one whose plugin cannot load. This is the case after an upgrade that moved a
+type out into a plugin of its own, when a container could not lay a plugin
+down, and when `type:` is misspelt in a file edited by hand. The daemon
+starts, and the instance is `failed` with the error that the type is not
+installed and that `bricklogger plugins add` installs it, raising
+`instance_failed`; validation warns with the same message. The catalogue lists
+only what is installed, so the type does not appear in `bricklogger plugins`.
+
+A change written through the [CLI](cli.md#sources-and-destinations), the web
+interface, the API or the MCP server is held to more: it is refused when an
+instance it adds or changes names a type that is not installed, so a
+misspelling is caught where it is typed. Instances the change leaves as they
+were are only warned about, so the rest of a file can still be edited while a
+plugin is missing.
+
+The checks at load are four: the entry point must load to a
 `SourceDeclaration` in `bricklogger.sources` and a `DestinationDeclaration` in
 `bricklogger.destinations`, the declaration's `type_name` must equal the entry
-point's name, and importing the module must succeed.
+point's name, the name must not be one of `all`, `core` and `status`, which
+[`update`](cli.md#update) takes as words of its own, and importing the module
+must succeed.
 
 ## Writing a plugin
 
@@ -179,7 +205,9 @@ point's name, and importing the module must succeed.
 
 The type name is written in YAML and typed on the command line, so it is
 lowercase letters, digits and hyphens; the module replaces the hyphen with an
-underscore. A plugin that provides several types registers several entry
+underscore. `all`, `core` and `status` are taken by
+[`bricklogger update`](cli.md#update) and cannot name a type. A plugin that
+provides several types registers several entry
 points in one distribution. A small plugin fits in one module:
 
 ```

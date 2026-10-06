@@ -1,0 +1,13 @@
+[Unit]
+Description=Bricklogger MCP server over HTTP
+After=bricklogger.service
+
+[Service]
+User=${user}
+Environment=BRICKLOGGER_CONFIG_DIR=${config_dir}
+ExecStart=${command} mcp serve --http
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=${wanted_by}

@@ -150,14 +150,16 @@ alerting probe uses `/health`; a dead database never causes a daemon restart.
 - **Daemon:** version, uptime, state, config and data directories, the active
   model version with upload and activation times, counts of points accepted,
   assigned and active, and every configured instance with its role, type and
-  state, so the summary alone says whether they are all running.
+  state, so the summary alone says whether they are all running. When the
+  daily [update check](cli.md#update) has found newer releases of Bricklogger
+  or its plugins, they stand here too, with the time of the check.
 - **Sources**, per instance: state (`starting`, `running`, `failed`,
   `stopped`), type, resources, last error, restart count and next retry. Per
   device: reachable or not, last success, error counters and skipped poll
   rounds. Per outcome: how many points are `active`, `unsupported` and
-  `rejected`. An instance whose plugin could not be loaded, source or
-  destination, is `failed` with the load error and has no next retry: it runs
-  when the plugin loads at a later start.
+  `rejected`. An instance whose plugin could not be loaded, or whose type no
+  installed plugin provides, source or destination, is `failed` with the error
+  and has no next retry: it runs when the plugin loads at a later start.
 - **Destinations**, per instance: state, whether it stores metadata, spool
   depth as observations, bytes and age of the oldest entry, dropped count,
   last successful write, last error.
@@ -188,7 +190,7 @@ runtime state, except where the end is the restart itself.
 | `rate_limited` | `operation` | A source's request budget makes its rounds outlast their interval; the message carries the cadence it can keep | The source's rounds keep their interval again |
 | `future_timestamp` | `operation` | Observations rejected for a timestamp in the future | The point delivers an observation with an acceptable timestamp |
 | `spool_drop` | `operation` | A destination's spool has dropped observations | The spool has been drained again; the dropped total stays in the destination's status |
-| `instance_failed` | `operation` | A source or destination instance is failed, including one whose plugin could not be loaded | The instance runs again |
+| `instance_failed` | `operation` | A source or destination instance is failed, including one whose plugin could not be loaded or is not installed | The instance runs again |
 | `instance_stopped` | `operation` | An instance stopped by the operator | The instance is started |
 | `stop_timeout` | `operation` | An instance did not stop within `stop_timeout` and was abandoned | The daemon starts anew — the abandoned instance died with the old process — or the instance stops cleanly |
 | `notify_failed` | `operation` | A notification mail could not be sent; the message carries the server's answer | A mail goes through again |

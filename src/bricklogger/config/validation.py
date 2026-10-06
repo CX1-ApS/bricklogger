@@ -65,6 +65,51 @@ def _unloadable(file: str, name: str, error: str) -> ConfigIssue:
     )
 
 
+def not_installed(type_name: str) -> str:
+    """What is said of a configured type that no installed plugin provides,
+    by validation and by the daemon that shows its instance failed."""
+    return (
+        f"the type {type_name!r} is not installed; add its plugin with "
+        "`bricklogger plugins add`"
+    )
+
+
+def _not_installed(file: str, name: str, type_name: str) -> ConfigIssue:
+    """A warning, not an error: the instance will be failed while everything
+    else runs, as for a plugin that cannot load. See
+    ``docs/features/plugins.md``, "A type that is not installed"."""
+    return ConfigIssue(
+        file, f"the instance will be failed: {not_installed(type_name)}", name, "type"
+    )
+
+
+def _changed_instances(
+    config_dir: Path,
+    config: Configuration,
+    env: Mapping[str, str] | None,
+    texts: Mapping[str, str | None] | None,
+) -> set[tuple[str, str]]:
+    """``(file, name)`` for every instance a proposed change adds or changes,
+    compared with the files on disk; nothing when no change is proposed.
+    When the files on disk do not load, every instance counts as changed."""
+    if not texts:
+        return set()
+    current = load_configuration(config_dir, env).configuration
+    changed: set[tuple[str, str]] = set()
+    for file, new, old in (
+        ("sources", config.sources, current.sources if current else {}),
+        (
+            "destinations",
+            config.destinations,
+            current.destinations if current else {},
+        ),
+    ):
+        for name, instance in new.items():
+            if old.get(name) != instance:
+                changed.add((file, name))
+    return changed
+
+
 def _reserved(file: str, name: str) -> ConfigIssue:
     return ConfigIssue(
         file,
@@ -81,7 +126,9 @@ def validate_configuration(
 ) -> ValidationResult:
     """Validate the whole directory; the configuration comes back only when valid.
 
-    ``texts`` replaces files as they are on disk, for a proposed change.
+    ``texts`` replaces files as they are on disk, for a proposed change. A
+    configured type that is not installed is a warning, except in an
+    instance the proposed change adds or changes, where it is an error.
     """
     loaded = load_configuration(config_dir, env, texts)
     if loaded.configuration is None:
@@ -89,6 +136,7 @@ def validate_configuration(
     config = loaded.configuration
     errors: list[ConfigIssue] = []
     warnings: list[ConfigIssue] = []
+    changed = _changed_instances(config_dir, config, env, texts)
 
     daemon = config.daemon
     if not is_loopback(daemon.api.host) and not daemon.api.token:
@@ -126,6 +174,9 @@ def validate_configuration(
             if failure is not None:
                 warnings.append(_unloadable("sources", name, failure.error))
                 continue
+            if ("sources", name) not in changed:
+                warnings.append(_not_installed("sources", name, source.type))
+                continue
             errors.append(
                 ConfigIssue(
                     "sources",
@@ -149,6 +200,9 @@ def validate_configuration(
             failure = registry.failure_of(destination.type)
             if failure is not None:
                 warnings.append(_unloadable("destinations", name, failure.error))
+                continue
+            if ("destinations", name) not in changed:
+                warnings.append(_not_installed("destinations", name, destination.type))
                 continue
             errors.append(
                 ConfigIssue(

@@ -14,7 +14,7 @@ published by GitHub Actions.
 
 | Tag | What it is |
 |-----|------------|
-| `0.2.0` | One released version — what a building's logger should name |
+| `0.2.1` | One released version — what a building's logger should name |
 | `0.2` | The newest patch of that minor version |
 | `latest` | The newest release |
 
@@ -55,7 +55,7 @@ name: bricklogger
 
 services:
   daemon:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.0
+    image: ghcr.io/cx1-aps/bricklogger:0.2.1
     network_mode: host
     restart: unless-stopped
     stop_grace_period: 30s
@@ -65,7 +65,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   web:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.0
+    image: ghcr.io/cx1-aps/bricklogger:0.2.1
     command: ["bricklogger", "serve"]
     profiles: ["web"]
     depends_on: ["daemon"]
@@ -77,7 +77,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   mcp:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.0
+    image: ghcr.io/cx1-aps/bricklogger:0.2.1
     command: ["bricklogger", "mcp", "serve", "--http"]
     profiles: ["mcp"]
     depends_on: ["daemon"]
@@ -299,15 +299,22 @@ to start lays the manifest down again before the daemon starts:
 - The manifest is laid down in its order, each package resolved
   [with those before it](features/plugins.md#installing-a-plugin). A package
   that cannot be installed, or cannot live with the plugins laid down before
-  it, is logged and left out. The daemon starts anyway, and the plugin shows
-  in `bricklogger plugins` as
-  [failed](features/plugins.md#when-a-plugin-cannot-load) with the reason,
-  exactly as it would on any other install.
+  it, is logged and left out. The daemon starts anyway, and the instances of
+  the types it would have provided are
+  [failed](features/plugins.md#a-type-that-is-not-installed) until it is
+  installed, exactly as they would be on any other install.
 - When several containers start at once, one does the work and the others wait
   for it to finish.
 
 Going back to the previous tag works the same way, and lays the plugins down
 against that image again.
+
+Between images, the plugins are upgraded in the volume with
+[`update`](features/cli.md#update): `update <type>` for one, `update all` for
+all of them, each held to the image's version of Bricklogger, validated
+before it is kept, and written to the manifest so a new image lays the same
+set down. `update core` refuses in a container and names the two commands
+above. Restart the containers afterwards with `docker compose restart`.
 
 The destination migrates its own schema when it starts, and an incompatible
 configuration is rejected at start with the file and the key named — as on
@@ -350,7 +357,7 @@ docker run -d --name bricklogger \
   -v bricklogger-config:/etc/bricklogger \
   -v bricklogger-data:/var/lib/bricklogger \
   -v bricklogger-plugins:/var/lib/bricklogger/plugins \
-  ghcr.io/cx1-aps/bricklogger:0.2.0
+  ghcr.io/cx1-aps/bricklogger:0.2.1
 ```
 
 The web interface and the MCP server are two more `docker run` lines with the
@@ -368,9 +375,11 @@ same volumes and their own command.
   `address` in `sources.yaml` must be the host's own address with the right
   prefix length; `bricklogger sources <name> discover` in the container tells
   the two cases apart.
-- **A plugin is gone after an upgrade.** `bricklogger plugins` shows it as
-  failed with the reason, and the log line from the start says whether the
-  reinstall could reach a package index.
+- **A plugin is gone after an upgrade.** Its instances are failed in
+  `bricklogger status` with the type not installed, and the log line from the
+  start says why the reinstall left it out — often that it could not reach a
+  package index. A plugin that is installed but no longer loads shows as
+  failed in `bricklogger plugins` with the reason.
 - **The web interface cannot reach the daemon.** On the host network both must
   agree on `api.host`; on a bridge network the daemon must bind `0.0.0.0` and
   have a token.

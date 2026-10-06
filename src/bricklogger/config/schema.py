@@ -185,6 +185,16 @@ class NotificationSettings(_Strict):
     )
 
 
+class UpdateSettings(_Strict):
+    """``updates`` in ``daemon.yaml``. See ``docs/features/cli.md``, "update"."""
+
+    check: bool = Field(
+        default=True,
+        description="Whether the daemon looks on PyPI once a day for newer "
+        "releases of Bricklogger and its plugins; off on a network with no way out",
+    )
+
+
 class DaemonSettings(_Strict):
     """``daemon.yaml``."""
 
@@ -215,6 +225,10 @@ class DaemonSettings(_Strict):
     notifications: NotificationSettings = Field(
         default_factory=NotificationSettings,
         description="Mail to the administrator, off by default",
+    )
+    updates: UpdateSettings = Field(
+        default_factory=UpdateSettings,
+        description="The daily look for newer releases",
     )
 
     @property

@@ -37,8 +37,8 @@ The script brings its own Python, so the machine needs only `curl`. With
 `sudo` it installs a service: the program under `/opt/bricklogger`, the
 configuration in `/etc/bricklogger`, the data in `/var/lib/bricklogger` and
 three systemd units, left stopped. Without `sudo` everything stays in your home
-directory. `--version 0.2.0` installs a given version; options come after
-`--` when the script is piped: `… | sudo sh -s -- --version 0.2.0`.
+directory. `--version 0.2.1` installs a given version; options come after
+`--` when the script is piped: `… | sudo sh -s -- --version 0.2.1`.
 
 **As a container** the same program is `ghcr.io/cx1-aps/bricklogger`, with a
 compose file for the daemon, the web interface and the MCP server; see
@@ -104,8 +104,8 @@ sudo systemctl restart bricklogger           # the daemon reads plugins at start
 ```
 
 A plugin is a Python package that provides a source or a destination type. A
-plugin that cannot load stops nothing: its instances show as failed and the
-rest keep running. Writing one is described under
+plugin that cannot load, or is configured but not installed, stops nothing:
+its instances show as failed and the rest keep running. Writing one is described under
 [plugins](https://cx1-aps.github.io/bricklogger/features/plugins/).
 
 ## Mail notifications
@@ -122,17 +122,16 @@ See [notifications](https://cx1-aps.github.io/bricklogger/features/notifications
 
 ## Upgrade
 
-Run the install script again; it leaves the plugins, the configuration and the
-data where they are. Then restart the daemon. A container pulls the new image
-instead:
-
 ```bash
-curl -fsSL https://github.com/CX1-ApS/bricklogger/releases/latest/download/install.sh | sudo sh
-sudo systemctl restart bricklogger
+bricklogger update status        # what there is to upgrade
+sudo bricklogger update all      # Bricklogger and the plugins together
 ```
 
-After an upgrade to a new minor version, `bricklogger plugins` shows whether
-every plugin still loads.
+`update` checks the configuration with the new version before it restarts
+anything, and puts the previous versions back if it does not hold; the
+configuration and the data stay where they are. `update core` upgrades
+Bricklogger alone, `update <type>` one plugin. Running the install script
+again works too. A container pulls the new image instead.
 
 **Upgrading from 0.1 with an iBOS source:** iBOS is no longer built in. The
 `ibos` instance shows as failed until the plugin is added with

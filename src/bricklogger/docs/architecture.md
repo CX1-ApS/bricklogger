@@ -429,9 +429,13 @@ name than the entry point, is recorded with its error instead of ending the
 load. The catalogue lists the plugin with the error where its description
 would be, its configured instances are `failed` in status with the same error
 and raise `instance_failed`, validation warns about them instead of checking
-their settings, and every other instance runs. A configured type with no
-entry point at all remains a validation error: the plugin has been removed,
-or the name is misspelt.
+their settings, and every other instance runs. A configured type that no
+installed plugin provides — a plugin not yet added after an upgrade, one a
+container could not lay down, or a misspelt name — is treated the same way
+when the daemon starts: its instances are `failed` with the error that the
+type is not installed. A change written through the CLI, the web interface,
+the API or the MCP server is refused when an instance it adds or changes
+names such a type, so a misspelling is caught where it is typed.
 
 ### Configuration binding
 

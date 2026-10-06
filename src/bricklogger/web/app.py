@@ -28,6 +28,8 @@ from bricklogger.config import CONFIG_FILES, resolve_config_dir
 from bricklogger.ops.environment import InstancesConfigured, add_plugins, remove_plugin
 from bricklogger.ops.errors import OperationError
 from bricklogger.ops.plugin_volume import plugin_directory
+from bricklogger.ops.updates import CORE, UpdateRefused, update
+from bricklogger.ops.updates import status as update_status
 from bricklogger.web.client import ApiProblem, DaemonClient, DaemonUnavailable, shorten
 from bricklogger.web.forms import (
     cell,
@@ -841,6 +843,10 @@ def create_web_app(
             offer_force=None,
         )
         context.update(extra)
+        updates = context.get("looked")
+        if updates is None and context["status"] is not None:
+            updates = context["status"].get("updates")
+        context.update(newer_releases_context(updates))
         return context
 
     @app.get("/plugins", response_class=HTMLResponse)
@@ -907,6 +913,54 @@ def create_web_app(
             context = await plugins_context(message="\n".join(lines), restart=True)
         return await render(request, "partials/plugins.html", "plugins", **context)
 
+    @app.post("/actions/plugins/check", response_class=HTMLResponse)
+    async def plugins_check(request: Request) -> Response:
+        try:
+            rows = await asyncio.to_thread(update_status)
+        except OperationError as exc:
+            context = await plugins_context(
+                message=text("plugins.refused", message=exc.message), signal=True
+            )
+        else:
+            looked = {
+                "checked_at": datetime.now(UTC).isoformat(timespec="seconds"),
+                "available": [row.as_dict() for row in rows if row.behind],
+                "errors": [row.error for row in rows if row.error],
+            }
+            context = await plugins_context(looked=looked)
+        return await render(request, "partials/plugins.html", "plugins", **context)
+
+    @app.post("/actions/plugins/{type_name}/update", response_class=HTMLResponse)
+    async def plugins_update(request: Request, type_name: str) -> Response:
+        try:
+            result = await asyncio.to_thread(
+                update, type_name, config_dir=plugins_config_dir, restart=False
+            )
+        except UpdateRefused as exc:
+            key = "plugins.update.refused" if exc.restored else "plugins.refused"
+            lines = [text(key, message=exc.message)]
+            lines += [
+                f"  {error.get('subject')}: {error.get('message')}"
+                for error in exc.errors
+            ]
+            context = await plugins_context(message="\n".join(lines), signal=True)
+        except OperationError as exc:
+            context = await plugins_context(
+                message=text("plugins.refused", message=exc.message), signal=True
+            )
+        else:
+            if result.moved:
+                moved = ", ".join(
+                    f"{name} {old or '-'} → {new or '-'}"
+                    for name, (old, new) in result.moved.items()
+                )
+                context = await plugins_context(
+                    message=text("plugins.updated", moved=moved), restart=True
+                )
+            else:
+                context = await plugins_context(message=text("plugins.uptodate"))
+        return await render(request, "partials/plugins.html", "plugins", **context)
+
     # --- the frame's own partial --------------------------------------------
 
     @app.get("/partials/statusline", response_class=HTMLResponse)
@@ -914,6 +968,34 @@ def create_web_app(
         return await render(request, "partials/statusline.html", None, oob=True)
 
     return app
+
+
+def newer_releases_context(updates: Mapping[str, Any] | None) -> dict[str, Any]:
+    """What the Plugins screen shows of the newer releases: when they were
+    looked for, Bricklogger's own, and per type the release an Update installs."""
+    if not updates:
+        return {
+            "checked_at": None,
+            "core_newest": None,
+            "update_to": {},
+            "look_errors": [],
+        }
+    core_newest = None
+    update_to: dict[str, str] = {}
+    for row in updates.get("available") or []:
+        if row.get("name") == CORE:
+            core_newest = row.get("newest")
+            continue
+        fits = row.get("fits")
+        if fits and fits != row.get("installed"):
+            for type_name in row.get("types") or []:
+                update_to[type_name] = fits
+    return {
+        "checked_at": updates.get("checked_at"),
+        "core_newest": core_newest,
+        "update_to": update_to,
+        "look_errors": list(updates.get("errors") or []),
+    }
 
 
 def cross_site(request: Request) -> bool:

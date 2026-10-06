@@ -4,6 +4,12 @@
   {% elif not rows %}
     <p class="empty">{{ t('plugins.none') }}</p>
   {% else %}
+  <div class="button-row">
+    <span>{% if core_newest %}{{ t('plugins.core.newer', installed=status.version, newest=core_newest) }} <code>{{ t('plugins.core.command') }}</code>{% else %}{{ t('plugins.core', installed=status.version) }}{% endif %}</span>
+    <span class="dim">{% if checked_at %}{{ t('plugins.checked', when=checked_at) }}{% else %}{{ t('plugins.unchecked') }}{% endif %}</span>
+    <button class="button quiet" hx-post="/actions/plugins/check" hx-target="#plugins" hx-swap="outerHTML">{{ t('plugins.check') }}</button>
+  </div>
+  {% for error in look_errors %}<p class="dim">{{ t('plugins.look.error', error=error) }}</p>{% endfor %}
   <div class="table-wrap">
     <table>
       <thead>
@@ -11,6 +17,7 @@
           <th>{{ t('plugins.type') }}</th>
           <th>{{ t('plugins.role') }}</th>
           <th>{{ t('plugins.version') }}</th>
+          <th>{{ t('plugins.newest') }}</th>
           <th>{{ t('plugins.description') }}</th>
           <th>{{ t('plugins.instances') }}</th>
           <th></th>
@@ -22,6 +29,7 @@
           <td class="mono">{{ row.type }}</td>
           <td>{{ row.role }}</td>
           <td>{{ row.version or '' }}</td>
+          <td>{% if update_to.get(row.type) %}<button class="button" hx-post="/actions/plugins/{{ row.type }}/update" hx-target="#plugins" hx-swap="outerHTML" hx-confirm="{{ t('plugins.update.confirm', type=row.type, version=update_to[row.type]) }}">{{ t('plugins.update', version=update_to[row.type]) }}</button>{% endif %}</td>
           <td>{% if row.error %}<span class="signal">{{ t('plugins.error', error=row.error) }}</span>{% else %}{{ row.description or '' }}{% endif %}</td>
           <td class="mono">{{ row.instances | join(', ') if row.instances else t('common.none') }}</td>
           <td><button class="button quiet" hx-post="/actions/plugins/{{ row.type }}/remove" hx-target="#plugins" hx-swap="outerHTML" hx-confirm="{{ t('plugins.remove.confirm', type=row.type) }}">{{ t('plugins.remove') }}</button></td>

@@ -5,12 +5,14 @@ from __future__ import annotations
 import threading
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 import uvicorn
 
 from bricklogger.daemon.api import create_app
 from bricklogger.daemon.core import Daemon
+from bricklogger.ops.errors import OperationError
 from tests.fakes import FakeDestination, FakeSource
 from tests.support import (
     DESTINATIONS,
@@ -28,6 +30,17 @@ from tests.support import (
 def template(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """A data directory with the example model activated, built once per run."""
     return build_template(tmp_path_factory.mktemp("template"))
+
+
+@pytest.fixture(autouse=True)
+def _no_package_index(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No test reaches PyPI: the daemon's daily look and `update status` find
+    nothing unless a test hands them releases of its own."""
+
+    def unreachable(url: str) -> Any:
+        raise OperationError(f"no package index in the tests ({url})")
+
+    monkeypatch.setattr("bricklogger.ops.updates.fetch_json", unreachable)
 
 
 @pytest.fixture(autouse=True)

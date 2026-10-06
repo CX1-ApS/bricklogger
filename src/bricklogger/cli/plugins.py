@@ -129,8 +129,8 @@ def remove_command(
 ) -> None:
     """Uninstall the distribution that provides a plugin type.
 
-    Refuses while an instance of the type is configured, unless --force; the
-    daemon would reject such a configuration at its next start.
+    Refuses while an instance of the type is configured, unless --force; from
+    the daemon's next start such an instance would be failed.
     """
     context = cli_context(ctx)
     try:

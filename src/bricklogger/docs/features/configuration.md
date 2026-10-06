@@ -107,6 +107,8 @@ notifications:
   window: 2m                       # default
   min_interval: 15m                # default
   digest: "07:00"                  # default; the machine's local time
+updates:
+  check: true                      # default; once a day against PyPI
 ```
 
 - `api.host`/`api.port`: where the HTTP API binds. The default is localhost;
@@ -137,6 +139,11 @@ notifications:
   file and the reference here; by hand it is a secret like any other. The
   daemon ignores this section too.
 - `notifications`: mail to the administrator, off by default, defined below.
+- `updates.check`: whether the daemon looks on PyPI once a day for newer
+  releases of Bricklogger and its plugins, and shows them in `status` and the
+  daily summary, as [`update`](cli.md#update) describes. On by default; turn
+  it off on a network with no way out. `update status` looks whenever it is
+  run, whatever the setting.
 
 ### Notifications
 

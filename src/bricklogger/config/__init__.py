@@ -51,6 +51,7 @@ from bricklogger.config.schema import (
 from bricklogger.config.validation import (
     RESERVED_INSTANCE_NAMES,
     ValidationResult,
+    not_installed,
     validate_configuration,
 )
 
@@ -81,6 +82,7 @@ __all__ = [
     "examples_for",
     "instances_in",
     "load_configuration",
+    "not_installed",
     "parse_text",
     "read_env_file",
     "read_texts",

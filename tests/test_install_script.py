@@ -13,6 +13,7 @@ import pytest
 from typer.main import get_command
 
 from bricklogger.cli import app
+from bricklogger.ops.units import template
 
 SCRIPT = Path(__file__).resolve().parent.parent / "install.sh"
 
@@ -130,12 +131,15 @@ def test_the_script_installs_where_the_documentation_says() -> None:
         assert path in text, path
 
 
-def test_the_script_writes_the_three_units() -> None:
+def test_the_script_writes_the_three_units_from_the_package() -> None:
     text = SCRIPT.read_text(encoding="utf-8")
+    assert "-m bricklogger.ops.units write" in text, "the templates write the units"
     for unit in (
         "bricklogger.service",
         "bricklogger-web.service",
         "bricklogger-mcp.service",
     ):
         assert unit in text, unit
-    assert "mcp serve --http" in text, "the MCP unit serves HTTP"
+    assert "mcp serve --http" in template("bricklogger-mcp.service"), (
+        "the MCP unit serves HTTP"
+    )

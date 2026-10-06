@@ -387,7 +387,7 @@ def remove_plugin(
     other type it provides and what only that plugin needed.
 
     Refuses while an instance of any of those types is configured, unless
-    ``force``: the daemon would reject the configuration at its next start.
+    ``force``: from the daemon's next start those instances would be failed.
     The built-in types cannot be removed, since their distribution is
     Bricklogger itself.
     """
@@ -413,8 +413,8 @@ def remove_plugin(
         raise InstancesConfigured(
             f"instances of {', '.join(types)} are configured: {listing}. Remove "
             "them first with `bricklogger sources remove NAME` or `destinations "
-            "remove NAME`, or pass --force and the daemon will reject the "
-            "configuration at its next start until they are gone"
+            "remove NAME`, or pass --force and they will be failed from the "
+            "daemon's next start until they are gone"
         )
     found = _environment(environment, "uninstall", [distribution])
     _writable(found)
