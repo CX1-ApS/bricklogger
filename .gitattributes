@@ -1,0 +1,14 @@
+# Shell scripts are copied straight onto Linux hosts, where a CR breaks the
+# shebang line; keep them LF in every working tree.
+*.sh text eol=lf
+
+# The Dockerfile is run by a Linux builder, where a CR ends up in the command
+# a RUN line runs; keep it LF too.
+Dockerfile text eol=lf
+
+# Development-only files stay out of the archive scripts/publish.sh publishes
+# to GitHub; the development history and these stay on Gitea.
+CLAUDE.md export-ignore
+notes/ export-ignore
+scripts/publish.sh export-ignore
+.claude/ export-ignore

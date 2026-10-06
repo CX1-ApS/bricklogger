@@ -1,0 +1,36 @@
+<div id="points" hx-get="/partials/points?{{ query }}&offset={{ offset }}" hx-trigger="every {{ poll }}s" hx-swap="outerHTML">
+  {% if not reachable %}
+    {% include "partials/unreachable.html" %}
+  {% elif problem %}
+    <div class="notice signal">{{ t('common.error', status=problem.status, detail=problem.detail) }}</div>
+  {% elif not page['items'] %}
+    <p class="empty">{{ t('points.none') }}</p>
+  {% else %}
+  <div class="table-wrap"><table>
+    <thead><tr>
+      <th>{{ t('points.point') }}</th><th>{{ t('points.name') }}</th><th>{{ t('points.class') }}</th><th>{{ t('points.instance') }}</th><th>{{ t('points.method') }}</th>
+      <th>{{ t('points.outcome') }}</th><th>{{ t('points.last_value') }}</th><th>{{ t('points.at') }}</th><th>{{ t('points.warnings') }}</th>
+    </tr></thead>
+    <tbody>
+    {% for item in page['items'] %}
+      <tr>
+        <td class="uri">{{ short(item.uri, prefixes) }}</td>
+        <td>{{ (item.metadata or {}).get('name') or '' }}</td>
+        <td class="code">{{ (item.metadata or {}).get('brick_class') or '' }}</td>
+        <td class="code">{{ item.instance or '' }}</td>
+        <td class="code">{{ item.method }}{% if item.fallback_active %} <span class="tag">{{ t('points.fallback') }}</span>{% endif %}</td>
+        <td class="code">{% if item.outcome == 'rejected' %}<span class="tag signal">{{ item.outcome }}</span>{% else %}{{ item.outcome or t('points.pending') }}{% endif %}</td>
+        <td class="num">{% if item.last_valid %}{{ item.last_valid.value }}{% endif %}</td>
+        <td class="num">{% if item.last_valid %}{{ item.last_valid.time | when }}{% endif %}</td>
+        <td class="code">{% for code in item.warnings %}<span class="tag signal">{{ code }}</span> {% endfor %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <div class="pager">
+    <span>{{ t('points.count', total=page.total, shown=page['items'] | length, offset=offset) }}</span>
+    {% if offset > 0 %}<a href="/points?{{ query }}&offset={{ [offset - limit, 0] | max }}">{{ t('points.previous') }}</a>{% endif %}
+    {% if offset + limit < page.total %}<a href="/points?{{ query }}&offset={{ offset + limit }}">{{ t('points.next') }}</a>{% endif %}
+  </div>
+  {% endif %}
+</div>

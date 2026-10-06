@@ -1,0 +1,13 @@
+{% if problem_text %}
+<pre class="terminal signal">{{ t('status.prompt') }} {{ problem_text }}</pre>
+{% elif result.valid %}
+<pre class="terminal">{{ t('status.prompt') }} {{ t('config.applied') if applied else t('config.valid') }}
+{%- for w in result.warnings %}
+{{ t('status.prompt') }} warning {{ w.file }}.yaml{% if w.subject %} [{{ w.subject }}]{% endif %}{% if w.key %} {{ w.key }}{% endif %}: {{ w.message }}
+{%- endfor %}</pre>
+{% else %}
+<pre class="terminal signal">{{ t('status.prompt') }} {{ t('config.invalid', count=result.errors | length) }}
+{%- for e in result.errors %}
+<span data-file="{{ e.file }}" data-subject="{{ e.subject or '' }}" data-key="{{ e.key or '' }}">  {{ e.file }}.yaml{% if e.subject %} [{{ e.subject }}]{% endif %}{% if e.key %} {{ e.key }}{% endif %}: {{ e.message }}</span>
+{%- endfor %}</pre>
+{% endif %}

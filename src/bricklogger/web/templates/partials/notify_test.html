@@ -1,0 +1,9 @@
+<div id="notify-test">
+  {% if test_result is none %}
+    {% include "partials/unreachable.html" %}
+  {% elif test_result.sent %}
+  <p class="note">{{ t('notify.test.sent', to=(test_result.to or []) | join(', '), answer=test_result.answer) }}</p>
+  {% else %}
+  <p class="note signal">{{ t('notify.test.failed', error=test_result.error) }}</p>
+  {% endif %}
+</div>

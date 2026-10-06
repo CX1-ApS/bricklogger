@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ t('instances.title') }} · {{ t('wordmark') }}{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ t('instances.title') }}</h1></div>
+<div id="instances" hx-get="/partials/instances" hx-trigger="every {{ poll }}s" hx-swap="outerHTML">
+  {% include "partials/instances.html" %}
+</div>
+{% if reachable and tools %}
+<h2>{{ t('tools.title') }}</h2>
+<p class="lead dim">{{ t('tools.help') }}</p>
+{% for entry in tools %}
+<section class="tool">
+  <h3 class="mono">{{ entry.instance }} · {{ entry.tool.name }}</h3>
+  <p class="dim">{{ entry.tool.description }}</p>
+  {% if entry.tool.document %}
+  <form class="filters" method="post" action="/actions/instances/{{ entry.type }}/{{ entry.instance }}/tools/{{ entry.tool.name }}/document">
+  {% else %}
+  <form class="filters" hx-post="/actions/instances/{{ entry.type }}/{{ entry.instance }}/tools/{{ entry.tool.name }}" hx-target="#result-{{ entry.instance }}-{{ entry.tool.name }}" hx-swap="innerHTML">
+  {% endif %}
+    {% for field in entry.fields %}
+    <div class="field">
+      <label for="{{ entry.instance }}-{{ entry.tool.name }}-{{ field.name }}">{{ field.name }}{% if field.required %} *{% endif %}</label>
+      {% if field.kind == 'boolean' %}
+      <select id="{{ entry.instance }}-{{ entry.tool.name }}-{{ field.name }}" name="{{ field.name }}">
+        <option value="false"{% if not field.default %} selected{% endif %}>{{ t('common.no') }}</option>
+        <option value="true"{% if field.default %} selected{% endif %}>{{ t('common.yes') }}</option>
+      </select>
+      {% elif field.options %}
+      <select id="{{ entry.instance }}-{{ entry.tool.name }}-{{ field.name }}" name="{{ field.name }}">
+        {% if not field.required %}<option value="">{{ t('points.filter.any') }}</option>{% endif %}
+        {% for option in field.options %}<option value="{{ option }}"{% if field.default == option %} selected{% endif %}>{{ option }}</option>{% endfor %}
+      </select>
+      {% else %}
+      <input id="{{ entry.instance }}-{{ entry.tool.name }}-{{ field.name }}" name="{{ field.name }}" type="{{ 'number' if field.kind in ('integer', 'number') else 'text' }}"{% if field.kind == 'number' %} step="any"{% endif %} value="{{ field.default if field.default is not none else '' }}" placeholder="{{ field.description }}"{% if field.required %} required{% endif %}>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <div class="button-row"><button class="button" type="submit">{{ t('tools.download') if entry.tool.document else t('tools.run') }}</button></div>
+  </form>
+  {% if not entry.tool.document %}<div id="result-{{ entry.instance }}-{{ entry.tool.name }}"></div>{% endif %}
+</section>
+{% endfor %}
+{% endif %}
+{% endblock %}

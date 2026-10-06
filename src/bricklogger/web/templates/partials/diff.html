@@ -1,0 +1,14 @@
+{% if problem_text %}
+<pre class="terminal signal">{{ t('status.prompt') }} {{ problem_text }}</pre>
+{% elif not (diff.added or diff.removed or diff.changed) %}
+<p class="empty">{{ t('model.diff.none', a=a, b=b) }}</p>
+{% else %}
+<div class="table-wrap"><table>
+  <thead><tr><th>{{ t('model.diff.change') }}</th><th>{{ t('points.point') }}</th></tr></thead>
+  <tbody>
+  {% for kind in ('added', 'removed', 'changed') %}{% for uri in diff[kind] %}
+    <tr><td class="code"><span class="tag{% if kind == 'removed' %} signal{% endif %}">{{ kind }}</span></td><td class="uri">{{ short(uri, prefixes) }}</td></tr>
+  {% endfor %}{% endfor %}
+  </tbody>
+</table></div>
+{% endif %}

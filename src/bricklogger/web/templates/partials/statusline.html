@@ -1,0 +1,13 @@
+{% if status %}
+<span data-model="{{ status.model.active.version if status.model.active else '' }}">{{ t('status.prompt') }} {{ t('status.daemon') }}: {{ status.health }}</span>
+<span>· {{ t('status.points') }} {{ status.points.active }}/{{ status.points.assigned }}</span>
+<span>· {{ t('status.warnings') }} {{ status.warnings }}</span>
+<span>· {{ t('status.observations') }} {{ status.observations_received }}</span>
+<span class="cursor">· {{ now | when }}</span>
+{% else %}
+<span class="signal">{{ t('status.prompt') }} {{ t('status.unreachable') }}</span>
+<span class="cursor">· {{ now | when }}</span>
+{% endif %}
+{% if oob %}
+<span id="health" hx-swap-oob="true" class="health{% if not status %} off signal{% elif status.health == 'degraded' %} signal{% endif %}">{{ t('topbar.health') }}: {{ status.health if status else t('status.unreachable') }}</span>
+{% endif %}

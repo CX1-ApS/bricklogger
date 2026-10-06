@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}{{ t('notify.title') }} · {{ t('wordmark') }}{% endblock %}
+{% block content %}
+{% include "partials/notifications.html" %}
+<form class="button-row" hx-post="/actions/notifications/test" hx-target="#notify-test" hx-swap="outerHTML"><button class="button quiet" type="submit">{{ t('notify.test') }}</button></form>
+<div id="notify-test"></div>
+{% endblock %}

@@ -1,0 +1,1 @@
+<span id="health" class="health{% if not status %} off signal{% elif status.health == 'degraded' %} signal{% endif %}">{{ t('topbar.health') }}: {{ status.health if status else t('status.unreachable') }}</span>

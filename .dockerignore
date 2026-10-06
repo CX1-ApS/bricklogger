@@ -1,0 +1,9 @@
+# The build needs the package, its metadata and the lock, and the entrypoint.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!LICENSE
+!src
+!docker
+**/__pycache__

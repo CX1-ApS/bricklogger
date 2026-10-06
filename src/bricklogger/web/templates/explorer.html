@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}{{ t('explorer.title') }} · {{ t('wordmark') }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/explorer.css?v={{ version }}">
+<script src="/static/vendor/cytoscape.min.js"></script>
+{% endblock %}
+{% block main_class %} class="full"{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ t('explorer.title') }}</h1>
+  {% if model_version %}<span class="mono dim" id="model-version">{{ t('explorer.version', version=model_version) }}</span>{% endif %}
+  <span class="spacer"></span>
+  {% if reachable and model_version %}<button class="button quiet" type="button" id="reload">{{ t('explorer.reload') }}</button>{% endif %}
+</div>
+{% if not reachable %}
+  {% include "partials/unreachable.html" %}
+{% elif not model_version %}
+  <p class="empty">{{ t('explorer.no_model') }} — <a href="/model">{{ t('explorer.no_model.hint') }}</a></p>
+{% else %}
+<div id="notice" hidden></div>
+<div class="explorer" id="explorer">
+
+  <section class="pane" id="pane-tree">
+    <div class="pane-head">
+      <span class="section-title">{{ t('explorer.tree') }}</span>
+      <span class="mono dim" id="counts"></span>
+      <span class="spacer"></span>
+      <label class="inline-field">
+        <span>{{ t('explorer.sort') }}</span>
+        <select id="sort">
+          <option value="name">{{ t('explorer.sort.name') }}</option>
+          <option value="class">{{ t('explorer.sort.class') }}</option>
+          <option value="count">{{ t('explorer.sort.count') }}</option>
+        </select>
+      </label>
+      <button class="button quiet" type="button" id="expand-all">{{ t('explorer.expand_all') }}</button>
+      <button class="button quiet" type="button" id="collapse-all">{{ t('explorer.collapse_all') }}</button>
+    </div>
+    <div class="pane-controls">
+      <div class="search-row">
+        <div class="field">
+          <label for="search">{{ t('explorer.search') }}</label>
+          <input id="search" type="search" placeholder="{{ t('explorer.search.placeholder') }}" autocomplete="off">
+        </div>
+        <button class="button quiet" type="button" id="clear">{{ t('explorer.filter.clear') }}</button>
+      </div>
+      <fieldset class="kinds" id="kinds">
+        <legend>{{ t('explorer.filter.kind') }}</legend>
+      </fieldset>
+      <details id="more-filters">
+        <summary>{{ t('explorer.filter.more') }}</summary>
+        <div class="more">
+          <div class="field">
+            <label for="class">{{ t('explorer.filter.class') }}</label>
+            <select id="class"></select>
+          </div>
+          <div class="field">
+            <label for="finding">{{ t('explorer.filter.finding') }}</label>
+            <select id="finding"></select>
+          </div>
+          <div class="field">
+            <label for="outcome">{{ t('explorer.filter.outcome') }}</label>
+            <select id="outcome"></select>
+          </div>
+          <div class="field">
+            <label for="warning">{{ t('explorer.filter.warning') }}</label>
+            <select id="warning"></select>
+          </div>
+          <div class="field">
+            <label for="instance">{{ t('explorer.filter.instance') }}</label>
+            <select id="instance"></select>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="pane-body" id="tree-body">
+      <p class="terminal" id="loading">{{ t('explorer.loading') }}</p>
+    </div>
+  </section>
+
+  <div class="divider" id="divider-1" role="separator" aria-orientation="vertical"
+       tabindex="0" aria-label="{{ t('explorer.divider') }}"></div>
+
+  <section class="pane" id="pane-graph">
+    <div class="pane-head">
+      <span class="section-title">{{ t('explorer.graph') }}</span>
+      <span class="spacer"></span>
+      <label class="inline-field">
+        <span>{{ t('explorer.depth') }}</span>
+        <select id="depth">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </label>
+      <button class="button quiet" type="button" id="fit">{{ t('explorer.fit') }}</button>
+      <button class="button quiet" type="button" id="png">{{ t('explorer.png') }}</button>
+    </div>
+    <div class="pane-body graph-body">
+      <p class="notice" id="graph-notice" hidden></p>
+      <div id="graph" role="img" aria-label=""></div>
+      <p class="empty narrow-only">{{ t('explorer.graph.narrow') }}</p>
+    </div>
+  </section>
+
+  <div class="divider" id="divider-2" role="separator" aria-orientation="vertical"
+       tabindex="0" aria-label="{{ t('explorer.divider') }}"></div>
+
+  <section class="pane" id="pane-details">
+    <div class="pane-head"><span class="section-title">{{ t('explorer.details') }}</span></div>
+    <div class="pane-body" id="details">
+      <p class="empty">{{ t('explorer.select') }}</p>
+    </div>
+  </section>
+
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if reachable and model_version %}
+<script>window.EXPLORER = {{ config | tojson }};</script>
+<script src="/static/js/explorer.js?v={{ version }}"></script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ t('model.title') }} · {{ t('wordmark') }}{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ t('model.title') }}</h1></div>
+{% if not reachable %}
+  {% include "partials/unreachable.html" %}
+{% else %}
+<h2>{{ t('model.upload') }}</h2>
+<form class="filters" hx-post="/actions/model/upload" hx-target="#job" hx-swap="innerHTML" hx-encoding="multipart/form-data">
+  <div class="field">
+    <label for="file">{{ t('model.upload.file') }}</label>
+    <input id="file" name="file" type="file" accept=".ttl,.nt,.rdf,.xml,.jsonld,.n3,.trig,.nq" required>
+  </div>
+  <label class="mono"><input type="checkbox" name="activate" value="true" checked> {{ t('model.upload.activate') }}</label>
+  <div class="button-row"><button class="button" type="submit">{{ t('model.upload.submit') }}</button></div>
+</form>
+<div id="job"></div>
+<h2>{{ t('model.versions') }}</h2>
+<div id="versions" hx-get="/partials/model/versions" hx-trigger="every {{ poll }}s" hx-swap="outerHTML">
+  {% include "partials/model_versions.html" %}
+</div>
+<h2>{{ t('model.diff') }}</h2>
+<form class="filters" hx-get="/model/diff" hx-target="#diff" hx-swap="innerHTML">
+  <div class="field"><label for="a">{{ t('model.diff.a') }}</label><input id="a" name="a" type="number" min="1" value="{{ diff_a }}" required></div>
+  <div class="field"><label for="b">{{ t('model.diff.b') }}</label><input id="b" name="b" type="number" min="1" value="{{ diff_b }}" required></div>
+  <div class="button-row"><button class="button" type="submit">{{ t('model.diff.show') }}</button></div>
+</form>
+<div id="diff"></div>
+{% endif %}
+{% endblock %}

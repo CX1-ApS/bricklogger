@@ -1,0 +1,55 @@
+site_name: Bricklogger
+site_url: https://cx1-aps.github.io/bricklogger/
+repo_url: https://github.com/CX1-ApS/bricklogger
+docs_dir: src/bricklogger/docs
+dev_addr: 127.0.0.1:8001
+
+theme:
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - search
+
+nav:
+  - Home: README.md
+  - Getting started: getting-started.md
+  - Docker: docker.md
+  - Vision: vision.md
+  - Architecture: architecture.md
+  - Features:
+      - CLI: features/cli.md
+      - Daemon: features/daemon.md
+      - API: features/api.md
+      - Configuration: features/configuration.md
+      - Web: features/web.md
+      - MCP: features/mcp.md
+      - Sources: features/sources.md
+      - Destinations: features/destinations.md
+      - Plugins: features/plugins.md
+      - Notifications: features/notifications.md

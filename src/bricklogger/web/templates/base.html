@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ t('wordmark') }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css?v={{ version }}">
+  <script src="/static/vendor/htmx.min.js?v={{ version }}"></script>
+  {% block head %}{% endblock %}
+</head>
+<body{% if request.cookies.get('sidebar') == 'collapsed' %} class="collapsed"{% endif %}>
+  <header class="topbar">
+    <a class="wordmark" href="/">{{ t('wordmark') }}</a>
+    <span class="spacer"></span>
+    {% include "partials/health.html" %}
+    <span class="api">{{ api_url }}</span>
+    {% if login_required %}
+    <form method="post" action="/logout"><button class="linklike" type="submit">{{ t('topbar.logout') }}</button></form>
+    {% endif %}
+  </header>
+  <div class="frame">
+    <nav class="sidebar" aria-label="Screens">
+      {% set warning_count = status.warnings if status else 0 %}
+      {% for key, href, label in screens %}
+      <a class="menu-item" href="{{ href }}"{% if screen == key %} aria-current="page"{% endif %}>
+        <span class="glyph">{{ loop.index }}</span>
+        <span class="label">{{ t(label) }}</span>
+        {% if key == 'overview' and warning_count %}<span class="badge">{{ warning_count }}</span>{% endif %}
+      </a>
+      {% endfor %}
+      <div class="sidebar-foot">
+        <button class="collapse" type="button" onclick="toggleSidebar()" title="{{ t('nav.collapse') }}">&lt;&gt;</button>
+      </div>
+    </nav>
+    <main{% block main_class %}{% endblock %}>
+      <div class="content">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  <footer id="statusline" hx-get="/partials/statusline" hx-trigger="every {{ poll }}s" hx-swap="innerHTML">
+    {% include "partials/statusline.html" %}
+  </footer>
+  <nav class="tabs" aria-label="Screens">
+    {% for key, href, label in screens[:4] %}
+    <a class="tab" href="{{ href }}"{% if screen == key %} aria-current="page"{% endif %}>
+      <span class="glyph">{{ loop.index }}</span><span class="label">{{ t(label).split(' ')[0] }}</span>
+    </a>
+    {% endfor %}
+    <a class="tab" href="/daemon"{% if screen == 'daemon' %} aria-current="page"{% endif %}>
+      <span class="glyph">{{ screens | length }}</span><span class="label">{{ t('nav.daemon') }}</span>
+    </a>
+  </nav>
+  <script>
+    function toggleSidebar() {
+      const collapsed = document.body.classList.toggle('collapsed');
+      document.cookie = 'sidebar=' + (collapsed ? 'collapsed' : 'open') + '; path=/; max-age=31536000; samesite=lax';
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

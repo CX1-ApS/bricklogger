@@ -1,0 +1,20 @@
+<div id="daemon">
+  {% if not reachable %}
+    {% include "partials/unreachable.html" %}
+  {% else %}
+  <dl class="kv">
+    <dt>{{ t('daemon.version') }}</dt><dd>{{ status.version }}</dd>
+    <dt>{{ t('daemon.started') }}</dt><dd>{{ status.started_at | when }}</dd>
+    <dt>{{ t('daemon.uptime') }}</dt><dd>{{ (status.uptime_seconds or 0) | int }} s</dd>
+    <dt>{{ t('daemon.config_dir') }}</dt><dd>{{ status.config_dir }}</dd>
+    <dt>{{ t('daemon.data_dir') }}</dt><dd>{{ status.data_dir }}</dd>
+    <dt>{{ t('daemon.api') }}</dt><dd>{{ api_url }}</dd>
+  </dl>
+  {% endif %}
+  <div class="button-row">
+    <button class="button" hx-post="/actions/daemon/reload" hx-target="#daemon" hx-swap="outerHTML">{{ t('daemon.reload') }}</button>
+    <button class="button quiet" hx-post="/actions/daemon/stop" hx-target="#daemon" hx-swap="outerHTML" hx-confirm="{{ t('daemon.stop.confirm') }}">{{ t('daemon.stop') }}</button>
+  </div>
+  <p class="dim">{{ t('daemon.reload.help') }} {{ t('daemon.stop.help') }}</p>
+  {% if message %}<pre class="terminal{% if signal %} signal{% endif %}">{{ t('status.prompt') }} {{ message }}</pre>{% endif %}
+</div>

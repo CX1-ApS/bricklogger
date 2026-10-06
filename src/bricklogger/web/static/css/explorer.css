@@ -1,0 +1,149 @@
+/* The model explorer: three panes of paper and ink, one signal colour. */
+
+.page-head .spacer { flex: 1; }
+
+.explorer {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: 0;
+  grid-template-columns: minmax(220px, 4fr) 14px minmax(220px, 4fr) 14px minmax(220px, 3fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+/* A hairline the pointer can grab, in the gap the panes used to keep. */
+.divider {
+  align-self: stretch;
+  position: relative;
+  cursor: col-resize;
+  touch-action: none;
+}
+.divider::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--hair);
+}
+.divider:hover::before, .divider:focus-visible::before { background: var(--ink); width: 2px; margin-left: -1px; }
+.divider:focus-visible { outline: none; }
+.explorer.resizing { user-select: none; cursor: col-resize; }
+
+.pane {
+  border: 1px solid var(--ink);
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;          /* nothing ever spills outside the pane's border */
+}
+.pane-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 7px 9px;
+  border-bottom: 1px solid var(--hair);
+}
+.pane-head .spacer { flex: 1; }
+.pane-controls {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px 9px;
+  border-bottom: 1px solid var(--hair);
+}
+.pane-body { flex: 1; min-height: 0; overflow: auto; padding: 9px; }
+
+.search-row { display: flex; align-items: flex-end; gap: 8px; }
+.search-row .field { flex: 1; min-width: 0; }
+.search-row input { width: 100%; }
+
+.inline-field { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 11px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.inline-field select { font-family: var(--mono); font-size: 12px; text-transform: none; letter-spacing: 0; }
+
+fieldset.kinds { border: none; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+fieldset.kinds legend { float: left; margin-right: 8px; font-family: var(--mono); font-size: 11px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+fieldset.kinds label { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 12px; }
+
+#more-filters summary { font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--dim); cursor: pointer; }
+#more-filters .more { display: flex; flex-wrap: wrap; gap: 8px 10px; padding-top: 7px; }
+#more-filters .field { min-width: 118px; flex: 1; }
+#more-filters select { max-width: 100%; }
+
+/* the tree */
+/* The names are what the eye reads, so they are never squeezed: a deep or
+   wordy tree scrolls sideways instead. */
+ul.tree { list-style: none; min-width: max-content; }
+ul.tree ul { list-style: none; }
+ul.tree ul { padding-left: 13px; border-left: 1px solid var(--hair); margin-left: 6px; }
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 2px 3px;
+  min-width: 0;
+}
+.row:focus { outline: 2px solid var(--ink); outline-offset: -2px; }
+.row[aria-current="true"] { background: var(--ink); color: var(--paper); }
+.row[aria-current="true"] .cls,
+.row[aria-current="true"] .count,
+.row[aria-current="true"] .glyph,
+.row[aria-current="true"] .twisty { color: var(--paper); }
+.row .twisty {
+  font-family: var(--mono); font-size: 11px; width: 11px; flex: none;
+  color: var(--dim); cursor: pointer; user-select: none; text-align: center;
+}
+.row .glyph { font-family: var(--mono); font-size: 12px; color: var(--dim); flex: none; }
+.row .name { font-size: 13px; white-space: nowrap; flex: none; }
+.row .cls { font-family: var(--mono); font-size: 11px; color: var(--dim); white-space: nowrap; flex: none; }
+.row .count { font-family: var(--mono); font-size: 11px; color: var(--dim); flex: none; white-space: nowrap; }
+.row.context .name { color: var(--dim); }
+/* A class heading in the grouping band: a class, read as a heading. */
+.row.heading .cls { color: var(--ink); font-size: 12px; }
+.row .tag { flex: none; }
+
+/* the graph */
+.graph-body { padding: 0; display: flex; flex-direction: column; }
+#graph { flex: 1; min-height: 0; }
+#graph-notice { margin: 8px; }
+.narrow-only { display: none; }
+
+/* the detail panel */
+#details { display: flex; flex-direction: column; gap: 12px; }
+#details .kv dd { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+#details h3 { font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--dim); font-weight: 400; margin-bottom: 6px; }
+#details ul.relations { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+#details ul.relations li { display: flex; gap: 6px; align-items: baseline; font-size: 13px; }
+#details ul.relations .pred { font-family: var(--mono); font-size: 11px; color: var(--dim); flex: none; }
+#details .finding { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; }
+#details .finding small { color: var(--dim); font-family: var(--sans); font-size: 12px; }
+#details .button-row { flex-wrap: wrap; }
+.linklike { background: none; border: none; font: inherit; color: var(--ink);
+  text-decoration: underline; cursor: pointer; text-align: left; }
+
+/* Below three columns the panes stop competing for one screen and the page
+   scrolls instead, as it does elsewhere in the interface. */
+@media (max-width: 1100px) {
+  main.full { display: block; }
+  main.full > .content { max-width: none; }
+  .explorer { display: flex; flex-direction: column; gap: 14px; }
+  .divider { display: none; }
+  #pane-tree .pane-body { max-height: 50vh; }
+  #pane-graph { height: 45vh; }
+  #pane-details .pane-body { max-height: 45vh; }
+}
+
+@media (max-width: 720px) {
+  #pane-graph { height: auto; }
+  #pane-graph .graph-body { padding: 9px; }
+  #pane-graph #graph, #pane-graph .pane-head .button, #pane-graph .inline-field { display: none; }
+  .narrow-only { display: block; }
+}

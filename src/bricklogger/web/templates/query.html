@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ t('query.title') }} · {{ t('wordmark') }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/vendor/yasgui.min.css">
+<script src="/static/vendor/yasgui.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ t('query.title') }}</h1><span class="dim mono">{{ t('query.endpoint') }}: /api/v1/sparql</span></div>
+<p class="lead dim">{{ t('query.help') }}</p>
+<div id="yasgui"></div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const yasgui = new Yasgui(document.getElementById('yasgui'), {
+    requestConfig: { endpoint: window.location.origin + '/api/v1/sparql', method: 'POST' },
+    copyEndpointOnNewTab: true,
+    yasqe: { value: {{ default_query | tojson }} }
+  });
+  const tab = yasgui.getTab();
+  if (tab && tab.getEndpoint && !tab.getEndpoint().endsWith('/api/v1/sparql')) {
+    tab.setEndpoint(window.location.origin + '/api/v1/sparql');
+  }
+</script>
+{% endblock %}

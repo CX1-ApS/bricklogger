@@ -1,0 +1,20 @@
+<div id="notifications" hx-get="/partials/notifications" hx-trigger="every {{ poll }}s" hx-swap="outerHTML">
+  <div class="page-head"><h1>{{ t('notify.title') }}</h1><span class="dim mono">{{ t('common.updated', time=now | when) }}</span></div>
+  {% if not reachable %}
+    {% include "partials/unreachable.html" %}
+  {% elif problem %}
+    <div class="notice signal">{{ t('common.error', status=problem.status, detail=problem.detail) }}</div>
+  {% else %}
+  <div class="table-wrap"><table>
+    <tbody>
+      <tr><td class="dim">{{ t('notify.state') }}</td><td>{% if notifications.dormant %}<span class="signal">{{ t('notify.dormant') }}</span>{% elif notifications.enabled %}{{ t('notify.on') }}{% else %}{{ t('notify.off') }}{% endif %}</td></tr>
+      <tr><td class="dim">{{ t('notify.to') }}</td><td>{{ (notifications.to or []) | join(', ') or t('notify.none') }}</td></tr>
+      <tr><td class="dim">{{ t('notify.server') }}</td><td>{{ notifications.server or t('notify.none') }}</td></tr>
+      <tr><td class="dim">{{ t('notify.last') }}</td><td>{% if notifications.last_mail %}{{ notifications.last_mail | when }}{% else %}{{ t('notify.never') }}{% endif %}</td></tr>
+      {% if notifications.last_error %}<tr><td class="dim">{{ t('notify.error') }}</td><td class="signal">{{ notifications.last_error }}</td></tr>{% endif %}
+      <tr><td class="dim">{{ t('notify.next') }}</td><td>{{ notifications.next_digest | when }}</td></tr>
+      <tr><td class="dim">{{ t('notify.waiting') }}</td><td>{{ notifications.waiting.opened }} opened, {{ notifications.waiting.closed }} closed</td></tr>
+    </tbody>
+  </table></div>
+  {% endif %}
+</div>

@@ -1,0 +1,69 @@
+<div id="instances" hx-get="/partials/instances" hx-trigger="every {{ poll }}s" hx-swap="outerHTML">
+  {% if not reachable %}
+    {% include "partials/unreachable.html" %}
+  {% else %}
+  {% if message %}<pre class="terminal{% if signal %} signal{% endif %}">{{ t('status.prompt') }} {{ message }}</pre>{% endif %}
+  <h2>{{ t('instances.sources') }}</h2>
+  {% if not sources %}<p class="empty">{{ t('instances.none') }}</p>{% endif %}
+  {% for s in sources %}
+  <section class="instance">
+    <div class="page-head">
+      <h3 class="mono">{{ s.name }} <span class="dim">{{ s.type }}</span>
+        <span class="tag{% if s.state == 'failed' %} signal{% endif %}">{{ s.state }}</span>
+        {% if s.stopped_by_operator %}<span class="tag">{{ t('instances.by_operator') }}</span>{% endif %}
+      </h3>
+      <span class="button-row">
+        {% for action in ('start', 'stop', 'restart') %}
+        <button class="button quiet" hx-post="/actions/instances/{{ s.type }}/{{ s.name }}/{{ action }}" hx-target="#instances" hx-swap="outerHTML">{{ t('instances.' + action) }}</button>
+        {% endfor %}
+      </span>
+    </div>
+    <dl class="kv">
+      <dt>{{ t('instances.resources') }}</dt><dd>{{ s.resources | join(', ') or t('common.none') }}</dd>
+      <dt>{{ t('instances.points') }}</dt><dd>{{ s.points.get('active', 0) }} active · {{ s.points.get('unsupported', 0) }} unsupported · {{ s.points.get('rejected', 0) }} rejected · {{ s.points.get('pending', 0) }} pending</dd>
+      <dt>{{ t('instances.restarts') }}</dt><dd>{{ s.restart_count }}</dd>
+      {% if s.last_error %}<dt>{{ t('instances.last_error') }}</dt><dd class="signal">{{ s.last_error }}</dd>{% endif %}
+    </dl>
+    {% if s.devices %}
+    <div class="table-wrap"><table>
+      <thead><tr><th>{{ t('devices.device') }}</th><th>{{ t('devices.reachable') }}</th><th>{{ t('devices.last_success') }}</th><th>{{ t('devices.errors') }}</th><th>{{ t('devices.skipped') }}</th><th>{{ t('devices.last_error') }}</th></tr></thead>
+      <tbody>
+      {% for d in s.devices %}
+        <tr>
+          <td class="code">{{ d.device }}</td>
+          <td class="code">{% if d.reachable %}{{ t('common.yes') }}{% elif d.reachable is none %}{% else %}<span class="tag signal">{{ t('common.no') }}</span>{% endif %}</td>
+          <td class="num">{{ d.last_success | when }}</td>
+          <td class="num">{{ d.error_count }}</td>
+          <td class="num">{{ d.skipped_rounds }}</td>
+          <td>{{ d.last_error or '' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    {% endif %}
+  </section>
+  {% endfor %}
+  <h2>{{ t('instances.destinations') }}</h2>
+  {% if not destinations %}<p class="empty">{{ t('instances.none') }}</p>{% endif %}
+  {% for d in destinations %}
+  <section class="instance">
+    <div class="page-head">
+      <h3 class="mono">{{ d.name }} <span class="dim">{{ d.type }}</span>
+        <span class="tag{% if d.state == 'failed' %} signal{% endif %}">{{ d.state }}</span>
+      </h3>
+      <span class="button-row">
+        {% for action in ('start', 'stop', 'restart') %}
+        <button class="button quiet" hx-post="/actions/instances/{{ d.type }}/{{ d.name }}/{{ action }}" hx-target="#instances" hx-swap="outerHTML">{{ t('instances.' + action) }}</button>
+        {% endfor %}
+      </span>
+    </div>
+    <dl class="kv">
+      <dt>{{ t('instances.metadata') }}</dt><dd>{{ t('common.yes') if d.stores_metadata else t('common.no') }}</dd>
+      <dt>{{ t('instances.written') }}</dt><dd>{{ d.written }}{% if d.last_write %} · {{ d.last_write | when }}{% endif %}</dd>
+      <dt>{{ t('instances.spool') }}</dt><dd>{{ d.spool.observations }} observations · {{ d.spool.bytes }} bytes{% if d.spool.oldest_age_seconds %} · oldest {{ d.spool.oldest_age_seconds | int }} s{% endif %}{% if d.spool.dropped %} · <span class="signal">{{ d.spool.dropped }} dropped</span>{% endif %}</dd>
+      {% if d.last_error %}<dt>{{ t('instances.last_error') }}</dt><dd class="signal">{{ d.last_error }}</dd>{% endif %}
+    </dl>
+  </section>
+  {% endfor %}
+  {% endif %}
+</div>

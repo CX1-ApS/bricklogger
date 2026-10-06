@@ -1,0 +1,31 @@
+{% if problem_text %}
+<pre class="terminal signal">{{ t('status.prompt') }} {{ problem_text }}</pre>
+{% else %}
+<div id="job-{{ job.id }}"{% if job.state in ('queued', 'running') %} hx-get="/partials/job/{{ job.id }}" hx-trigger="every 1s" hx-swap="outerHTML"{% endif %}>
+  <pre class="terminal{% if job.state == 'failed' %} signal{% endif %}">{{ t('status.prompt') }} {{ t('job.line', operation=job.operation, id=job.id, state=job.state) }}{% if job.step %} · {{ job.step }}{% endif %}
+{%- if job.state == 'done' and job.result %}
+{% set r = job.result %}{{ t('status.prompt') }} {{ t('job.stored', version=r.version.version, size=r.version.size, format=r.version.format) }}
+{%- if r.activated and r.activation %}
+{{ t('status.prompt') }} {{ t('job.activated', version=r.version.version, seconds=r.activation.seconds, model=r.activation.model_triples, inferred=r.activation.inferred_triples) }}
+{%- endif %}
+{%- for w in (r.report.warnings if r.report else []) %}
+{{ t('status.prompt') }} warning {{ w.focus }}: {{ w.message }}
+{%- endfor %}
+{%- if r.diff %}
+{%- for kind in ('added', 'removed', 'changed') %}{% for uri in r.diff[kind] %}
+{{ '%-8s' | format(kind) }} {{ short(uri, prefixes) }}
+{%- endfor %}{% endfor %}
+{%- if not (r.diff.added or r.diff.removed or r.diff.changed) %}
+{{ t('status.prompt') }} {{ t('job.no_diff', previous=r.previous) }}
+{%- endif %}
+{%- elif r.activated %}
+{{ t('status.prompt') }} {{ t('job.first') }}
+{%- endif %}
+{%- elif job.state == 'failed' and job.problem %}
+{{ t('status.prompt') }} {{ job.problem.detail or job.problem.title }}
+{%- for e in job.problem.errors or [] %}
+  {{ short(e.focus, prefixes) if e.focus else '' }}{{ e.key or '' }}: {{ e.message }}
+{%- endfor %}
+{%- endif %}</pre>
+</div>
+{% endif %}

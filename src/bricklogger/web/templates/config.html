@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ t('config.title') }} · {{ t('wordmark') }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/vendor/codemirror.min.css">
+<script src="/static/vendor/codemirror.min.js"></script>
+<script src="/static/vendor/codemirror-yaml.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ t('config.title') }}</h1>
+  <nav class="button-row" aria-label="Files">
+    {% for name in files %}
+    <a class="button{% if name != file %} quiet{% endif %}" href="/config?file={{ name }}">{{ name }}.yaml</a>
+    {% endfor %}
+  </nav>
+</div>
+{% if not reachable %}
+  {% include "partials/unreachable.html" %}
+{% else %}
+  {% if empty_directory %}
+  <div class="notice">
+    {{ t('config.empty') }}
+    <form method="post" action="/actions/config/init" style="display:inline"><button class="button" type="submit">{{ t('config.init') }}</button></form>
+  </div>
+  {% endif %}
+  <form id="editor-form" class="field" hx-target="#config-result" hx-swap="innerHTML">
+    <input type="hidden" name="file" value="{{ file }}">
+    <label for="editor">{{ file }}.yaml{% if missing %} <span class="dim">({{ t('config.missing') }})</span>{% endif %}</label>
+    <textarea id="editor" name="text" rows="24" spellcheck="false">{{ text_body }}</textarea>
+    <div class="button-row">
+      <button class="button" type="button" hx-post="/actions/config/validate" hx-include="#editor-form">{{ t('config.validate') }}</button>
+      <button class="button" type="button" hx-post="/actions/config/save" hx-include="#editor-form" hx-confirm="{{ t('config.save.confirm', file=file) }}">{{ t('config.save') }}</button>
+      <span class="dim">{{ t('config.help') }}</span>
+    </div>
+  </form>
+  <div id="config-result"></div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if reachable %}
+<script>
+  const area = document.getElementById('editor');
+  const editor = CodeMirror.fromTextArea(area, {
+    mode: 'yaml', lineNumbers: true, indentUnit: 2, tabSize: 2, indentWithTabs: false,
+    viewportMargin: Infinity, lineWrapping: true
+  });
+  document.body.addEventListener('htmx:configRequest', function () { editor.save(); });
+  function clearMarks() {
+    for (let i = 0; i < editor.lineCount(); i++) editor.removeLineClass(i, 'background', 'line-error');
+  }
+  function findLine(subject, key) {
+    const lines = editor.getValue().split('\n');
+    let start = 0;
+    if (subject) {
+      const s = lines.findIndex(l => l.match(new RegExp('^\\s*-?\\s*(name:\\s*)?' + subject.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*:?\\s*$')));
+      if (s >= 0) start = s;
+    }
+    if (key) {
+      const last = key.split('.').pop();
+      for (let i = start; i < lines.length; i++) {
+        if (lines[i].match(new RegExp('^\\s*-?\\s*' + last.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*:'))) return i;
+      }
+    }
+    return subject ? start : -1;
+  }
+  document.body.addEventListener('htmx:afterSwap', function (event) {
+    if (event.detail.target.id !== 'config-result') return;
+    clearMarks();
+    document.querySelectorAll('#config-result [data-key], #config-result [data-subject]').forEach(function (el) {
+      if (el.dataset.file && el.dataset.file !== '{{ file }}') return;
+      const line = findLine(el.dataset.subject || '', el.dataset.key || '');
+      if (line >= 0) editor.addLineClass(line, 'background', 'line-error');
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ t('daemon.title') }} · {{ t('wordmark') }}{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ t('daemon.title') }}</h1></div>
+{% include "partials/daemon.html" %}
+{% endblock %}

@@ -1,0 +1,53 @@
+<div id="plugins">
+  {% if not reachable %}
+    {% include "partials/unreachable.html" %}
+  {% elif not rows %}
+    <p class="empty">{{ t('plugins.none') }}</p>
+  {% else %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ t('plugins.type') }}</th>
+          <th>{{ t('plugins.role') }}</th>
+          <th>{{ t('plugins.version') }}</th>
+          <th>{{ t('plugins.description') }}</th>
+          <th>{{ t('plugins.instances') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="mono">{{ row.type }}</td>
+          <td>{{ row.role }}</td>
+          <td>{{ row.version or '' }}</td>
+          <td>{% if row.error %}<span class="signal">{{ t('plugins.error', error=row.error) }}</span>{% else %}{{ row.description or '' }}{% endif %}</td>
+          <td class="mono">{{ row.instances | join(', ') if row.instances else t('common.none') }}</td>
+          <td><button class="button quiet" hx-post="/actions/plugins/{{ row.type }}/remove" hx-target="#plugins" hx-swap="outerHTML" hx-confirm="{{ t('plugins.remove.confirm', type=row.type) }}">{{ t('plugins.remove') }}</button></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  <form class="field" hx-post="/actions/plugins/add" hx-target="#plugins" hx-swap="outerHTML">
+    <label for="packages">{{ t('plugins.add.label') }}</label>
+    <input id="packages" name="packages" type="text" placeholder="{{ t('plugins.add.placeholder') }}" required>
+    <div class="button-row">
+      <button class="button" type="submit">{{ t('plugins.add') }}</button>
+      <span class="dim">{{ t('plugins.add.help') }}</span>
+    </div>
+  </form>
+  {% if message %}
+  <pre class="terminal{% if signal %} signal{% endif %}">{{ t('status.prompt') }} {{ message }}</pre>
+  {% if offer_force %}
+  <div class="button-row">
+    <button class="button quiet" hx-post="/actions/plugins/{{ offer_force }}/remove" hx-vals='{"force": "yes"}' hx-target="#plugins" hx-swap="outerHTML" hx-confirm="{{ t('plugins.remove.force.confirm', type=offer_force) }}">{{ t('plugins.remove.force') }}</button>
+  </div>
+  {% endif %}
+  {% if restart %}
+  <p class="dim">{{ t('plugins.restart') }} <code>{{ restart_hint }}</code><br>{{ t('plugins.restart.mcp') }}</p>
+  {% endif %}
+  {% endif %}
+</div>

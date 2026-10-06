@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ t('points.title') }} · {{ t('wordmark') }}{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ t('points.title') }}</h1></div>
+<form class="filters" method="get" action="/points">
+  <div class="field">
+    <label for="instance">{{ t('points.filter.instance') }}</label>
+    <select id="instance" name="instance">
+      <option value="">{{ t('points.filter.any') }}</option>
+      {% for name in instances %}<option value="{{ name }}"{% if filters.instance == name %} selected{% endif %}>{{ name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="outcome">{{ t('points.filter.outcome') }}</label>
+    <select id="outcome" name="outcome">
+      <option value="">{{ t('points.filter.any') }}</option>
+      {% for value in ('active', 'unsupported', 'rejected') %}<option value="{{ value }}"{% if filters.outcome == value %} selected{% endif %}>{{ value }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="warning">{{ t('points.filter.warning') }}</label>
+    <input id="warning" name="warning" type="search" value="{{ filters.warning }}" placeholder="unit">
+  </div>
+  <div class="field">
+    <label for="class">{{ t('points.filter.class') }}</label>
+    <input id="class" name="class" type="search" value="{{ filters['class'] }}" placeholder="Temperature">
+  </div>
+  <input type="hidden" name="limit" value="{{ limit }}">
+  <div class="button-row">
+    <button class="button" type="submit">{{ t('points.filter.apply') }}</button>
+    <a class="button quiet" href="/points">{{ t('points.filter.clear') }}</a>
+  </div>
+</form>
+<div id="points" hx-get="/partials/points?{{ query }}&offset={{ offset }}" hx-trigger="every {{ poll }}s" hx-swap="outerHTML">
+  {% include "partials/points.html" %}
+</div>
+{% endblock %}

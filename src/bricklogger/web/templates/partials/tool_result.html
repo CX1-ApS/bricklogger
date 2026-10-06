@@ -1,0 +1,26 @@
+{% if problem_text %}
+<pre class="terminal signal">{{ t('status.prompt') }} {{ problem_text }}</pre>
+{% elif rows is not none %}
+  {% if not rows %}
+  <p class="empty">{{ t('tools.empty') }}</p>
+  {% else %}
+  {% for offer in offers if offer.whole %}
+  <form class="button-row" method="post" action="/actions/instances/{{ tool_type }}/{{ tool_instance }}/tools/{{ offer.tool }}/document"><button class="button" type="submit">{{ t('tools.download') }} {{ offer.tool }}</button></form>
+  {% endfor %}
+  <div class="table-wrap"><table>
+    <thead><tr>{% for column in columns %}<th>{{ column }}</th>{% endfor %}{% for offer in offers %}<th>{{ offer.tool }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for row in rows %}
+      <tr>{% for column in columns %}<td class="code">{{ cell(row.get(column)) }}</td>{% endfor %}{% for offer in offers %}<td><form method="post" action="/actions/instances/{{ tool_type }}/{{ tool_instance }}/tools/{{ offer.tool }}/document">{% for parameter, column in offer.columns.items() %}<input type="hidden" name="{{ parameter }}" value="{{ cell(row.get(column)) }}">{% endfor %}<button class="button quiet" type="submit">{{ t('tools.download') }}</button></form></td>{% endfor %}</tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="dim mono">{{ t('tools.rows', count=rows | length) }}</p>
+  {% endif %}
+{% elif mapping is not none %}
+<dl class="kv">
+  {% for key, value in mapping.items() %}<dt>{{ key }}</dt><dd>{{ cell(value) }}</dd>{% endfor %}
+</dl>
+{% else %}
+<pre class="terminal">{{ raw }}</pre>
+{% endif %}

@@ -1,0 +1,47 @@
+<div id="overview" hx-get="/partials/overview" hx-trigger="every {{ poll }}s" hx-swap="outerHTML">
+  <div class="page-head"><h1>{{ t('overview.title') }}</h1><span class="dim mono">{{ t('common.updated', time=now | when) }}</span></div>
+  {% if not reachable %}
+    {% include "partials/unreachable.html" %}
+  {% else %}
+  <div class="grid">
+    <div class="card">
+      <span class="label">{{ t('overview.health') }}</span>
+      <span class="value{% if status.health == 'degraded' %} signal{% endif %}">{{ status.health }}</span>
+      <span class="under">{{ t('overview.uptime') }}: {{ (status.uptime_seconds or 0) | int }} s</span>
+    </div>
+    <div class="card">
+      <span class="label">{{ t('overview.model') }}</span>
+      {% if status.model.active %}
+      <span class="value">{{ status.model.active.version }}</span>
+      <span class="under">{{ t('overview.model.version', version=status.model.active.version, activated=status.model.activated_at | when) }}</span>
+      {% else %}
+      <span class="value small">{{ t('overview.model.none') }}</span>
+      {% if status.model.error %}<span class="under signal">{{ status.model.error }}</span>{% endif %}
+      {% endif %}
+    </div>
+    <div class="card">
+      <span class="label">{{ t('overview.points') }}</span>
+      <span class="value">{{ status.points.active }}</span>
+      <span class="under">{{ t('overview.points.line', accepted=status.points.accepted, assigned=status.points.assigned, active=status.points.active, unsupported=status.points.unsupported, rejected=status.points.rejected) }}</span>
+    </div>
+    <div class="card">
+      <span class="label">{{ t('overview.observations') }}</span>
+      <span class="value">{{ status.observations_received }}</span>
+    </div>
+  </div>
+  <h2>{{ t('overview.warnings') }} <span class="dim mono">{{ warnings | length }}</span></h2>
+  {% if warnings %}
+  <form class="button-row" hx-post="/actions/warnings/clear" hx-target="#overview" hx-swap="outerHTML"><button class="button quiet" type="submit">{{ t('warnings.clear_all') }}</button></form>
+  <div class="table-wrap"><table>
+    <thead><tr><th>{{ t('warnings.code') }}</th><th>{{ t('warnings.kind') }}</th><th>{{ t('warnings.subject') }}</th><th>{{ t('warnings.message') }}</th><th>{{ t('warnings.first_seen') }}</th><th>{{ t('warnings.last_seen') }}</th><th>{{ t('warnings.count') }}</th><th></th></tr></thead>
+    <tbody>
+    {% for w in warnings %}
+      <tr><td class="code"><span class="tag signal">{{ w.code }}</span></td><td class="dim">{{ w.kind }}</td><td class="uri">{{ short(w.subject, prefixes) }}</td><td>{{ w.message }}</td><td class="num">{{ w.first_seen | when }}</td><td class="num">{{ w.last_seen | when }}</td><td class="num">{{ w.count }}</td><td><form hx-post="/actions/warnings/clear" hx-target="#overview" hx-swap="outerHTML"><input type="hidden" name="code" value="{{ w.code }}"><input type="hidden" name="subject" value="{{ w.subject }}"><button class="button quiet" type="submit">{{ t('warnings.clear') }}</button></form></td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <p class="empty">{{ t('overview.warnings.none') }}</p>
+  {% endif %}
+  {% endif %}
+</div>
