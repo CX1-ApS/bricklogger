@@ -37,8 +37,8 @@ The script brings its own Python, so the machine needs only `curl`. With
 `sudo` it installs a service: the program under `/opt/bricklogger`, the
 configuration in `/etc/bricklogger`, the data in `/var/lib/bricklogger` and
 three systemd units, left stopped. Without `sudo` everything stays in your home
-directory. `--version 0.2.1` installs a given version; options come after
-`--` when the script is piped: `… | sudo sh -s -- --version 0.2.1`.
+directory. `--version 0.2.2` installs a given version; options come after
+`--` when the script is piped: `… | sudo sh -s -- --version 0.2.2`.
 
 **As a container** the same program is `ghcr.io/cx1-aps/bricklogger`, with a
 compose file for the daemon, the web interface and the MCP server; see

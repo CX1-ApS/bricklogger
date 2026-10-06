@@ -275,13 +275,18 @@ def test_update_core_holds_the_plugins_validates_and_restarts_the_active_units(
     machinery = Machinery(site)
     machinery.after = {"bricklogger": "0.2.1"}
     answered: list[str] = []
+
+    def answering(url: str) -> bool:
+        answered.append(url)
+        return True
+
     result = update(
         "core",
         config_dir=tmp_path,
         environment=environment(site),
         run=machinery,
         machine=Machine(("systemctl",), tmp_path / "units"),
-        answering=lambda url: answered.append(url) or True,
+        answering=answering,
     )
     assert result.moved == {"bricklogger": ("0.2.0", "0.2.1")}
     install = machinery.commands[0]

@@ -28,7 +28,7 @@ Two options are worth knowing: `--version V` installs a given version, and
 after `--` when the script is piped into a shell:
 
 ```bash
-curl -fsSL https://github.com/CX1-ApS/bricklogger/releases/latest/download/install.sh | sudo sh -s -- --version 0.2.1
+curl -fsSL https://github.com/CX1-ApS/bricklogger/releases/latest/download/install.sh | sudo sh -s -- --version 0.2.2
 ```
 
 `bricklogger --version` confirms the installation, and `bricklogger plugins`
