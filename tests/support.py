@@ -1,10 +1,11 @@
 """Shared test data and helpers: the example model, rule sets and instance
-configurations the daemon tests use, a builder for a config directory, and a
-wait helper."""
+configurations the daemon tests use, a builder for a config directory, a
+wait helper, and a check that a command named in a text exists."""
 
 from __future__ import annotations
 
 import gc
+import re
 import shutil
 import socket
 import time
@@ -13,6 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from typer.main import get_command
 from typer.testing import CliRunner
 
 from bricklogger.cli import app
@@ -159,3 +161,18 @@ class Served:
             options += ["--api", self.url]
         result = CliRunner().invoke(app, [*options, *args])
         return result.exit_code, result.output
+
+
+#: A ``bricklogger`` command named in a text, with its subcommands.
+INVOCATION = re.compile(r"(?<![\w/-])bricklogger((?: [a-z][a-z0-9-]*)+)")
+
+
+def cli_has(path: tuple[str, ...]) -> bool:
+    """Whether the command tree has this path as commands, not as arguments."""
+    node: Any = get_command(app)
+    for word in path:
+        commands = getattr(node, "commands", None)
+        if not commands or word not in commands:
+            return False
+        node = commands[word]
+    return True

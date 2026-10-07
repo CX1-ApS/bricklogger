@@ -1,7 +1,7 @@
 """``bricklogger update``: what there is to upgrade, and the upgrade itself.
 
 ``update status`` installs nothing. ``update core``, ``update all`` and
-``update TYPE`` upgrade from PyPI with the environment's own uv, validate with
+``update TYPE`` upgrade from PyPI with ``uv tool install``, validate with
 the new version, put the previous versions back when that fails, write the
 units again and restart what runs as a unit. ``update`` alone shows this help,
 as every group does. See ``docs/features/cli.md``, "update".
@@ -168,7 +168,7 @@ def _report(result: Updated, target: str, no_restart: bool) -> None:
     for unit in result.not_answering:
         typer.echo(
             f"{unit} was restarted but does not answer yet; check its log with "
-            f"journalctl -u {unit}"
+            f"journalctl --user -u {unit}"
         )
     for note in result.notes:
         typer.echo(note)

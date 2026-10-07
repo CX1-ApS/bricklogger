@@ -18,7 +18,7 @@ could not be done by hand.
 - **A process of its own.** `bricklogger mcp serve` runs the server in the
   foreground, as `serve` runs the web interface. It finds the config directory
   the way every command does — `--config-dir`, then `BRICKLOGGER_CONFIG_DIR`,
-  then `/etc/bricklogger` when it exists, then `~/.config/bricklogger` — and
+  then `~/.config/bricklogger` — and
   the daemon through `daemon.yaml`; `--api URL` and `--token` point it at a
   daemon on another machine, as for the CLI.
 - **Two transports.** Without a flag it speaks **stdio**: the MCP client
@@ -48,11 +48,12 @@ could not be done by hand.
   [`status`](cli.md#status-and-points) — `mcp: running` — so an operator sees
   whether the server is up without going to the client. An installation that
   only speaks stdio has nothing answering there, and the line says as much.
-- **A unit of its own.** The install script writes `bricklogger-mcp.service`
-  beside the daemon's and the web interface's units, left stopped, with
-  `bricklogger mcp serve --http` as its command, so a machine that should
-  offer MCP over HTTP enables it with `systemctl` — and `mcp auth generate`
-  restarts that unit when it replaces the token.
+- **A unit of its own.** [`bricklogger services install --mcp`](cli.md#services)
+  writes `bricklogger-mcp.service` beside the daemon's unit, with
+  `bricklogger mcp serve --http` as its command, and starts it, so a machine
+  that should offer MCP over HTTP needs only that flag — or a yes when `init`
+  asks — and `mcp auth generate` restarts that unit when it replaces the
+  token.
 
 ## Access
 

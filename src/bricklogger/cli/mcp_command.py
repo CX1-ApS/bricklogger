@@ -208,27 +208,28 @@ def _restart_line(before: dict[str, object], restart: bool) -> str:
         )
     if _restart_unit(command, str(before["url"]).removesuffix("/mcp")):
         return f"restarted {UNIT}; the new token is in effect"
-    return f"{UNIT} was restarted but does not answer yet; check it with systemctl"
+    return (
+        f"{UNIT} was restarted but does not answer yet; check it with "
+        f"systemctl --user status {UNIT}"
+    )
 
 
 def _systemctl() -> list[str] | None:
-    """The systemctl that has the MCP unit active, system or user; else ``None``."""
+    """The login's systemctl when it has the MCP unit active; else ``None``."""
     if shutil.which("systemctl") is None:
         return None
-    for command in (["systemctl"], ["systemctl", "--user"]):
-        try:
-            answer = subprocess.run(
-                [*command, "is-active", UNIT],
-                capture_output=True,
-                text=True,
-                timeout=5,
-                check=False,
-            )
-        except (OSError, subprocess.SubprocessError):
-            continue
-        if answer.stdout.strip() == "active":
-            return command
-    return None
+    command = ["systemctl", "--user"]
+    try:
+        answer = subprocess.run(
+            [*command, "is-active", UNIT],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return command if answer.stdout.strip() == "active" else None
 
 
 def _restart_unit(command: list[str], url: str, timeout: float = 15.0) -> bool:
@@ -282,7 +283,7 @@ def _server_line(settings: DaemonSettings, token: str | None) -> str:
         return f"server: running at {url} — accepts this token"
     return (
         f"server: running at {url} — rejects this token; restart it, "
-        f"e.g. systemctl restart {UNIT}"
+        f"e.g. systemctl --user restart {UNIT}"
     )
 
 

@@ -3,11 +3,10 @@ Description=Bricklogger web interface
 After=bricklogger.service
 
 [Service]
-User=${user}
 Environment=BRICKLOGGER_CONFIG_DIR=${config_dir}
 ExecStart=${command} serve
 Restart=on-failure
 RestartSec=5
 
 [Install]
-WantedBy=${wanted_by}
+WantedBy=default.target

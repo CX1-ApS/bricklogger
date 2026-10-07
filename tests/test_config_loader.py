@@ -35,7 +35,9 @@ def test_config_dir_resolution_order(
     assert resolve_config_dir(None, {CONFIG_DIR_ENV: "/tmp/x"}) == Path("/tmp/x")
     assert resolve_config_dir(None, {}, home=tmp_path) == user_config_dir(tmp_path)
     system.mkdir(parents=True)
-    assert resolve_config_dir(None, {}, home=tmp_path) == system
+    assert resolve_config_dir(None, {}, home=tmp_path) == user_config_dir(tmp_path), (
+        "a directory in /etc, left by an earlier installation, is not read"
+    )
 
 
 def test_the_data_directory_follows_the_config_directory(

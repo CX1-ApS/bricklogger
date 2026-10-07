@@ -90,12 +90,9 @@ field for the packages to install and a Remove on every row. Installing and
 removing here is [the same operation as `plugins add` and `plugins remove`](plugins.md#installing-a-plugin),
 run by `serve` in **its own process**: the package goes into the environment
 `serve` runs from — in a container, the plugin volume it shares with the
-daemon — with the environment's own uv, and the screen waits while uv runs.
-It can do what the CLI could do from the same account, and no more: under
-`/opt/bricklogger` the environment belongs to root, so `serve` running as the
-service user is refused with the message the CLI gives without `sudo`, and
-the CLI is the way there; an install in a home directory and a container need
-nothing. Pointed at a daemon on another machine with `--api`, the screen
+daemon — with uv, and the screen waits while uv runs. It can do what the CLI
+could do from the same login, and since `serve` runs as the login that
+installed Bricklogger, that is everything the CLI can. Pointed at a daemon on another machine with `--api`, the screen
 installs on the machine `serve` runs on, which is not where that daemon looks,
 so that case too belongs to the CLI beside the daemon. A removal is refused
 while an instance of the type is configured, naming the instances, and then

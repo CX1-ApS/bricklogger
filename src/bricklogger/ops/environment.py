@@ -1,17 +1,24 @@
-"""Adding and removing plugins: the environment this process runs in, when the
-install script made it, and uv's commands against it.
+"""Adding and removing plugins: the environment this process runs in, when
+``uv tool install`` made it, and uv's commands against it.
 
-A plugin lives in the environment beside Bricklogger, and the install script
-puts uv next to that environment. ``add`` and ``remove`` run that uv against
-the interpreter the command itself runs from; anywhere else they say which
-command to run instead. Neither restarts anything: the daemon reads its
-plugins when it starts, and when that happens is the operator's call.
+A plugin lives in the tool environment beside Bricklogger. uv keeps a
+**record** of what that environment was installed with — Bricklogger and one
+``--with`` per plugin — and every ``uv tool install`` and ``uv tool upgrade``
+makes the environment hold what the record requires and nothing else, so a
+plugin must stand in the record or the next of them uninstalls it. ``add`` and
+``remove`` therefore run ``uv tool install`` with the record as it should be,
+and leave it naming the packages without versions, so nothing is pinned that
+``uv tool upgrade`` could not move. Anywhere else they say which command to run
+instead. Neither restarts anything: the daemon reads its plugins when it
+starts, and when that happens is the operator's call.
 
 Every plugin shares one environment, and a process imports one version of a
 library, so ``add`` resolves what it was asked for together with the plugins
 already installed, each held at its installed version: a package that cannot
 live with them is refused before anything has changed, and only what was asked
 for moves. See ``docs/features/plugins.md``, "Installing a plugin".
+
+In a container the plugins go into a volume instead; see ``plugin_volume``.
 """
 
 from __future__ import annotations
@@ -21,10 +28,12 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import sysconfig
 import tempfile
+import tomllib
 import zipfile
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
@@ -49,29 +58,231 @@ from bricklogger.sdk.registry import (
 Runner = Callable[[Sequence[str]], "subprocess.CompletedProcess[str]"]
 
 
+#: uv's record of a tool environment, in the environment's own directory.
+RECEIPT = "uv-receipt.toml"
+
+
+@dataclass(frozen=True)
+class ToolRecord:
+    """uv's record of the tool environment: the requirements it was installed
+    with, Bricklogger first, and what the next ``uv tool install`` must be
+    told again to change nothing else — the Python it asked for and where
+    the tool directory and the command live."""
+
+    requirements: tuple[str, ...]
+    tool_dir: Path
+    python: str | None = None
+    bin_dir: Path | None = None
+
+    @property
+    def core(self) -> str:
+        return self.requirements[0]
+
+    @property
+    def plugins(self) -> list[str]:
+        return list(self.requirements[1:])
+
+
 @dataclass(frozen=True)
 class Environment:
-    """Where the plugins go: uv, the interpreter and its site-packages —
-    and in a container the plugin volume the packages go into instead."""
+    """Where the plugins go: uv, the interpreter and its site-packages, and
+    uv's record of the tool environment — or in a container the plugin volume
+    the packages go into instead."""
 
     uv: Path
     python: Path
     site_packages: Path
     target: Path | None = None
+    record: ToolRecord | None = None
 
 
 def installed_environment() -> Environment | None:
-    """The environment this process runs in, when the install script made it:
-    the venv under the prefix, and uv in ``bin`` beside it. ``None`` elsewhere."""
-    uv = Path(sys.prefix).parent / "bin" / "uv"
-    if not uv.is_file():
+    """The environment this process runs in: a uv tool environment with uv
+    found, or in a container the image's environment with uv beside it.
+    ``None`` elsewhere."""
+    prefix = Path(sys.prefix)
+    python = Path(sys.executable)
+    site_packages = Path(sysconfig.get_paths()["purelib"])
+    volume = plugin_directory()
+    if volume is not None:
+        uv = prefix.parent / "bin" / "uv"
+        if not uv.is_file():
+            return None
+        return Environment(uv, python, site_packages, target=volume)
+    record = read_record(prefix)
+    found = find_uv()
+    if record is None or found is None:
         return None
-    return Environment(
-        uv=uv,
-        python=Path(sys.executable),
-        site_packages=Path(sysconfig.get_paths()["purelib"]),
-        target=plugin_directory(),
+    return Environment(found, python, site_packages, record=record)
+
+
+def find_uv() -> Path | None:
+    """uv on the path, or in ``~/.local/bin`` where its installer puts it — a
+    service's path is short, and the web interface runs as one."""
+    on_path = shutil.which("uv")
+    if on_path is not None:
+        return Path(on_path)
+    beside = Path.home() / ".local" / "bin" / "uv"
+    return beside if beside.is_file() else None
+
+
+def read_record(prefix: Path) -> ToolRecord | None:
+    """uv's record of the tool environment at the prefix, or ``None`` when it
+    is not one, or not one of Bricklogger's."""
+    try:
+        with (prefix / RECEIPT).open("rb") as file:
+            tool = tomllib.load(file).get("tool") or {}
+    except (OSError, tomllib.TOMLDecodeError):
+        return None
+    requirements = [
+        requirement_of(entry)
+        for entry in tool.get("requirements") or []
+        if isinstance(entry, Mapping) and entry.get("name")
+    ]
+    core = [r for r in requirements if requirement_name(r) == BUILT_IN_DISTRIBUTION]
+    if not core:
+        return None
+    others = [r for r in requirements if requirement_name(r) != BUILT_IN_DISTRIBUTION]
+    bin_dir = None
+    for entry in tool.get("entrypoints") or []:
+        if isinstance(entry, Mapping) and entry.get("install-path"):
+            bin_dir = Path(str(entry["install-path"])).parent
+            break
+    python = tool.get("python")
+    return ToolRecord(
+        tuple([core[0], *others]),
+        prefix.parent,
+        str(python) if python else None,
+        bin_dir,
     )
+
+
+def requirement_of(entry: Mapping[str, object]) -> str:
+    """One requirement of uv's record, written as a command line takes it."""
+    name = str(entry["name"])
+    extras = entry.get("extras")
+    if isinstance(extras, list) and extras:
+        name += f"[{','.join(str(extra) for extra in extras)}]"
+    marker = f" ; {entry['marker']}" if entry.get("marker") else ""
+    for key in ("path", "directory"):
+        if entry.get(key):
+            return f"{name} @ {Path(str(entry[key])).as_uri()}{marker}"
+    if entry.get("url"):
+        return f"{name} @ {entry['url']}{marker}"
+    if entry.get("git"):
+        return f"{name} @ {_git_url(str(entry['git']))}{marker}"
+    return f"{name}{entry.get('specifier') or ''}{marker}"
+
+
+def _git_url(recorded: str) -> str:
+    """uv records a git source as ``URL?rev=…#commit``; a requirement names
+    the reference after an ``@``."""
+    url, _, query = recorded.partition("#")[0].partition("?")
+    reference = ""
+    for part in query.split("&"):
+        key, _, value = part.partition("=")
+        if key in ("rev", "tag", "branch") and value:
+            reference = f"@{value}"
+    return f"git+{url}{reference}"
+
+
+def requirement_name(spec: str) -> str | None:
+    """The normalised distribution a requirement names."""
+    try:
+        return _normalise(Requirement(spec).name)
+    except InvalidRequirement:
+        return distribution_name(spec)
+
+
+def unpinned(spec: str) -> str:
+    """The requirement without its versions: a name stays a name, so
+    ``uv tool upgrade`` can move it; a file or URL stays what it is."""
+    try:
+        requirement = Requirement(spec)
+    except InvalidRequirement:
+        return spec
+    if requirement.url:
+        return spec
+    extras = f"[{','.join(sorted(requirement.extras))}]" if requirement.extras else ""
+    marker = f" ; {requirement.marker}" if requirement.marker else ""
+    return f"{requirement.name}{extras}{marker}"
+
+
+def pinned(spec: str, versions: Mapping[str, str]) -> str:
+    """The requirement held at the installed version; a file or URL already is."""
+    try:
+        requirement = Requirement(spec)
+    except InvalidRequirement:
+        return spec
+    version = versions.get(_normalise(requirement.name))
+    if requirement.url or version is None:
+        return spec
+    extras = f"[{','.join(sorted(requirement.extras))}]" if requirement.extras else ""
+    return f"{requirement.name}{extras}=={version}"
+
+
+def as_requirement(package: str) -> str:
+    """A package as ``add`` was given it, as the record should hold it: a
+    wheel or directory on disk becomes ``name @ file://…`` when its name is
+    known, so the record does not depend on the directory it was added from."""
+    path = Path(package).expanduser()
+    if "://" in package or not (package.endswith(".whl") or path.exists()):
+        return package
+    name = distribution_name(package)
+    return f"{name} @ {path.resolve().as_uri()}" if name else package
+
+
+def tool_install(
+    found: Environment, core: str, plugins: Sequence[str], flags: Sequence[str] = ()
+) -> list[str]:
+    """``uv tool install`` with this record: Bricklogger, a ``--with`` per
+    plugin, and the Python the record asked for, or uv would build the
+    environment again on its default."""
+    record = found.record
+    assert record is not None
+    command = [str(found.uv), "tool", "install", core]
+    for plugin in plugins:
+        command += ["--with", plugin]
+    if record.python:
+        command += ["--python", record.python]
+    return [*command, *flags]
+
+
+def run_tool(found: Environment, run: Runner | None, command: Sequence[str]) -> str:
+    """Run a ``uv tool`` command against this tool environment. uv finds the
+    environment through ``UV_TOOL_DIR`` and puts the command in
+    ``UV_TOOL_BIN_DIR``, and a service does not carry the login's shell
+    variables, so both are set from the record; they name this environment
+    whatever the process was started with."""
+    record = found.record
+    assert record is not None
+    variables = {**os.environ, "UV_TOOL_DIR": str(record.tool_dir)}
+    if record.bin_dir is not None:
+        variables["UV_TOOL_BIN_DIR"] = str(record.bin_dir)
+
+    def with_variables(command: Sequence[str]) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            list(command), capture_output=True, text=True, check=False, env=variables
+        )
+
+    return _run(run if run is not None else with_variables, command)
+
+
+def settle(
+    found: Environment,
+    run: Runner | None,
+    core: str,
+    plugins: Sequence[str],
+    installed: Sequence[str],
+) -> None:
+    """Leave the record naming the packages without versions. The install
+    just made may have held some at a version; installed again unpinned,
+    with nothing to upgrade, uv keeps every version and rewrites the record
+    alone."""
+    wanted = [unpinned(core), *map(unpinned, plugins)]
+    if wanted == list(installed):
+        return
+    run_tool(found, run, tool_install(found, wanted[0], wanted[1:]))
 
 
 def manual_command(action: str, packages: Sequence[str]) -> str:
@@ -97,10 +308,11 @@ def add_plugins(
 
     ``PACKAGE`` is anything uv installs. A package already present is brought
     to the version asked for, and a wheel is installed even when its version
-    is already present, as the install script does for Bricklogger itself.
-    The other installed plugins go into the resolution pinned where they are,
-    so a package that cannot live with them is refused before anything has
-    changed, and nothing but what was asked for moves.
+    is already present: two builds of a development wheel carry the same
+    version, and the second must win. The other installed plugins go into the
+    resolution pinned where they are, so a package that cannot live with them
+    is refused before anything has changed, and nothing but what was asked
+    for moves.
 
     In a container the packages go into the plugin volume instead, and what
     was asked for is recorded in its manifest unless ``remember`` says not
@@ -115,11 +327,23 @@ def add_plugins(
         if remember:
             remember_packages(found.target, packages)
         return added
-    command = [str(found.uv), "pip", "install", "--python", str(found.python)]
-    command += _moving(packages)
-    command += _held(found, packages)
-    command += list(packages)
-    output = _run(run, command)
+    record = found.record
+    assert record is not None
+    # The held plugins are tried first, without touching anything: uv's
+    # resolution in the tool environment prefers the installed versions but
+    # would move one rather than fail, and a plugin must not move unasked.
+    check = [str(found.uv), "pip", "install", "--dry-run"]
+    check += ["--python", str(found.python)]
+    check += _moving(packages)
+    check += _held(found, packages)
+    check += list(packages)
+    _run(run, check)
+    asked = _asked(packages)
+    kept = [spec for spec in record.plugins if requirement_name(spec) not in asked]
+    wanted = [*kept, *map(as_requirement, packages)]
+    command = tool_install(found, record.core, wanted, _moving(packages))
+    output = run_tool(found, run, command)
+    settle(found, run, record.core, wanted, [record.core, *wanted])
     return Added(tuple(packages), tuple(command), output)
 
 
@@ -418,14 +642,24 @@ def remove_plugin(
         )
     found = _environment(environment, "uninstall", [distribution])
     _writable(found)
-    location = (
-        ["--target", str(found.target)]
-        if found.target is not None
-        else ["--python", str(found.python)]
-    )
     orphans = orphaned_by(distribution, _plugins_directory(found))
-    command = [str(found.uv), "pip", "uninstall", *location, distribution, *orphans]
-    output = _run(run, command)
+    record = found.record
+    if record is not None and any(
+        requirement_name(spec) == distribution for spec in record.plugins
+    ):
+        # Out of the record, and uv takes it and what only it needed away.
+        kept = [s for s in record.plugins if requirement_name(s) != distribution]
+        command = tool_install(found, record.core, kept)
+        output = run_tool(found, run, command)
+    else:
+        # Installed beside the record, or in the volume: uninstalled by name.
+        location = (
+            ["--target", str(found.target)]
+            if found.target is not None
+            else ["--python", str(found.python)]
+        )
+        command = [str(found.uv), "pip", "uninstall", *location, distribution, *orphans]
+        output = _run(run, command)
     if found.target is not None:
         forget_package(found.target, distribution)
     return Removed(
@@ -542,13 +776,17 @@ def _environment(
     environment: Environment | None, action: str, packages: Sequence[str]
 ) -> Environment:
     found = environment if environment is not None else installed_environment()
-    if found is None:
+    if found is not None:
+        return found
+    if plugin_directory() is None and read_record(Path(sys.prefix)) is not None:
         raise OperationError(
-            "this is not an installation the install script made, so its uv is "
-            "not beside the environment; run instead:\n  "
-            + manual_command(action, packages)
+            "uv is found neither on the path nor in ~/.local/bin; install it, or "
+            "put the directory that holds it on the path"
         )
-    return found
+    raise OperationError(
+        "this is not an installation made with `uv tool install`; run instead:\n  "
+        + manual_command(action, packages)
+    )
 
 
 def _writable(environment: Environment) -> None:
@@ -563,7 +801,7 @@ def _writable(environment: Environment) -> None:
     if not os.access(environment.site_packages, os.W_OK):
         raise OperationError(
             f"no right to write to {environment.site_packages}; run the command "
-            "with sudo"
+            "as the login that installed Bricklogger"
         )
 
 

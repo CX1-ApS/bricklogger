@@ -13,19 +13,18 @@ carries the meaning, and there is no wrapping top-level key.
 
 Configuration and data live where the user that runs Bricklogger can write:
 
-| Runs as | Configuration | Data |
-|---------|---------------|------|
-| `root` or the service user | `/etc/bricklogger` | `/var/lib/bricklogger` |
-| an ordinary login | `~/.config/bricklogger` | `~/.local/share/bricklogger` |
+| Installation | Configuration | Data |
+|--------------|---------------|------|
+| [`uv tool install`](../getting-started.md#install), as a login | `~/.config/bricklogger` | `~/.local/share/bricklogger` |
+| [the container](../docker.md) | `/etc/bricklogger` | `/var/lib/bricklogger` |
 
 The config directory is resolved in this order: the CLI flag
 **`--config-dir`**, the environment variable **`BRICKLOGGER_CONFIG_DIR`**,
-**`/etc/bricklogger`** when that directory exists, and
-**`~/.config/bricklogger`** otherwise. A machine installed as a service thus
-needs neither flag nor variable, and neither does a run in a home directory on
-a machine without a system installation. `status` and every `config` view
-name the directory in use, so a shell that reads a different one than the
-daemon does is visible at once.
+and **`~/.config/bricklogger`** otherwise. An installation in a home directory
+thus needs neither flag nor variable, and the container names its directory
+with the variable. `status` and every `config` view name the directory in use,
+so a shell that reads a different one than the daemon does is visible at
+once.
 
 Bricklogger writes its own configuration: `init`, the `config edit` views,
 `add`, `edit` and `remove` of an instance and the web interface's editor write
@@ -66,8 +65,8 @@ with another token. Blank lines and lines beginning with `#` are ignored, and
 a value may be quoted.
 
 The file is not one of the four: it is not reachable through the API or the
-web interface, no `config` view prints it, and the install script creates
-it empty with mode `600`. Under a service manager it is read by the daemon
+web interface, no `config` view prints it, and `init` creates it with mode
+`600`. Under a service manager it is read by the daemon
 itself, so no `EnvironmentFile` is needed.
 
 ## `daemon.yaml`
@@ -77,12 +76,12 @@ api:
   host: 127.0.0.1                  # default: localhost only
   port: 8420
   token: ${BRICKLOGGER_API_TOKEN}  # required when host is not loopback
-data_dir: /var/lib/bricklogger     # default; see Location
+data_dir: /home/logger/.local/share/bricklogger  # default; see Location
 stop_timeout: 10s                  # default
 log:
   level: info                      # default
   format: text                     # default; or json
-  file: /var/lib/bricklogger/bricklogger.log  # default: <data_dir>/bricklogger.log
+  file: /home/logger/.local/share/bricklogger/bricklogger.log  # default: <data_dir>/bricklogger.log
   max_size: 10MB                   # default
   keep: 5                          # default
 web:
@@ -118,9 +117,10 @@ updates:
   variable like every secret. Clients send it as a bearer token, as the
   [API reference](api.md#conventions) describes.
 - `data_dir`: the data directory with runtime state (SQLite), the model
-  versions and the working graph. The default is **`/var/lib/bricklogger`**
-  beside a config directory in `/etc`, and **`~/.local/share/bricklogger`**
-  beside one under the home directory; `init` writes the resolved path
+  versions and the working graph. The default is
+  **`~/.local/share/bricklogger`** beside a config directory under the home
+  directory, and **`/var/lib/bricklogger`** beside one in `/etc`, as in the
+  container; `init` writes the resolved path
   into the file, so a written configuration never leaves it implicit.
 - `stop_timeout`: how long a plugin instance gets to stop gracefully before it
   is abandoned and reported in status. The default is **`10s`**.

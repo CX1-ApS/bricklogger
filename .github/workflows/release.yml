@@ -1,6 +1,6 @@
 # A release, from a version tag pushed by scripts/publish.sh: the test suite
-# first, then the wheel and sdist to PyPI, a GitHub Release with them and the
-# install script, the image on GHCR and the documentation on GitHub Pages.
+# first, then the wheel and sdist to PyPI, a GitHub Release with them, the
+# image on GHCR and the documentation on GitHub Pages.
 # Nothing is published before the suite passes. See
 # src/bricklogger/docs/docker.md and getting-started.md.
 
@@ -92,7 +92,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp install.sh dist/
           (cd dist && sha256sum ./* > SHA256SUMS)
           # The release commit's body is the development tag's message.
           git log -1 --format=%b > notes.md

@@ -51,7 +51,7 @@ TEXTS: dict[str, str] = {
         "Bricklogger {installed}; {newest} is out, and is upgraded from the "
         "command line:"
     ),
-    "plugins.core.command": "sudo bricklogger update core",
+    "plugins.core.command": "bricklogger update core",
     "plugins.checked": "newer releases looked for {when}",
     "plugins.unchecked": "newer releases not looked for yet",
     "plugins.check": "Check now",
@@ -61,7 +61,7 @@ TEXTS: dict[str, str] = {
     ),
     "plugins.restart.container": "docker compose restart daemon",
     "plugins.restart.host": (
-        "bricklogger daemon restart (or: systemctl restart bricklogger)"
+        "bricklogger daemon restart (or: systemctl --user restart bricklogger)"
     ),
     "plugins.restart.mcp": (
         "The MCP server over HTTP reads them the same way; the web interface "

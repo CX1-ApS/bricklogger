@@ -1,11 +1,12 @@
-"""The systemd units, written from the templates in the package.
+"""The ``systemd --user`` units, written from the templates in the package.
 
-The install script and ``bricklogger update`` write them alike: the script
-when it installs, with what it knows of the machine, and ``update`` when a new
-version's templates differ from what is installed, with the parameters the
-installed units already carry. Run as ``python -m bricklogger.ops.units``, so
-the install script and an update both render with the version just installed.
-See ``docs/features/cli.md``, "update".
+``bricklogger services install`` writes them with the command and the config
+directory in use, and ``bricklogger update`` writes the ones that are there
+again when a new version's templates differ, with the parameters those units
+already carry. ``update`` runs this module as ``python -m
+bricklogger.ops.units`` in the new version's interpreter, so the units are
+rendered from the version just installed. See ``docs/features/cli.md``,
+"services" and "update".
 """
 
 from __future__ import annotations
@@ -19,29 +20,27 @@ from importlib.resources import files
 from pathlib import Path
 
 UNITS = ("bricklogger.service", "bricklogger-web.service", "bricklogger-mcp.service")
-"""The units in the order they are restarted: the daemon before the two that
-talk to it."""
+"""The units in the order they are started and restarted: the daemon before
+the two that talk to it."""
+
+DAEMON, WEB, MCP = UNITS
+
+#: What each unit runs after the command.
+ARGUMENTS = {DAEMON: "daemon run", WEB: "serve", MCP: "mcp serve --http"}
 
 _PLACEHOLDER = re.compile(r"\$\{(\w+)\}")
 
 
 @dataclass(frozen=True)
 class UnitParameters:
-    """What differs between machines: the command, the service user (system
-    mode only), the config directory (user mode only) and the target."""
+    """What differs between machines: the command's absolute path and the
+    config directory the services read."""
 
     command: str
-    wanted_by: str
-    user: str = ""
-    config_dir: str = ""
+    config_dir: str
 
     def values(self) -> dict[str, str]:
-        return {
-            "command": self.command,
-            "wanted_by": self.wanted_by,
-            "user": self.user,
-            "config_dir": self.config_dir,
-        }
+        return {"command": self.command, "config_dir": self.config_dir}
 
 
 def template(name: str) -> str:
@@ -49,96 +48,80 @@ def template(name: str) -> str:
 
 
 def render(name: str, parameters: UnitParameters) -> str:
-    """The unit with the parameters filled in; a line whose placeholders are
-    all empty is left out, as the user line is for a unit in user mode."""
+    """The unit with the parameters filled in."""
     values = parameters.values()
-    lines: list[str] = []
-    for line in template(name).splitlines():
-        names = _PLACEHOLDER.findall(line)
-        if names and not any(values.get(n) for n in names):
-            continue
-        lines.append(_PLACEHOLDER.sub(lambda m: values.get(m.group(1), ""), line))
-    return "\n".join(lines) + "\n"
+    text = _PLACEHOLDER.sub(lambda m: values.get(m.group(1), ""), template(name))
+    return text if text.endswith("\n") else text + "\n"
 
 
-def parameters_of(text: str) -> UnitParameters | None:
-    """The parameters an installed daemon unit carries, or ``None`` when it
-    does not look like one this program wrote."""
-    found: dict[str, str] = {}
+def parameters_of(name: str, text: str) -> UnitParameters | None:
+    """The parameters an installed unit carries, or ``None`` when it does not
+    look like one this program wrote."""
+    command = config_dir = None
+    suffix = " " + ARGUMENTS[name]
     for line in text.splitlines():
         key, separator, value = line.strip().partition("=")
         if not separator:
             continue
-        if key == "User":
-            found["user"] = value
-        elif key == "Environment" and value.startswith("BRICKLOGGER_CONFIG_DIR="):
-            found["config_dir"] = value.split("=", 1)[1]
-        elif key == "ExecStart" and value.endswith(" daemon run"):
-            found["command"] = value.removesuffix(" daemon run")
-        elif key == "WantedBy":
-            found["wanted_by"] = value
-    if "command" not in found or "wanted_by" not in found:
+        if key == "Environment" and value.startswith("BRICKLOGGER_CONFIG_DIR="):
+            config_dir = value.split("=", 1)[1]
+        elif key == "ExecStart" and value.endswith(suffix):
+            command = value.removesuffix(suffix)
+    if command is None or config_dir is None:
         return None
-    return UnitParameters(**found)
+    return UnitParameters(command, config_dir)
 
 
-def write(directory: Path, parameters: UnitParameters) -> list[str]:
-    """Write the three units; the names of those that changed."""
+def write(
+    directory: Path, parameters: UnitParameters, names: Sequence[str] = UNITS
+) -> list[str]:
+    """Write the named units; the names of those that changed."""
     directory.mkdir(parents=True, exist_ok=True)
     changed: list[str] = []
     for name in UNITS:
+        if name not in names:
+            continue
         path = directory / name
         text = render(name, parameters)
-        try:
-            current = path.read_text(encoding="utf-8")
-        except OSError:
-            current = None
-        if current != text:
+        if _read(path) != text:
             path.write_text(text, encoding="utf-8")
             changed.append(name)
     return changed
 
 
+def written(directory: Path) -> list[str]:
+    """The units that are written in the directory."""
+    return [name for name in UNITS if (directory / name).is_file()]
+
+
 def refresh(directory: Path) -> list[str]:
-    """Write the units again from the templates, with the parameters the
-    installed daemon unit carries; nothing when there is none to read."""
+    """Write the units that are there again from the templates, each with the
+    parameters it carries; one this program did not write is left alone."""
+    changed: list[str] = []
+    for name in written(directory):
+        current = _read(directory / name)
+        parameters = parameters_of(name, current or "")
+        if parameters is not None:
+            changed += write(directory, parameters, [name])
+    return changed
+
+
+def _read(path: Path) -> str | None:
     try:
-        installed = (directory / UNITS[0]).read_text(encoding="utf-8")
+        return path.read_text(encoding="utf-8")
     except OSError:
-        return []
-    parameters = parameters_of(installed)
-    if parameters is None:
-        return []
-    return write(directory, parameters)
+        return None
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m bricklogger.ops.units")
     commands = parser.add_subparsers(dest="action", required=True)
-    write_parser = commands.add_parser("write", help="write the units")
-    write_parser.add_argument("--dir", required=True, type=Path)
-    write_parser.add_argument("--command", required=True)
-    write_parser.add_argument("--wanted-by", required=True)
-    write_parser.add_argument("--user", default="")
-    write_parser.add_argument("--config-dir", default="")
     refresh_parser = commands.add_parser(
-        "refresh", help="write them again with the parameters they carry"
+        "refresh", help="write the units that are there again from the templates"
     )
     refresh_parser.add_argument("--dir", required=True, type=Path)
     arguments = parser.parse_args(argv)
-    if arguments.action == "write":
-        changed = write(
-            arguments.dir,
-            UnitParameters(
-                command=arguments.command,
-                wanted_by=arguments.wanted_by,
-                user=arguments.user,
-                config_dir=arguments.config_dir,
-            ),
-        )
-    else:
-        changed = refresh(arguments.dir)
-    for name in changed:
+    for name in refresh(arguments.dir):
         print(name)
     return 0
 

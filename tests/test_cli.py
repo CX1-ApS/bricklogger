@@ -9,6 +9,7 @@ from typer.testing import CliRunner
 
 from bricklogger import __version__
 from bricklogger.cli import app
+from bricklogger.ops import services
 from tests.fakes import write_distribution
 from tests.support import free_port
 
@@ -64,8 +65,9 @@ def test_init_writes_the_examples_once(tmp_path: Path) -> None:
 
 
 def test_init_guided_asks_from_the_schemas_and_keeps_the_secret_apart(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setattr(services, "refusal", lambda *_: "no systemd here")
     answers = [
         "1",  # add a source: bacnet-ip
         "",  # its name: the suggested bacnet_ip_main
@@ -106,6 +108,28 @@ def test_init_guided_asks_from_the_schemas_and_keeps_the_secret_apart(
 
     again = runner.invoke(app, ["--config-dir", str(tmp_path), "init"], input="\n")
     assert again.exit_code == 1 and "refusing to overwrite" in again.output
+
+
+def test_init_offers_the_services_last(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    asked: list[dict[str, object]] = []
+
+    def fake_install(**kwargs: object) -> services.Installed:
+        asked.append(kwargs)
+        return services.Installed(units=["bricklogger.service"])
+
+    monkeypatch.setattr(services, "refusal", lambda *_: None)
+    monkeypatch.setattr(services, "install", fake_install)
+    answers = ["", "", "y", "y", "n"]  # no source, no destination, yes, web, no mcp
+    result = runner.invoke(
+        app, ["--config-dir", str(tmp_path), "init"], input="\n".join(answers) + "\n"
+    )
+    assert result.exit_code == 0, result.output
+    assert asked == [{"config_dir": tmp_path, "web": True, "mcp": False}]
+    assert "Next: upload the model." in result.output
+    assert "daemon start" not in result.output
+    assert (tmp_path / "env").exists(), "the env file is there for the secrets"
 
 
 def test_validate_after_init(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

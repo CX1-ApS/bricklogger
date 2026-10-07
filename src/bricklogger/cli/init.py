@@ -2,9 +2,10 @@
 
 In a terminal it is a guided setup — which sources and destinations, a name
 and the settings of each from the plugin's own schema, secrets straight into
-the ``env`` file — and ``--non-interactive`` writes the four files with
-commented examples instead. Either way it refuses to overwrite a file that
-exists, so it can never destroy a configuration.
+the ``env`` file, and last the offer to set up the services — and
+``--non-interactive`` writes the four files with commented examples instead.
+Either way it refuses to overwrite a file that exists, so it can never destroy
+a configuration.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from bricklogger.cli.config import registry, report_validation
 from bricklogger.cli.context import CliContext, cli_context
 from bricklogger.cli.guided import ask_settings, write_env
 from bricklogger.cli.output import fail
+from bricklogger.cli.services import install as install_services
 from bricklogger.config import (
     CONFIG_FILES,
     RESERVED_INSTANCE_NAMES,
@@ -31,6 +33,7 @@ from bricklogger.config import (
     write_examples,
     write_text,
 )
+from bricklogger.ops import services
 from bricklogger.sdk.declaration import DestinationDeclaration, SourceDeclaration
 
 NonInteractiveFlag = Annotated[
@@ -102,8 +105,7 @@ def _guided(context: CliContext) -> None:
             write_text(config_dir, "destinations", destinations),
             write_text(config_dir, "rules", examples["rules"]),
         ]
-        if secrets:
-            written.append(write_env(config_dir, secrets))
+        written.append(write_env(config_dir, secrets))
     except OSError as exc:
         raise fail(f"could not write to {config_dir}: {exc}") from exc
     typer.echo("")
@@ -119,10 +121,31 @@ def _guided(context: CliContext) -> None:
         where=str(config_dir),
     )
     typer.echo("")
-    typer.echo("Next: start the daemon and upload the model.")
-    typer.echo("  bricklogger daemon start   (or: systemctl enable --now bricklogger)")
+    started = _offer_services(context)
+    typer.echo("")
+    if started:
+        typer.echo("Next: upload the model.")
+    else:
+        typer.echo("Next: start the daemon and upload the model.")
+        typer.echo("  bricklogger daemon start")
     typer.echo("  bricklogger model upload <model.ttl>")
     typer.echo("  bricklogger status")
+
+
+def _offer_services(context: CliContext) -> bool:
+    """Ask whether to set up the services, and do it on a yes; whether the
+    daemon now runs as one. Nothing is asked where they cannot be set up."""
+    if services.refusal(services.this_host(), context.config_dir) is not None:
+        return False
+    if not typer.confirm(
+        "Set up the services now? The daemon then starts at boot", default=True
+    ):
+        typer.echo("The same later: bricklogger services install [--web] [--mcp]")
+        return False
+    web = typer.confirm("  Also the web interface?", default=True)
+    mcp = typer.confirm("  Also the MCP server over HTTP?", default=False)
+    install_services(context.config_dir, web=web, mcp=mcp)
+    return True
 
 
 def _collect(

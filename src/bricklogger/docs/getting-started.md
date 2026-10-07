@@ -1,35 +1,38 @@
 # Getting started
 
-Bricklogger runs on Linux and is installed with one command. This page takes
-a new installation from nothing to the first observations in the database.
+Bricklogger runs on Linux and is installed with uv, in the home directory of
+the login that is to run it. This page takes a new installation from nothing
+to the first observations in the database.
 
 ## Install
 
-The install script needs `curl`, and no Python on the machine: it fetches a
-Python of its own together with Bricklogger and its dependencies.
+Bricklogger is installed with [uv](https://docs.astral.sh/uv/), which also
+fetches a Python that fits when the machine has none, so nothing else needs to
+be there first. A machine without uv gets it with its installer:
 
 ```bash
-curl -fsSL https://github.com/CX1-ApS/bricklogger/releases/latest/download/install.sh | sudo sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-With `sudo` the script installs the machine as a service — the environment
-under `/opt/bricklogger`, the `bricklogger` command in `/usr/local/bin`, the
-system user `bricklogger`, the directories `/etc/bricklogger` and
-`/var/lib/bricklogger` owned by that user, an empty `env` file for the secrets,
-and three systemd units — the daemon, the web interface and the MCP server
-over HTTP — left stopped, since the configuration comes first. Without `sudo` nothing outside the home
-directory is touched: the environment and the data under
-`~/.local/share/bricklogger`, the command in `~/.local/bin`, the configuration
-in `~/.config/bricklogger`, and the same three units as `systemd --user`
-services with lingering enabled, so they survive a logout.
-
-Two options are worth knowing: `--version V` installs a given version, and
-`--wheel FILE` a wheel from disk instead of the released package from PyPI. Options come
-after `--` when the script is piped into a shell:
+Then, as the login that is to run the logger — not as root:
 
 ```bash
-curl -fsSL https://github.com/CX1-ApS/bricklogger/releases/latest/download/install.sh | sudo sh -s -- --version 0.2.2
+uv tool install bricklogger
 ```
+
+The environment lands in uv's tool directory and the `bricklogger` command in
+`~/.local/bin`; nothing outside the home directory is touched. When
+`~/.local/bin` is not on the path, `uv tool update-shell` puts it there. A
+given version is `uv tool install bricklogger==0.2.3`, and a wheel on disk is
+installed by its path instead of the name.
+
+Bricklogger runs **as the login that installed it**, with its configuration
+and data in that login's home directory and its services as `systemd --user`
+units; there is no installation for the whole machine and no user of its own.
+A dedicated login for the logger keeps it apart from the people who work on
+the machine. A source that reads a serial port needs that login in the group
+that owns the port, `dialout` on most distributions:
+`sudo usermod -aG dialout <login>`.
 
 `bricklogger --version` confirms the installation, and `bricklogger plugins`
 lists the built-in plugins. A plugin is an ordinary Python package that the
@@ -60,13 +63,11 @@ GRANT ALL ON SCHEMA public TO bricklogger;
 
 ## Create the configuration
 
-The install script has already created both directories, and which ones they
-are follows from the install: `/etc/bricklogger` and `/var/lib/bricklogger`
-for a service, `~/.config/bricklogger` and `~/.local/share/bricklogger` for an
-install in a home directory, as the
+The configuration lives in `~/.config/bricklogger` and the data in
+`~/.local/share/bricklogger`, as the
 [configuration document](features/configuration.md#location) describes.
-`init` fills them in a guided setup and refuses to overwrite a file that
-exists:
+`init` creates both and fills the first in a guided setup, and refuses to
+overwrite a file that exists:
 
 ```bash
 bricklogger init
@@ -82,8 +83,8 @@ which is asked for without echo and written to the
 [`env` file](features/configuration.md#the-env-file) as `TSDB_PASSWORD`, with
 `${TSDB_PASSWORD}` in the YAML. `rules.yaml` gets the one rule that accepts
 every point in the model every five minutes — a good first run, since
-`brick:Point` matches all of them — and the result is validated before `init`
-says what to do next.
+`brick:Point` matches all of them — and the result is validated. Last, `init`
+offers to set up the services, as the next section describes.
 
 What it wrote can be read and changed at any time: `bricklogger sources
 config show`, `destinations config show`, `rules config show` and `daemon
@@ -96,7 +97,7 @@ from flags. The four files look like this:
 api:
   host: 127.0.0.1
   port: 8420
-data_dir: /var/lib/bricklogger
+data_dir: /home/logger/.local/share/bricklogger
 stop_timeout: 10s
 log:
   level: info
@@ -137,26 +138,37 @@ into the `env` file yourself, and the whole is checked with:
 bricklogger validate
 ```
 
-## Start the daemon
+## Start the services
+
+The daemon, the web interface and the MCP server over HTTP run as
+`systemd --user` services of the login, with lingering enabled, so they start
+when the machine boots and keep running after a logout. `init` offers to set
+them up when it is done — the daemon always, the web interface and the MCP
+server if you want them — and the same is one command at any time:
 
 ```bash
-bricklogger daemon start
+bricklogger services install --web
 bricklogger status
 ```
 
-Status shows the daemon running — and the web interface not, until `serve`
-runs — and its summary reports `idle`: the daemon runs, but it has no model
-yet. Under a service manager or in a container, run `bricklogger daemon run`
-instead; it stays in the foreground and logs to stdout, and reads the `env`
-file like every other command.
+`services install` writes the units, enables and starts them, and
+`--mcp` adds the MCP server; the [CLI page](features/cli.md#services) has the
+rest. Where the distribution lets only root enable lingering, it says so and
+prints the one `sudo` command that does it; until then the services stop at
+logout.
+
+Status shows the daemon and the web interface running, and the daemon's
+summary reports `idle`: it runs, but it has no model yet.
+
+On a machine without systemd, such as a commissioning laptop under WSL,
+`bricklogger daemon start` runs the daemon in the background instead and
+`bricklogger serve` the web interface in the foreground. In a container the
+command is `bricklogger daemon run`, which stays in the foreground and logs to
+stdout.
 
 ## Open the web interface
 
-```bash
-bricklogger serve
-```
-
-Then browse to `http://127.0.0.1:8421`. Everything below can be done there as
+Browse to `http://127.0.0.1:8421`. Everything below can be done there as
 well; the commands are shown because they can be scripted.
 
 ## Connect an assistant
@@ -239,7 +251,7 @@ described under [notifications](features/notifications.md).
 `bricklogger update status` shows what there is. Then:
 
 ```bash
-sudo bricklogger update all
+bricklogger update all
 ```
 
 It upgrades Bricklogger and the plugins together, checks the configuration
@@ -247,12 +259,26 @@ with the new version before anything is restarted, puts the previous versions
 back if it does not hold, and restarts the services that run. The
 configuration and the data stay where they are. `update core` upgrades
 Bricklogger alone, as far as the installed plugins allow, and `update <type>`
-one plugin; the [CLI page](features/cli.md#update) has the rest. An install
-in a home directory runs it without `sudo`.
+one plugin; the [CLI page](features/cli.md#update) has the rest.
 
-Running the install script again works too, and leaves the plugins as they
-are; restart afterwards. A container installation pulls a new image instead,
-as the [Docker page](docker.md#upgrading) describes.
+`uv tool upgrade bricklogger` works too and keeps the plugins, but moves all
+of them and checks nothing first; restart the services afterwards. Do not run
+`uv tool install bricklogger` again on an installation with plugins: it
+replaces the packages in the environment with the ones on its command line,
+and the plugins are uninstalled. A container installation pulls a new image
+instead, as the [Docker page](docker.md#upgrading) describes.
+
+## Uninstall
+
+```bash
+bricklogger services uninstall
+uv tool uninstall bricklogger
+```
+
+The services go first, while the command that knows them is still there. The
+configuration in `~/.config/bricklogger` and the data in
+`~/.local/share/bricklogger` are kept; remove them by hand when they are no
+longer wanted.
 
 The destination migrates its schema at start. An incompatible configuration
 is rejected at start with a message naming the file and the key.

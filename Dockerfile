@@ -1,5 +1,6 @@
-# Bricklogger as a container: the same layout the install script gives, with
-# the plugins in a volume instead of in the image. See docs/docker.md.
+# Bricklogger as a container: the program in /opt/bricklogger, the configuration
+# in /etc/bricklogger and the data in /var/lib/bricklogger, with the plugins in a
+# volume instead of in the image. See docs/docker.md.
 #
 #   docker build -t bricklogger .
 #   docker run -d --network host -v bricklogger-config:/etc/bricklogger \
@@ -36,9 +37,9 @@ LABEL org.opencontainers.image.title="Bricklogger" \
 
 COPY --from=uv /uv /opt/bricklogger/bin/uv
 
-# The layout of a service install: the environment under /opt/bricklogger, the
-# configuration in /etc/bricklogger, the data in /var/lib/bricklogger, and an
-# unprivileged user that owns the two directories the volumes mount over.
+# The environment under /opt/bricklogger, the configuration in /etc/bricklogger,
+# the data in /var/lib/bricklogger, and an unprivileged user that owns the two
+# directories the volumes mount over.
 RUN set -eu; \
 	groupadd --system bricklogger; \
 	useradd --system --gid bricklogger --home-dir /var/lib/bricklogger \

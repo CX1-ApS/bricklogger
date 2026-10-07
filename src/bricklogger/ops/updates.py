@@ -7,12 +7,14 @@ Bricklogger and says so in its requirement on ``bricklogger``; that
 requirement, in the installed metadata and in a release's, is what "fits"
 means here, while uv's resolution at install time has the last word.
 
-``update core``, ``update <type>`` and ``update all`` install with the
-environment's own uv, as ``plugins add`` does, and then:
+``update core``, ``update <type>`` and ``update all`` install with
+``uv tool install``, as ``plugins add`` does — what is held, pinned for the
+install, and uv's record left naming the packages without versions after it —
+and then:
 
 1. validate the configuration with the new version, in a process of its own,
    and put the noted versions back when it does not hold;
-2. write the systemd units again from the new version's templates;
+2. write the units that are there again from the new version's templates;
 3. restart the units that are active, and wait until each answers.
 
 In a container Bricklogger comes with the image, so only the plugins in the
@@ -23,7 +25,6 @@ volume are upgraded, and nothing is restarted. See
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import time
 from collections.abc import Callable, Iterable, Mapping, Sequence
@@ -43,13 +44,17 @@ from bricklogger.ops.environment import (
     Environment,
     Runner,
     _environment,
-    _held,
     _plugins_directory,
     _run,
     _subprocess,
     _writable,
     add_plugins,
     installed_plugins,
+    pinned,
+    requirement_name,
+    run_tool,
+    settle,
+    tool_install,
 )
 from bricklogger.ops.errors import OperationError
 from bricklogger.ops.plugin_volume import read_manifest, remember, write_manifest
@@ -345,8 +350,8 @@ def _not_restored(refused: UpdateRefused, failure: OperationError) -> UpdateRefu
         f"{refused.message}, and the previous versions could not be put back: "
         f"{failure.message}\nNothing was restarted, so what runs is still the "
         "previous version. Make the configuration fit the new version, or "
-        "install the previous one again with the install script's --version "
-        "or --wheel",
+        "install the previous one again with `uv tool install`, naming every "
+        "plugin with --with",
         refused.errors,
         restored=False,
     )
@@ -362,13 +367,11 @@ class Machine:
 
 
 def this_machine() -> Machine:
-    """System units when run as root, the user's otherwise, as the install
-    script chose them."""
+    """The login's own systemd, where ``services install`` put the units."""
+    unit_dir = Path.home() / ".config" / "systemd" / "user"
     if shutil.which("systemctl") is None:
-        return Machine(None, Path("/etc/systemd/system"))
-    if os.geteuid() == 0:
-        return Machine(("systemctl",), Path("/etc/systemd/system"))
-    return Machine(("systemctl", "--user"), Path.home() / ".config/systemd/user")
+        return Machine(None, unit_dir)
+    return Machine(("systemctl", "--user"), unit_dir)
 
 
 def update(
@@ -389,21 +392,25 @@ def update(
         return _update_volume(target, found, config_dir, run)
     directory = _plugins_directory(found)
     before = _versions(directory)
-    command = [str(found.uv), "pip", "install", "--python", str(found.python)]
-    command += _upgrade_arguments(target, found, before)
-    _run(run, command)
+    core, plugins, flags = _upgrade_arguments(target, found, before)
+    run_tool(found, run, tool_install(found, core, plugins, flags))
     after = _versions(directory)
     result = Updated(moved=_moved(before, after))
-    if not result.moved:
-        return result
+    record = found.record
+    assert record is not None
     try:
-        result.warnings = _validate(found, config_dir, run)
+        if result.moved:
+            result.warnings = _validate(found, config_dir, run)
     except UpdateRefused as refused:
         try:
-            _put_back(found, before, after, run)
+            installed_back = _put_back(found, before, after, run)
         except OperationError as failure:
             raise _not_restored(refused, failure) from failure
+        settle(found, run, record.core, record.plugins, installed_back)
         raise
+    settle(found, run, core, plugins, [core, *plugins])
+    if not result.moved:
+        return result
     current = machine if machine is not None else this_machine()
     if current.systemctl is not None:
         result.units = _refresh_units(found, current, run)
@@ -414,24 +421,27 @@ def update(
 
 def _upgrade_arguments(
     target: str, found: Environment, before: Mapping[str, str]
-) -> list[str]:
-    """uv's arguments for what moves: everything for ``all``, Bricklogger for
-    ``core`` with the plugins held, one plugin with the rest held."""
-    plugins = sorted(name for name in before if name != CORE)
+) -> tuple[str, list[str], list[str]]:
+    """Bricklogger, the plugins and the flags for ``uv tool install``:
+    everything moving by name for ``all``, Bricklogger for ``core`` with the
+    plugins held at their versions, one plugin with the rest held. What moves
+    is named, not a file, since an upgrade comes from PyPI."""
+    record = found.record
+    assert record is not None
     if target == "all":
-        moving = [CORE, *plugins]
-        flags = [flag for name in moving for flag in ("--upgrade-package", name)]
-        return [*flags, *moving]
+        names = [requirement_name(spec) or spec for spec in record.plugins]
+        return CORE, names, ["--upgrade"]
     if target == "core":
-        return ["--upgrade-package", CORE, CORE, *_held(found, [CORE])]
+        held = [pinned(spec, before) for spec in record.plugins]
+        return CORE, held, ["--upgrade-package", CORE]
     distribution = _distribution_of(target)
-    return [
-        "--upgrade-package",
-        distribution,
-        distribution,
-        f"{CORE}=={before[CORE]}",
-        *_held(found, [distribution]),
+    plugins = [
+        distribution if requirement_name(spec) == distribution else pinned(spec, before)
+        for spec in record.plugins
     ]
+    if distribution not in map(requirement_name, record.plugins):
+        plugins.append(distribution)
+    return pinned(record.core, before), plugins, ["--upgrade-package", distribution]
 
 
 def _distribution_of(type_name: str) -> str:
@@ -511,20 +521,24 @@ def _put_back(
     before: Mapping[str, str],
     after: Mapping[str, str],
     run: Runner | None,
-) -> None:
-    """Install the noted versions again; what was added is removed."""
-    command = [str(found.uv), "pip", "install", "--python", str(found.python)]
+) -> list[str]:
+    """Install the noted versions again, with the record as it was; what was
+    not there before is not in it, so uv takes it away. The requirements
+    installed, Bricklogger first."""
+    record = found.record
+    assert record is not None
     moved = [name for name in sorted(before) if before[name] != after.get(name)]
-    for name in moved:
-        command += ["--upgrade-package", name, "--reinstall-package", name]
-    command += [f"{name}=={version}" for name, version in sorted(before.items())]
-    _run(run, command)
-    added = sorted(set(after) - set(before))
-    if added:
-        _run(
-            run,
-            [str(found.uv), "pip", "uninstall", "--python", str(found.python), *added],
-        )
+
+    def back(spec: str) -> str:
+        name = requirement_name(spec)
+        if name in moved:
+            return f"{name}=={before[name]}"
+        return pinned(spec, before)
+
+    flags = [flag for name in moved for flag in ("--reinstall-package", name)]
+    specs = [back(record.core), *map(back, record.plugins)]
+    run_tool(found, run, tool_install(found, specs[0], specs[1:], flags))
+    return specs
 
 
 def _refresh_units(

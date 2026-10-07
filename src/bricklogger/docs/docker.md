@@ -1,11 +1,11 @@
 # Docker
 
-Bricklogger also runs as a container. The image holds the same program the
-[install script](getting-started.md#install) installs — the same commands, the
-same four configuration files, the same directories — so a host where
-everything else is a container needs nothing else installed. The install
-script remains the primary installation; the image is the second way, and
-neither changes how Bricklogger works.
+Bricklogger also runs as a container. The image holds the same program
+[`uv tool install`](getting-started.md#install) installs — the same commands
+and the same four configuration files — so a host where everything else is a
+container needs nothing else installed. The installation with uv remains the
+primary one; the image is the second way, and neither changes how
+Bricklogger works.
 
 ## The image
 
@@ -14,16 +14,16 @@ published by GitHub Actions.
 
 | Tag | What it is |
 |-----|------------|
-| `0.2.2` | One released version — what a building's logger should name |
+| `0.2.3` | One released version — what a building's logger should name |
 | `0.2` | The newest patch of that minor version |
 | `latest` | The newest release |
 
 Every version is built for `linux/amd64` and `linux/arm64`, and only after the
 test suite has passed.
 
-Inside, the layout is the one a service install gives: the Python environment
-under `/opt/bricklogger`, the `bricklogger` command on the path, the
-configuration in `/etc/bricklogger`, the data in `/var/lib/bricklogger`. All
+Inside, the Python environment is under `/opt/bricklogger`, the
+`bricklogger` command on the path, the configuration in `/etc/bricklogger` —
+named by `BRICKLOGGER_CONFIG_DIR` — and the data in `/var/lib/bricklogger`. All
 of it belongs to an unprivileged user, and the container runs as that user and
 never as root.
 
@@ -55,7 +55,7 @@ name: bricklogger
 
 services:
   daemon:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.2
+    image: ghcr.io/cx1-aps/bricklogger:0.2.3
     network_mode: host
     restart: unless-stopped
     stop_grace_period: 30s
@@ -65,7 +65,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   web:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.2
+    image: ghcr.io/cx1-aps/bricklogger:0.2.3
     command: ["bricklogger", "serve"]
     profiles: ["web"]
     depends_on: ["daemon"]
@@ -77,7 +77,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   mcp:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.2
+    image: ghcr.io/cx1-aps/bricklogger:0.2.3
     command: ["bricklogger", "mcp", "serve", "--http"]
     profiles: ["mcp"]
     depends_on: ["daemon"]
@@ -357,7 +357,7 @@ docker run -d --name bricklogger \
   -v bricklogger-config:/etc/bricklogger \
   -v bricklogger-data:/var/lib/bricklogger \
   -v bricklogger-plugins:/var/lib/bricklogger/plugins \
-  ghcr.io/cx1-aps/bricklogger:0.2.2
+  ghcr.io/cx1-aps/bricklogger:0.2.3
 ```
 
 The web interface and the MCP server are two more `docker run` lines with the

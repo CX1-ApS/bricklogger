@@ -19,7 +19,7 @@ from bricklogger.config import validate_configuration
 from bricklogger.daemon.updates import UpdateWatch
 from bricklogger.ops import units
 from bricklogger.ops import updates as updates_module
-from bricklogger.ops.environment import Environment
+from bricklogger.ops.environment import Environment, ToolRecord
 from bricklogger.ops.errors import OperationError
 from bricklogger.ops.updates import (
     Installed,
@@ -34,24 +34,24 @@ from bricklogger.web.app import newer_releases_context
 
 # --- the units -------------------------------------------------------------------
 
-#: What the install script wrote before the templates moved into the package;
-#: a machine installed then must not see its units as changed.
-SYSTEM_DAEMON_UNIT = """[Unit]
+#: A daemon unit as an earlier version wrote it for a login, waiting on a
+#: network target the login's systemd does not have.
+EARLIER_DAEMON_UNIT = """[Unit]
 Description=Bricklogger daemon
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-User=bricklogger
-ExecStart=/usr/local/bin/bricklogger daemon run
+Environment=BRICKLOGGER_CONFIG_DIR=/home/m/.config/bricklogger
+ExecStart=/home/m/.local/bin/bricklogger daemon run
 Restart=on-failure
 RestartSec=5
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
 """
 
-USER_MCP_UNIT = """[Unit]
+MCP_UNIT = """[Unit]
 Description=Bricklogger MCP server over HTTP
 After=bricklogger.service
 
@@ -65,34 +65,30 @@ RestartSec=5
 WantedBy=default.target
 """
 
-
-def test_the_templates_render_what_the_install_script_wrote() -> None:
-    system = units.UnitParameters(
-        command="/usr/local/bin/bricklogger",
-        wanted_by="multi-user.target",
-        user="bricklogger",
-    )
-    assert units.render("bricklogger.service", system) == SYSTEM_DAEMON_UNIT
-    user = units.UnitParameters(
-        command="/home/m/.local/bin/bricklogger",
-        wanted_by="default.target",
-        config_dir="/home/m/.config/bricklogger",
-    )
-    assert units.render("bricklogger-mcp.service", user) == USER_MCP_UNIT
+PARAMETERS = units.UnitParameters(
+    command="/home/m/.local/bin/bricklogger",
+    config_dir="/home/m/.config/bricklogger",
+)
 
 
-def test_a_refresh_keeps_the_parameters_and_writes_only_what_changed(
+def test_the_templates_render_the_command_and_the_config_directory() -> None:
+    assert units.render("bricklogger-mcp.service", PARAMETERS) == MCP_UNIT
+    assert units.parameters_of("bricklogger-mcp.service", MCP_UNIT) == PARAMETERS
+
+
+def test_a_refresh_rewrites_the_units_that_are_there_and_no_others(
     tmp_path: Path,
 ) -> None:
-    (tmp_path / "bricklogger.service").write_text(SYSTEM_DAEMON_UNIT)
-    (tmp_path / "bricklogger-web.service").write_text("[Unit]\nDescription=old\n")
-    changed = units.refresh(tmp_path)
-    assert changed == ["bricklogger-web.service", "bricklogger-mcp.service"]
-    web = (tmp_path / "bricklogger-web.service").read_text()
-    assert (
-        "User=bricklogger" in web
-        and "ExecStart=/usr/local/bin/bricklogger serve" in web
+    (tmp_path / "bricklogger.service").write_text(EARLIER_DAEMON_UNIT)
+    (tmp_path / "bricklogger-web.service").write_text("[Unit]\nDescription=other\n")
+    assert units.refresh(tmp_path) == ["bricklogger.service"]
+    daemon = (tmp_path / "bricklogger.service").read_text()
+    assert "network-online" not in daemon
+    assert "ExecStart=/home/m/.local/bin/bricklogger daemon run" in daemon
+    assert (tmp_path / "bricklogger-web.service").read_text().endswith("other\n"), (
+        "a unit this program did not write is left alone"
     )
+    assert not (tmp_path / "bricklogger-mcp.service").exists(), "not set up, not added"
     assert units.refresh(tmp_path) == []
 
 
@@ -104,9 +100,9 @@ def test_a_refresh_without_an_installed_unit_writes_nothing(tmp_path: Path) -> N
 def test_the_module_prints_the_units_it_wrote(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    arguments = ["write", "--dir", str(tmp_path), "--command", "/x/bricklogger"]
-    assert units.main([*arguments, "--wanted-by", "default.target"]) == 0
-    assert units.changed_from(capsys.readouterr().out) == list(units.UNITS)
+    (tmp_path / "bricklogger.service").write_text(EARLIER_DAEMON_UNIT)
+    assert units.main(["refresh", "--dir", str(tmp_path)]) == 0
+    assert units.changed_from(capsys.readouterr().out) == ["bricklogger.service"]
 
 
 # --- the look on PyPI -----------------------------------------------------------
@@ -225,15 +221,20 @@ class Machinery:
         command = list(command)
         self.commands.append(command)
         out = ""
-        if command[1:3] == ["pip", "install"]:
+        if command[1:3] == ["tool", "install"]:
+            specs = [command[3]] + [
+                command[i + 1] for i, word in enumerate(command) if word == "--with"
+            ]
             if "--reinstall-package" in command:  # the noted versions put back
                 if not self.index_has_the_old_versions:
                     return subprocess.CompletedProcess(
                         command, 1, "", "no version of bricklogger==0.2.0"
                     )
-                versions = dict(p.split("==") for p in command if "==" in p)
-            else:
+                versions = dict(s.split("==") for s in specs if "==" in s)
+            elif "--upgrade" in command or "--upgrade-package" in command:
                 versions = self.after
+            else:  # the record settled: nothing moves
+                versions = {}
             for name, version in versions.items():
                 dist(
                     self.site, name, version, () if name == "bricklogger" else ("ibos",)
@@ -265,7 +266,10 @@ def site(tmp_path: Path) -> Path:
 
 def environment(site: Path) -> Environment:
     return Environment(
-        uv=Path("/opt/bin/uv"), python=Path("/opt/venv/python"), site_packages=site
+        uv=Path("/opt/bin/uv"),
+        python=Path("/opt/venv/python"),
+        site_packages=site,
+        record=ToolRecord(("bricklogger", "bricklogger-ibos"), Path("/opt/tools")),
     )
 
 
@@ -290,9 +294,19 @@ def test_update_core_holds_the_plugins_validates_and_restarts_the_active_units(
     )
     assert result.moved == {"bricklogger": ("0.2.0", "0.2.1")}
     install = machinery.commands[0]
+    uv = str(Path("/opt/bin/uv"))
+    assert install[:4] == [uv, "tool", "install", "bricklogger"]
     assert install[install.index("--upgrade-package") + 1] == "bricklogger"
     assert "bricklogger-ibos==0.1.0" in install, "the plugin is held"
     assert machinery.commands[1][:3] == ["/opt/venv/python", "-m", "bricklogger"]
+    assert machinery.commands[2] == [
+        uv,
+        "tool",
+        "install",
+        "bricklogger",
+        "--with",
+        "bricklogger-ibos",
+    ], "the record left without the version the plugin was held at"
     assert result.units == ["bricklogger-web.service"]
     assert ["systemctl", "daemon-reload"] in machinery.commands
     assert result.restarted == ["bricklogger.service", "bricklogger-web.service"]
@@ -350,6 +364,7 @@ def test_a_configuration_the_new_version_rejects_puts_the_old_one_back(
     ]
     put_back = machinery.commands[2]
     assert "bricklogger==0.2.0" in put_back and "bricklogger-ibos==0.1.0" in put_back
+    assert machinery.commands[3][-3:] == ["bricklogger", "--with", "bricklogger-ibos"]
     assert updates_module._versions(site) == {
         "bricklogger": "0.2.0",
         "bricklogger-ibos": "0.1.0",

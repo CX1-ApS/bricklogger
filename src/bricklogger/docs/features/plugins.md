@@ -28,33 +28,39 @@ The daemon reads the entry points **when it starts**.
 
 ## Installing a plugin
 
-A plugin is installed **into the environment the install script created**,
-beside Bricklogger, and the daemon finds it through its entry points without
-any configuration. Three ways lead there, and they are the same operation:
+A plugin is installed **into the uv tool environment Bricklogger was
+installed into**, beside Bricklogger, and the daemon finds it through its
+entry points without any configuration. Three ways lead there, and they are
+the same operation:
 
 - **From the CLI**, `bricklogger plugins add PACKAGE`, which takes one or more
-  packages. The command runs the environment's own uv against the environment
-  it runs from itself, and when it is done prints the catalogue as it now is.
+  packages. The command runs uv against the environment it runs from itself,
+  and when it is done prints the catalogue as it now is.
 - **From the web interface**, on the [Plugins screen](web.md#screens), which
   runs the same operation in the process `serve` runs in, against the
   environment it runs from.
-- **By hand**, with the same uv:
+- **By hand**, with uv itself, naming every plugin:
 
 ```bash
-/opt/bricklogger/bin/uv pip install --python /opt/bricklogger/venv/bin/python PACKAGE
+uv tool install bricklogger --with bricklogger-ibos --with PACKAGE
 ```
 
-For an install in a home directory the prefix is `~/.local/share/bricklogger`
-instead of `/opt/bricklogger`.
+uv keeps a record of what the tool environment was installed with —
+Bricklogger and one `--with` per plugin — and `uv tool install` **replaces**
+that record with its command line: a plugin left off it is uninstalled.
+`uv tool list --show-with` shows the record as it stands. `add` and `remove`
+keep it themselves, so `uv tool upgrade bricklogger` and a later
+[`update`](cli.md#update) keep the plugins too, and they leave Bricklogger and
+the plugins in it without versions, so nothing is pinned that
+`uv tool upgrade` could not move.
 
 `PACKAGE` is anything uv installs: a name from PyPI or another index
 (`bricklogger-httpjson`), a name with a version
 (`bricklogger-httpjson==0.2.1`), a wheel on disk
 (`./bricklogger_httpjson-0.2.1-py3-none-any.whl`) or a git URL. `add`
 upgrades a package that is already installed, and installs a wheel even when
-its version is already present, as the install script does for Bricklogger
-itself; two builds of a development wheel carry the same version, and the
-second must win.
+its version is already present; two builds of a development wheel carry the
+same version, and the second must win.
 
 `add` also **holds the other plugins where they are.** Every plugin shares
 one environment, and a process imports one version of a library, so two
@@ -69,15 +75,14 @@ release of one plugin that widens its requirement, or `remove` of the other.
 A package given as a bare URL or a path to a directory names no distribution,
 so `add` cannot tell which installed plugin it replaces and holds that one
 too; write `name @ url` for a plugin that is already installed. The command
-run by hand checks nothing of the kind: it is the same uv, given only the
-package on its command line.
+run by hand checks nothing of the kind: it is the same uv, given only what is
+on its command line.
 
-`add` and `remove` work on an installation the install script made, where uv
-sits beside the environment. Anywhere else, such as a checkout run with
+`add` and `remove` work on an installation made with `uv tool install`. They
+find uv on the path, and in `~/.local/bin` where its installer puts it, since
+a service's path is short. Anywhere else, such as a checkout run with
 `uv run`, they print the command to run instead of guessing at the
-environment. Under `/opt/bricklogger` the environment belongs to root; run
-without the right to write there, `add` says so and asks to be run with
-`sudo`. An install in a home directory needs nothing.
+environment. Neither needs rights beyond the login's own.
 
 ### In a container
 
@@ -95,7 +100,7 @@ The daemon reads its plugins when it starts, so a plugin added or removed
 while it runs is not seen until the next start:
 
 ```bash
-sudo systemctl restart bricklogger        # a service
+systemctl --user restart bricklogger      # a service
 bricklogger daemon restart                # a daemon started by hand
 ```
 
@@ -122,16 +127,14 @@ instances are failed, and the rest runs, until they are removed or the plugin
 is added again. The built-in types cannot be removed: their
 distribution is Bricklogger itself, and `remove` says so.
 
-`remove` also **takes with it what only that plugin needed.** The plugin's
-requirements are followed through the installed metadata, transitively and
-with their extras, and what they reach that no remaining plugin and not
-Bricklogger itself reaches is uninstalled in the same command; `remove` names
-it. A library another plugin still needs stays, as does everything
-Bricklogger's own requirements reach, and a library the plugin never required
-is not touched, whether or not anything needs it. One thing is not
-recognised: a library the operator installed by hand for a purpose of their
-own, which the plugin also required, goes with the plugin unless something
-else installed requires it.
+`remove` also **takes with it what only that plugin needed.** The plugin
+leaves uv's record, and uv resolves the environment again without it: what no
+remaining plugin and not Bricklogger itself requires is uninstalled in the
+same command, and `remove` names it. A library another plugin still needs
+stays. The environment holds what the record requires and nothing else, so a
+library installed into it by other means — `uv pip install`, say — goes at
+the next `add`, `remove`, `update` or `uv tool upgrade`; a library wanted
+beside the plugins is added with `plugins add` like a plugin.
 
 ### Upgrading
 
@@ -143,9 +146,9 @@ with Bricklogger; `update core` holds them, and since a plugin is built for a
 plugins allow and names the one that holds it back; `update <type>` upgrades
 one plugin. `update status` shows what there is to upgrade.
 
-Running the install script again also upgrades Bricklogger, and leaves the
-installed plugins as they are, and a container that pulls a new image lays
-its plugin volume down again against it. After either, look at
+`uv tool upgrade bricklogger` also upgrades Bricklogger, and the plugins in
+uv's record with it, unchecked; a container that pulls a new image lays its
+plugin volume down again against it. After either, look at
 `bricklogger plugins`: a plugin that no longer loads shows as
 [failed](#when-a-plugin-cannot-load) with the reason, and the author's
 release for the new version is installed with `update <type>`.

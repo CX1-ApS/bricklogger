@@ -42,7 +42,7 @@ from tests.fakes import (
     in_the_same_tick,
     write_distribution,
 )
-from tests.test_install_script import INVOCATION, cli_has
+from tests.support import INVOCATION, cli_has
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCKERFILE = ROOT / "Dockerfile"

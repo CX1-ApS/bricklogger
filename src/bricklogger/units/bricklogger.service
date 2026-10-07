@@ -1,14 +1,11 @@
 [Unit]
 Description=Bricklogger daemon
-After=network-online.target
-Wants=network-online.target
 
 [Service]
-User=${user}
 Environment=BRICKLOGGER_CONFIG_DIR=${config_dir}
 ExecStart=${command} daemon run
 Restart=on-failure
 RestartSec=5
 
 [Install]
-WantedBy=${wanted_by}
+WantedBy=default.target

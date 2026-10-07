@@ -24,6 +24,7 @@ from bricklogger.cli.plugins import plugins_app
 from bricklogger.cli.query import query_command
 from bricklogger.cli.roles import destinations_app, sources_app
 from bricklogger.cli.serve import serve_command
+from bricklogger.cli.services import services_app
 from bricklogger.cli.update import update_app
 from bricklogger.config import resolve_config_dir
 
@@ -49,7 +50,7 @@ def _root(
         typer.Option(
             "--config-dir",
             help="The config directory; default $BRICKLOGGER_CONFIG_DIR, "
-            "then /etc/bricklogger when it exists, then ~/.config/bricklogger.",
+            "then ~/.config/bricklogger.",
             show_default=False,
         ),
     ] = None,
@@ -92,6 +93,7 @@ app.command("validate")(validate_command)
 app.command("status")(status_command)
 app.command("points")(points_command)
 app.add_typer(daemon_app, name="daemon")
+app.add_typer(services_app, name="services")
 app.add_typer(sources_app, name="sources")
 app.add_typer(destinations_app, name="destinations")
 app.add_typer(rules_app, name="rules")

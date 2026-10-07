@@ -1,5 +1,6 @@
-"""Adding and removing plugins: uv against the installation's environment,
-the refusals, and the two CLI commands in front of it."""
+"""Adding and removing plugins: uv against the installation's tool
+environment and its record, the refusals, and the two CLI commands in front
+of it."""
 
 from __future__ import annotations
 
@@ -17,12 +18,17 @@ from bricklogger.ops.environment import (
     Added,
     Environment,
     Removed,
+    ToolRecord,
     add_plugins,
+    as_requirement,
     distribution_name,
     installed_environment,
     installed_plugins,
     orphaned_by,
+    pinned,
+    read_record,
     remove_plugin,
+    unpinned,
 )
 from bricklogger.ops.errors import OperationError
 from bricklogger.sdk.registry import PluginFailure, PluginRegistry
@@ -56,13 +62,19 @@ class Recorder:
 @pytest.fixture
 def environment(tmp_path: Path) -> Environment:
     uv = tmp_path / "bin" / "uv"
-    python = tmp_path / "venv" / "bin" / "python"
-    site = tmp_path / "venv" / "lib" / "site-packages"
+    python = tmp_path / "tools" / "bricklogger" / "bin" / "python"
+    site = tmp_path / "tools" / "bricklogger" / "lib" / "site-packages"
     for path in (uv, python):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("")
     site.mkdir(parents=True)
-    return Environment(uv=uv, python=python, site_packages=site)
+    record = ToolRecord(
+        ("bricklogger", "bricklogger-fake"),
+        tmp_path / "tools",
+        "3.12",
+        tmp_path / "bin",
+    )
+    return Environment(uv=uv, python=python, site_packages=site, record=record)
 
 
 REGISTRY = PluginRegistry(
@@ -84,33 +96,125 @@ REGISTRY = PluginRegistry(
 
 
 def test_add_runs_uv_against_the_environment(environment: Environment) -> None:
+    """Tried first without touching anything, then installed into the tool
+    environment with the record as it should be — the plugins already there
+    kept in it, or uv would uninstall them — and last the record written again
+    without the version that was asked for, so `uv tool upgrade` can move it."""
     run = Recorder()
     packages = [
         "bricklogger-httpjson==0.2.1",
-        "./dist/bricklogger_other-0.1.0-py3-none-any.whl",
         "git+https://example.com/x.git",
     ]
     added = add_plugins(packages, environment=environment, run=run)
     assert added.packages == tuple(packages)
-    assert run.commands == [
-        [
-            str(environment.uv),
-            "pip",
-            "install",
-            "--python",
-            str(environment.python),
-            "--upgrade-package",
-            "bricklogger-httpjson",
-            "--reinstall-package",
-            "bricklogger-httpjson",
-            "--upgrade-package",
-            "bricklogger-other",
-            "--reinstall-package",
-            "bricklogger-other",
-            *packages,
-        ]
+    uv = str(environment.uv)
+    moving = [
+        "--upgrade-package",
+        "bricklogger-httpjson",
+        "--reinstall-package",
+        "bricklogger-httpjson",
+    ]
+    check, install, settle = run.commands
+    assert check == [
+        uv,
+        "pip",
+        "install",
+        "--dry-run",
+        "--python",
+        str(environment.python),
+        *moving,
+        *packages,
     ], "only what was asked for moves; nothing else is installed to hold"
+    with_ = ["--with", "bricklogger-fake"]
+    asked = ["--with", "bricklogger-httpjson==0.2.1"]
+    git = ["--with", "git+https://example.com/x.git"]
+    python = ["--python", "3.12"]
+    assert install == [
+        uv,
+        "tool",
+        "install",
+        "bricklogger",
+        *with_,
+        *asked,
+        *git,
+        *python,
+        *moving,
+    ]
+    assert settle == [
+        uv,
+        "tool",
+        "install",
+        "bricklogger",
+        *with_,
+        "--with",
+        "bricklogger-httpjson",
+        *git,
+        *python,
+    ]
+    assert list(added.command) == install
     assert added.output == "Installed 1 package"
+
+
+def test_add_without_a_version_settles_nothing(environment: Environment) -> None:
+    run = Recorder()
+    add_plugins(["bricklogger-httpjson"], environment=environment, run=run)
+    assert len(run.commands) == 2, "the record is already without versions"
+
+
+def test_add_records_a_wheel_by_its_name_and_location(
+    environment: Environment, tmp_path: Path
+) -> None:
+    wheel = tmp_path / "bricklogger_other-0.1.0-py3-none-any.whl"
+    wheel.write_text("")
+    run = Recorder()
+    add_plugins([str(wheel)], environment=environment, run=run)
+    assert f"bricklogger-other @ {wheel.resolve().as_uri()}" in run.commands[1]
+    assert len(run.commands) == 2
+
+
+def test_the_record_is_read_back_as_requirements(tmp_path: Path) -> None:
+    environment = tmp_path / "tools" / "bricklogger"
+    environment.mkdir(parents=True)
+    wheel = tmp_path / "dist" / "bricklogger_ibos-0.1.1-py3-none-any.whl"
+    command = (tmp_path / "bin" / "bricklogger").as_posix()
+    git = "https://example.com/y.git?tag=v1#abc"
+    (environment / "uv-receipt.toml").write_text(
+        "[tool]\n"
+        "requirements = [\n"
+        '    { name = "bricklogger", specifier = "==0.2.2" },\n'
+        f'    {{ name = "bricklogger-ibos", path = "{wheel.as_posix()}" }},\n'
+        '    { name = "bricklogger-x", extras = ["fast"] },\n'
+        f'    {{ name = "bricklogger-y", git = "{git}" }},\n'
+        "]\n"
+        'python = "3.12"\n'
+        "entrypoints = [\n"
+        f'    {{ name = "bricklogger", install-path = "{command}" }},\n'
+        "]\n",
+        encoding="utf-8",
+    )
+    record = read_record(environment)
+    assert record == ToolRecord(
+        (
+            "bricklogger==0.2.2",
+            f"bricklogger-ibos @ {wheel.as_uri()}",
+            "bricklogger-x[fast]",
+            "bricklogger-y @ git+https://example.com/y.git@v1",
+        ),
+        tmp_path / "tools",
+        "3.12",
+        tmp_path / "bin",
+    )
+    assert read_record(tmp_path) is None, "no record, no tool environment"
+
+
+def test_versions_come_off_and_go_on_by_name_only() -> None:
+    assert unpinned("Bricklogger-Ibos[x]>=0.1,<0.2") == "Bricklogger-Ibos[x]"
+    assert unpinned("bricklogger @ file:///w.whl") == "bricklogger @ file:///w.whl"
+    versions = {"bricklogger-ibos": "0.1.1"}
+    assert pinned("bricklogger_ibos", versions) == "bricklogger_ibos==0.1.1"
+    assert pinned("x @ file:///x.whl", {"x": "1"}) == "x @ file:///x.whl"
+    assert pinned("unknown", versions) == "unknown"
+    assert as_requirement("bricklogger-x==1") == "bricklogger-x==1"
 
 
 def test_add_holds_the_other_installed_plugins(environment: Environment) -> None:
@@ -146,6 +250,7 @@ def test_add_holds_the_other_installed_plugins(environment: Environment) -> None
     run = Recorder()
     add_plugins(["bricklogger-httpjson==0.2.1"], environment=environment, run=run)
     command = run.commands[0]
+    assert "--dry-run" in command
     assert command[-3:] == [
         "bricklogger-csv==2.0",
         "bricklogger-home-assistant==0.1.0",
@@ -224,18 +329,31 @@ def test_add_needs_the_installed_environment(monkeypatch: pytest.MonkeyPatch) ->
     )
     with pytest.raises(OperationError) as caught:
         add_plugins(["bricklogger-httpjson"])
-    assert "not an installation the install script made" in caught.value.message
+    assert "not an installation made with `uv tool install`" in caught.value.message
     assert f"uv pip install --python {sys.executable} bricklogger-httpjson" in (
         caught.value.message
     )
 
 
-def test_add_says_to_use_sudo_when_the_environment_is_not_writable(
+def test_add_names_the_login_when_the_environment_is_not_writable(
     environment: Environment, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr("bricklogger.ops.environment.os.access", lambda *_: False)
-    with pytest.raises(OperationError, match="sudo"):
+    with pytest.raises(OperationError, match="the login that installed"):
         add_plugins(["x"], environment=environment, run=Recorder())
+
+
+def test_a_tool_environment_without_uv_says_where_it_looked(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "uv-receipt.toml").write_text(
+        '[tool]\nrequirements = [{ name = "bricklogger" }]\n', encoding="utf-8"
+    )
+    monkeypatch.setattr(sys, "prefix", str(tmp_path))
+    monkeypatch.delenv("BRICKLOGGER_PLUGIN_DIR", raising=False)
+    monkeypatch.setattr("bricklogger.ops.environment.find_uv", lambda: None)
+    with pytest.raises(OperationError, match="neither on the path nor in"):
+        add_plugins(["x"], run=Recorder())
 
 
 def test_add_reports_what_uv_said_when_it_failed(environment: Environment) -> None:
@@ -271,14 +389,14 @@ def test_remove_uninstalls_the_distribution_with_every_type_it_provides(
         ("fake-source", "other"),
         (
             str(environment.uv),
-            "pip",
-            "uninstall",
+            "tool",
+            "install",
+            "bricklogger",
             "--python",
-            str(environment.python),
-            "bricklogger-fake",
+            "3.12",
         ),
         "Uninstalled 1 package",
-    )
+    ), "out of the record, and uv takes it away"
     assert run.commands == [list(removed.command)]
 
 
@@ -345,8 +463,25 @@ def test_remove_takes_what_only_the_plugin_needed_with_it(
         environment=environment,
         run=run,
     )
-
     assert removed.dependencies == ("h2", "idna", "websockets")
+    assert run.commands[0][1:4] == ["tool", "install", "bricklogger"]
+
+    # A plugin installed beside the record is uninstalled by name, with what
+    # only it needed.
+    outside = Environment(
+        uv=environment.uv,
+        python=environment.python,
+        site_packages=site,
+        record=ToolRecord(("bricklogger",), tmp_path / "tools"),
+    )
+    run = Recorder(stderr="Uninstalled 4 packages")
+    removed = remove_plugin(
+        "fake-source",
+        config_dir=tmp_path,
+        registry=REGISTRY,
+        environment=outside,
+        run=run,
+    )
     assert run.commands == [
         [
             str(environment.uv),
@@ -414,17 +549,38 @@ def test_remove_refuses_a_built_in_type_and_an_unknown_one(
         )
 
 
-def test_the_installed_environment_is_uv_beside_the_venv(
+def test_the_installed_environment_is_a_uv_tool_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    prefix = tmp_path / "tools" / "bricklogger"
+    prefix.mkdir(parents=True)
+    monkeypatch.setattr(sys, "prefix", str(prefix))
+    monkeypatch.delenv("BRICKLOGGER_PLUGIN_DIR", raising=False)
+    uv = tmp_path / "uv"
+    monkeypatch.setattr("bricklogger.ops.environment.find_uv", lambda: uv)
+    assert installed_environment() is None, "no record, no tool environment"
+    (prefix / "uv-receipt.toml").write_text(
+        '[tool]\nrequirements = [{ name = "bricklogger" }]\n', encoding="utf-8"
+    )
+    found = installed_environment()
+    assert found is not None
+    assert found.uv == uv and found.target is None
+    assert found.record == ToolRecord(("bricklogger",), tmp_path / "tools")
+    assert found.python == Path(sys.executable)
+
+
+def test_in_a_container_the_environment_is_uv_beside_the_venv(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(sys, "prefix", str(tmp_path / "venv"))
+    monkeypatch.setenv("BRICKLOGGER_PLUGIN_DIR", str(tmp_path / "plugins"))
     assert installed_environment() is None
     (tmp_path / "bin").mkdir()
     (tmp_path / "bin" / "uv").write_text("")
     found = installed_environment()
     assert found is not None
     assert found.uv == tmp_path / "bin" / "uv"
-    assert found.python == Path(sys.executable)
+    assert found.target == tmp_path / "plugins" and found.record is None
 
 
 # --- the CLI -------------------------------------------------------------------

@@ -30,7 +30,7 @@ CONFIG_FILES: tuple[str, ...] = ("daemon", "sources", "destinations", "rules")
 """The four files, by name without extension, in the order they are reported."""
 
 SYSTEM_CONFIG_DIR = Path("/etc/bricklogger")
-"""The config directory of a machine-wide installation."""
+"""The config directory in the container, which names it with the variable."""
 
 SYSTEM_DATA_DIR = Path("/var/lib/bricklogger")
 """The data directory that belongs to it."""
@@ -58,22 +58,21 @@ def resolve_config_dir(
     env: Mapping[str, str] | None = None,
     home: Path | None = None,
 ) -> Path:
-    """The flag, then the environment variable, then the system directory when it
-    exists, then the one in the home directory."""
+    """The flag, then the environment variable, then the one in the home
+    directory."""
     if cli_value is not None:
         return cli_value
     environment = os.environ if env is None else env
     from_env = environment.get(CONFIG_DIR_ENV)
     if from_env:
         return Path(from_env)
-    if SYSTEM_CONFIG_DIR.is_dir():
-        return SYSTEM_CONFIG_DIR
     return user_config_dir(home)
 
 
 def default_data_dir(config_dir: Path, home: Path | None = None) -> Path:
-    """Where the data goes when ``daemon.yaml`` does not say: beside a system
-    configuration in ``/var/lib``, otherwise in the home directory."""
+    """Where the data goes when ``daemon.yaml`` does not say: beside the
+    container's configuration in ``/var/lib``, otherwise in the home
+    directory."""
     return SYSTEM_DATA_DIR if config_dir == SYSTEM_CONFIG_DIR else user_data_dir(home)
 
 

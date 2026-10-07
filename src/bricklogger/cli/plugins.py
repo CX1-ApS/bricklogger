@@ -155,9 +155,8 @@ def _restart_note() -> None:
     if plugin_directory() is not None:
         typer.echo("  docker compose restart daemon      (in a container)")
     else:
-        typer.echo(
-            "  bricklogger daemon restart      (or: systemctl restart bricklogger)"
-        )
+        typer.echo("  systemctl --user restart bricklogger   (a service)")
+        typer.echo("  bricklogger daemon restart             (started by hand)")
     typer.echo(
         "The MCP server over HTTP reads them the same way; the web interface "
         "needs nothing."

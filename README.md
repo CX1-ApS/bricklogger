@@ -29,16 +29,18 @@ page is the short version.
 
 ## Install
 
+As the login that is to run the logger, not as root:
+
 ```bash
-curl -fsSL https://github.com/CX1-ApS/bricklogger/releases/latest/download/install.sh | sudo sh
+curl -LsSf https://astral.sh/uv/install.sh | sh    # uv, if the machine has none
+uv tool install bricklogger
 ```
 
-The script brings its own Python, so the machine needs only `curl`. With
-`sudo` it installs a service: the program under `/opt/bricklogger`, the
-configuration in `/etc/bricklogger`, the data in `/var/lib/bricklogger` and
-three systemd units, left stopped. Without `sudo` everything stays in your home
-directory. `--version 0.2.2` installs a given version; options come after
-`--` when the script is piped: `… | sudo sh -s -- --version 0.2.2`.
+uv brings a Python that fits, so the machine needs nothing else. Everything
+stays in that login's home directory: the program in uv's tool directory, the
+command in `~/.local/bin`, the configuration in `~/.config/bricklogger` and the
+data in `~/.local/share/bricklogger`. `uv tool install bricklogger==0.2.3`
+installs a given version.
 
 **As a container** the same program is `ghcr.io/cx1-aps/bricklogger`, with a
 compose file for the daemon, the web interface and the MCP server; see
@@ -59,9 +61,9 @@ Bricklogger creates and migrates its own tables at the first start.
 ## First setup
 
 ```bash
-bricklogger init                        # guided: sources, destinations, secrets
+bricklogger init                        # guided: sources, destinations, secrets, services
 bricklogger validate                    # after any edit by hand
-bricklogger daemon start                # or: sudo systemctl enable --now bricklogger
+bricklogger services install --web      # if init did not: the daemon and the web interface
 bricklogger model upload building.ttl   # validate, infer, activate
 bricklogger status
 bricklogger points --outcome active     # the last value of every point
@@ -70,17 +72,17 @@ bricklogger points --outcome active     # the last value of every point
 `init` asks for the settings of each source and destination and writes four
 files: `sources.yaml`, `destinations.yaml`, `rules.yaml` and `daemon.yaml`.
 Secrets, such as the database password, go into an `env` file beside them and
-are referred to as `${NAME}`. The first rule set accepts every point in the
+are referred to as `${NAME}`. Last, `init` offers to run the daemon — and the
+web interface and the MCP server, if you want them — as `systemd --user`
+services that start at boot. The first rule set accepts every point in the
 model every five minutes; [rules](https://cx1-aps.github.io/bricklogger/features/configuration/)
 narrow that down by class, location, equipment or any SPARQL pattern.
 
 ## The web interface and an assistant
 
-```bash
-bricklogger serve        # http://127.0.0.1:8421
-```
-
-Everything the CLI does can be done there, and the model explorer shows the
+The web interface is at `http://127.0.0.1:8421` once its service runs, or
+after `bricklogger serve` in a terminal. Everything the CLI does can be done
+there, and the model explorer shows the
 building as a tree and a graph, with every point's outcome and value.
 
 To let an AI assistant that speaks MCP set up sources, destinations and rules,
@@ -100,7 +102,7 @@ before it writes, and never takes a secret's value. See
 bricklogger plugins                          # what is installed
 bricklogger plugins add bricklogger-ibos     # add a plugin from PyPI
 bricklogger plugins remove ibos              # remove one by its type
-sudo systemctl restart bricklogger           # the daemon reads plugins at start
+systemctl --user restart bricklogger         # the daemon reads plugins at start
 ```
 
 A plugin is a Python package that provides a source or a destination type. A
@@ -124,14 +126,26 @@ See [notifications](https://cx1-aps.github.io/bricklogger/features/notifications
 
 ```bash
 bricklogger update status        # what there is to upgrade
-sudo bricklogger update all      # Bricklogger and the plugins together
+bricklogger update all           # Bricklogger and the plugins together
 ```
 
 `update` checks the configuration with the new version before it restarts
 anything, and puts the previous versions back if it does not hold; the
 configuration and the data stay where they are. `update core` upgrades
-Bricklogger alone, `update <type>` one plugin. Running the install script
-again works too. A container pulls the new image instead.
+Bricklogger alone, `update <type>` one plugin. Do not run
+`uv tool install bricklogger` again over an installation with plugins: it
+uninstalls every plugin not named with `--with`. A container pulls the new
+image instead.
+
+**Upgrading from 0.2 installed with the install script:** the install script
+is gone, and so is installing as root. Remove the old installation with the
+script it came from — `curl -fsSL
+https://github.com/CX1-ApS/bricklogger/releases/download/v0.2.2/install.sh |
+sudo sh -s -- --uninstall`, without `sudo` for one in a home directory — then
+install as above, add the plugins again with `bricklogger plugins add`, copy
+the configuration, its `env` file and the data over if they lay in
+`/etc/bricklogger` and `/var/lib/bricklogger` — with `data_dir` in
+`daemon.yaml` changed to the new place — and run `bricklogger services install`.
 
 **Upgrading from 0.1 with an iBOS source:** iBOS is no longer built in. The
 `ibos` instance shows as failed until the plugin is added with

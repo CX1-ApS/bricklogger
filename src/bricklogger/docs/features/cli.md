@@ -18,8 +18,7 @@ running daemon.
   variable `BRICKLOGGER_API_TOKEN`. The endpoint behind every command is
   listed in the [API reference](api.md).
 - **Config directory.** `--config-dir PATH`, then the environment variable
-  `BRICKLOGGER_CONFIG_DIR`, then `/etc/bricklogger` when it exists, then
-  `~/.config/bricklogger`, as defined in the
+  `BRICKLOGGER_CONFIG_DIR`, then `~/.config/bricklogger`, as defined in the
   [configuration document](configuration.md#location). `status` and every
   `config` view name the directory they read.
 - **Secrets.** The [`env` file](configuration.md#the-env-file) in the config
@@ -45,6 +44,8 @@ bricklogger validate
 bricklogger status [warnings [clear [CODE [SUBJECT]]]]
 bricklogger points [--instance NAME] [--outcome STATE] [--warning CODE] [--class CLASS]
 bricklogger daemon run|start|stop|restart|reload|config
+bricklogger services install|uninstall [--web] [--mcp]
+bricklogger services status
 bricklogger sources status [--state STATE]
 bricklogger sources add NAME --type TYPE [settings]
 bricklogger sources edit NAME [settings]
@@ -87,9 +88,17 @@ accepts every point every five minutes, and the result is validated and
 printed with what to do next. A new plugin brings its own questions, since
 they come from its schema, exactly as `add` gets its flags from it.
 
+Last, the guided setup **offers the services**: whether to set them up now,
+and if so whether the web interface and the MCP server over HTTP should run
+too. A yes runs [`services install`](#services) with the answers as its
+flags; a no says that the same command does it later. The question is left
+out where `services install` would refuse — without systemd, as root or in a
+container — and so is the daemon, which is then started as the
+[`daemon`](#daemon) commands describe.
+
 `init --non-interactive` asks nothing and writes the four files with
-commented examples, for scripts and for a machine set up by hand afterwards.
-Through `--api` only this form is available.
+commented examples, for scripts and for a machine set up by hand afterwards;
+it sets up no services. Through `--api` only this form is available.
 
 ## `validate`
 
@@ -126,14 +135,55 @@ Like every group, `… config` alone shows its help.
 | `daemon reload` | Reloads the configuration: validated as a whole, rejected with an error on failure, the running configuration kept |
 | `daemon config show\|edit` | `daemon.yaml`, shown or edited as [the `config` views](#the-config-views) do |
 
-Under systemd, start, stop and restart are done with `systemctl`; the CLI's
-versions are for a machine without a service manager, such as a commissioning
-laptop.
+Under the [services](#services), start, stop and restart are done with
+`systemctl --user`; the CLI's versions are for a machine without systemd,
+such as a commissioning laptop.
 
 `daemon start` waits until the API answers before it returns, and reports
 the PID and the log file. It refuses when the PID file names a live process
 or when a daemon already answers at the API binding, however it was started.
 A daemon that exits during start is reported with the last lines of its log.
+
+## `services`
+
+The daemon, the web interface and the MCP server over HTTP run as
+`systemd --user` units of the login that installed Bricklogger.
+
+| Command | Effect |
+|---------|--------|
+| `services install [--web] [--mcp]` | Writes the daemon's unit, and the web interface's and the MCP server's when their flag is given, enables lingering, reloads systemd, and enables and starts what it wrote |
+| `services uninstall [--web] [--mcp]` | Stops, disables and removes the units — all of them without a flag, the ones named with one — and reloads systemd; the configuration and the data stay |
+| `services status` | For each of the three units: whether it is written, enabled and active, and whether lingering is on |
+
+The units live in `~/.config/systemd/user`:
+
+| Unit | Command |
+|------|---------|
+| `bricklogger.service` | `bricklogger daemon run` |
+| `bricklogger-web.service` | `bricklogger serve` |
+| `bricklogger-mcp.service` | `bricklogger mcp serve --http` |
+
+They are written from templates in the package, with the absolute path of the
+command and the config directory in use, so a service reads the same
+directory as the shell that installed it. The web interface and the MCP server
+start after the daemon. **`install` can be run again:** a flag adds its unit
+and leaves the others as they are, and a unit that is already written is
+rewritten only when the templates differ — and then restarted if it runs.
+[`update`](#update) brings the units up to date the same way.
+
+**Lingering** lets the login's services start when the machine boots and keep
+running after a logout. `install` enables it with `loginctl enable-linger`;
+where the distribution reserves that for root, it says so, prints
+`sudo loginctl enable-linger <login>`, and writes and starts the units
+anyway, so they run until the next logout. `uninstall` leaves lingering as it
+is, since other services of the login may rely on it.
+
+`install` refuses, and changes nothing, in four cases: run as root, since
+Bricklogger is installed per login; where `systemctl --user` does not answer,
+such as WSL without systemd, naming `daemon start` and `serve` instead; in a
+container, naming the compose file; and while a daemon started by hand answers
+at the API binding, naming `daemon stop`. Like every group, `services` alone
+shows its help.
 
 ## `status` and `points`
 
@@ -314,7 +364,7 @@ The catalogue: what this installation can do, whichever role a plugin has.
 |---------|--------|
 | `plugins` | Installed plugins: type, role, version; a plugin that could not be loaded shows `failed:` and the error where its description would be |
 | `plugins <type>` | The plugin's declaration: reference types, vocabulary, collection methods with their parameters, configuration schema and tools; for a plugin that could not be loaded, the error |
-| `plugins add PACKAGE...` | Installs one or more packages into the environment the command runs from, with the environment's own uv, holding the other installed plugins at their versions so a package that cannot live with them is refused, and prints the catalogue as it now is. `PACKAGE` is anything uv installs: a name, `name==version`, a wheel on disk or a git URL |
+| `plugins add PACKAGE...` | Installs one or more packages into the uv tool environment the command runs from, holding the other installed plugins at their versions so a package that cannot live with them is refused, and prints the catalogue as it now is. `PACKAGE` is anything uv installs: a name, `name==version`, a wheel on disk or a git URL |
 | `plugins remove TYPE [--force]` | Uninstalls the distribution that provides the type, with every other type it provides and the libraries only it needed; refuses while an instance of the type is configured, unless `--force` |
 
 The first two read the installed declarations themselves when no daemon
@@ -324,16 +374,16 @@ installation starts, since the configuration schema shown here is what
 turns into flags. `add` and `remove` change the environment, not the
 configuration, and the daemon reads its plugins when it starts, so both end
 by saying that it must be restarted; they restart nothing themselves, and
-outside an installation the install script made they print the uv command to
-run instead. The [plugins page](plugins.md#installing-a-plugin) has the whole
+outside an installation made with `uv tool install` they print the uv command
+to run instead. The [plugins page](plugins.md#installing-a-plugin) has the whole
 procedure, from the install to what happens to a plugin that cannot be
 loaded.
 
 ## `update`
 
-`update` upgrades the installation from PyPI with the environment's own uv,
-as [`plugins add`](#plugins) does, without the install script. Alone it shows
-its help, like every group.
+`update` upgrades the installation from PyPI with uv, in the uv tool
+environment the command runs from, as [`plugins add`](#plugins) does. Alone it
+shows its help, like every group.
 
 | Command | Effect |
 |---------|--------|
@@ -356,11 +406,11 @@ The three that install go through the same steps:
    installed from a wheel on disk is on no index and cannot be fetched
    again; then `update` says so, and the new version stays installed while
    what runs is still the previous one, until the configuration is made to
-   fit or the install script puts the old version back.
-3. **The units are brought up to date.** The systemd units are written from
-   templates in the package, by the install script and by `update` alike;
-   when the new version's differ from those installed, `update` rewrites them
-   and reloads systemd.
+   fit or the previous wheel is installed again.
+3. **The units are brought up to date.** The units are written from
+   templates in the package, by [`services install`](#services) and by
+   `update` alike; when the new version's differ from those installed,
+   `update` rewrites the ones that are written and reloads systemd.
 4. **What runs is restarted.** Of `bricklogger`, `bricklogger-web` and
    `bricklogger-mcp`, the units that are active are restarted in that order,
    and `update` waits until each answers again. A daemon or a server started
@@ -369,11 +419,9 @@ The three that install go through the same steps:
    reported with where its log is, and nothing is rolled back then, because
    the destination may already have migrated its schema to the new version.
 
-Like `plugins add`, `update` works on an installation the install script
-made and prints the uv command to run anywhere else. Under `/opt/bricklogger`
-the environment and the units belong to root, so it is run as
-`sudo bricklogger update all`; an install in a home directory needs nothing.
-`update status` changes nothing and needs no rights.
+Like `plugins add`, `update` works on an installation made with
+`uv tool install` and prints the uv command to run anywhere else. It needs no
+rights beyond the login's own, and `update status` changes nothing.
 
 **In a container** Bricklogger comes with the image. `update core` refuses and
 names `docker compose pull` and `docker compose up -d`; `update <type>` and

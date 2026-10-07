@@ -805,8 +805,8 @@ the runtime state, and **the spools** of the destinations.
 
 ## Platform
 
-Bricklogger runs in production on **Linux**. Filesystem defaults such as
-`/etc/bricklogger` and `/var/lib/bricklogger` for a service, with
-`~/.config/bricklogger` and `~/.local/share/bricklogger` for a run without
-root, the install script and the choice of OWL-RL reasoner follow from
-that.
+Bricklogger runs in production on **Linux**. The filesystem defaults —
+`~/.config/bricklogger` and `~/.local/share/bricklogger` for the login that
+runs it, `/etc/bricklogger` and `/var/lib/bricklogger` in the container — the
+installation with `uv tool install` and `systemd --user` services, and the
+choice of OWL-RL reasoner follow from that.
