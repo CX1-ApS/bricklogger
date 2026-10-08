@@ -58,7 +58,7 @@ the responses unchanged. The API binds to localhost by default, as set in
 
 | Method | Path | Purpose | CLI |
 |--------|------|---------|-----|
-| GET | `/health/live` | Alive: 200 while the daemon runs | — |
+| GET | `/health/live` | Alive: 200 while the daemon runs, with its `pid` and `started_at` | `status` |
 | GET | `/health` | Doing its job: 200 for `ok` and `idle`, 503 for `degraded` | — |
 | POST | `/v1/daemon/reload` | Reload the configuration from disk, validated as a whole | `daemon reload` |
 | POST | `/v1/daemon/stop` | Graceful stop within `stop_timeout` | `daemon stop` |
@@ -139,7 +139,7 @@ warning, not an error.
 | POST | `/v1/models` | Upload a model as `text/turtle`, or another RDF serialisation named by `Content-Type`; activates unless `?activate=false`. Answers `202` with a job | `model upload` |
 | POST | `/v1/models/{version}/activate` | Activate a stored version. Answers `202` with a job | `model activate` |
 | GET | `/v1/models/diff?a=&b=` | Points added, removed or changed between two versions, computed on the uploaded models | `model diff` |
-| GET | `/v1/models/{version}` | The model as uploaded, as `text/turtle`; `?inferred=true` adds the inferred graph and `?values=true` the value overlay | `model export` |
+| GET | `/v1/models/{version}` | The model as uploaded, as `text/turtle`; `?inferred=true` adds the inferred graph, `?values=true` the value overlay and `?timeseries=true` the time-series references of the destination that stores the model, or `?timeseries=<instance>` those of a named one | `model export` |
 | GET | `/v1/jobs/{id}` | The state of a job | followed by the CLI |
 
 Versions are numbered in upload order. Model operations run **one at a
@@ -160,9 +160,12 @@ serialisation the daemon does not read is refused with `415` before a job
 is created.
 
 Export answers in the serialisation the version was uploaded in. With
-`?inferred=true` or `?values=true` the answer is Turtle built from the
+`?inferred`, `?values` or `?timeseries` the answer is Turtle built from the
 working graph, which holds these graphs for the active version only; for
-another version the request is refused with `409`. `GET /v1/models` lists
+another version the request is refused with `409`. `?timeseries=true` is
+refused with `409` when several destinations store the model, naming them,
+and `?timeseries=<instance>` with `404` when that instance does not store
+it. `GET /v1/models` lists
 every version with its upload time, whether it is active and when it was
 activated, together with the prefixes of the active model.
 

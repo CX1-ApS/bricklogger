@@ -119,11 +119,13 @@ def test_the_api_is_forwarded_under_api(web: TestClient) -> None:
     missing = web.get("/api/v1/nothing")
     assert missing.status_code == 404
     assert missing.headers["content-type"] == "application/problem+json"
-    assert web.get("/api/health/live").json() == {"live": "ok"}
+    assert web.get("/api/health/live").json()["live"] == "ok"
 
 
 def test_health_live_answers_while_the_web_runs(web: TestClient) -> None:
-    assert web.get("/health/live").status_code == 200
+    answer = web.get("/health/live")
+    assert answer.status_code == 200
+    assert set(answer.json()) == {"live", "pid", "started_at"}, "and nothing more"
 
 
 def test_a_password_requires_a_login(served: Served) -> None:

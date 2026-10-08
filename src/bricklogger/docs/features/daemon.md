@@ -133,7 +133,7 @@ Two endpoints, for two kinds of monitor:
 
 | Endpoint | Purpose | Result |
 |----------|---------|--------|
-| `/health/live` | Is the process alive | Always 200 while the daemon runs |
+| `/health/live` | Is the process alive | Always 200 while the daemon runs, with its `pid` and `started_at` |
 | `/health` | Is the logger doing its job | 200 for `ok` and `idle`, 503 for `degraded` |
 
 - `ok`: collecting, nothing failed.
@@ -160,9 +160,10 @@ alerting probe uses `/health`; a dead database never causes a daemon restart.
   `rejected`. An instance whose plugin could not be loaded, or whose type no
   installed plugin provides, source or destination, is `failed` with the error
   and has no next retry: it runs when the plugin loads at a later start.
-- **Destinations**, per instance: state, whether it stores metadata, spool
-  depth as observations, bytes and age of the oldest entry, dropped count,
-  last successful write, last error.
+- **Destinations**, per instance: state, whether it stores metadata, whether
+  it stores the model and which version it last wrote, spool depth as
+  observations, bytes and age of the oldest entry, dropped count, last
+  successful write, last error.
 - **Warnings:** one flat list. Each entry has a code and its kind, a subject
   — a point URI, an instance or a device — a message, first seen, last seen
   and a count. The per-point and per-instance views filter the same list.

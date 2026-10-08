@@ -181,6 +181,41 @@ class Outcome:
 
 
 @dataclass(frozen=True)
+class ModelDocument:
+    """One model version as a destination that stores the model receives it.
+
+    ``turtle`` is the version as uploaded, as Turtle, with a
+    ``ref:TimeseriesReference`` added per point the destination holds a key
+    for; ``activations`` are the times the version was activated, oldest
+    first. See ``docs/features/destinations.md``, "The model beside the data".
+    """
+
+    version: int
+    uploaded_at: datetime
+    activations: tuple[datetime, ...]
+    turtle: str
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "version": self.version,
+            "uploaded_at": self.uploaded_at.isoformat(),
+            "activations": [stamp.isoformat() for stamp in self.activations],
+            "turtle": self.turtle,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> ModelDocument:
+        return cls(
+            version=int(data["version"]),
+            uploaded_at=datetime.fromisoformat(data["uploaded_at"]),
+            activations=tuple(
+                datetime.fromisoformat(stamp) for stamp in data["activations"]
+            ),
+            turtle=str(data["turtle"]),
+        )
+
+
+@dataclass(frozen=True)
 class AssignedPoint:
     """One point of an assignment: the URI, the method and its typed parameters,
     and the latest observation the daemon has recorded for the point, if any —
@@ -292,6 +327,16 @@ class Destination(ABC):
 
     def write_metadata(self, entries: Sequence[PointMetadata]) -> None:
         """Store point metadata; the default keeps none."""
+        return None
+
+    def timeseries_ids(self) -> Mapping[str, str]:
+        """The destination's key per point URI, for every point it holds data
+        for; called only when the declaration says ``stores_model=True``."""
+        return {}
+
+    def write_model(self, model: ModelDocument) -> None:
+        """Store one model version, replacing it if it is there; called only
+        when the declaration says ``stores_model=True``."""
         return None
 
     @abstractmethod

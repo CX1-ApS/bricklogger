@@ -1,6 +1,7 @@
-"""The working graph: an Oxigraph store in the data directory with four named
-graphs, where every query runs as SPARQL. See ``docs/architecture.md``, "The
-working graph"."""
+"""The working graph: an Oxigraph store in the data directory with the model,
+the ontology, the inferred graph, the value overlay and one graph of
+time-series references per destination that stores the model, where every
+query runs as SPARQL. See ``docs/architecture.md``, "The working graph"."""
 
 from __future__ import annotations
 
@@ -9,7 +10,14 @@ from pathlib import Path
 from typing import Any
 
 import rdflib
-from pyoxigraph import NamedNode, QuerySolutions, RdfFormat, Store
+from pyoxigraph import (
+    BlankNode,
+    DefaultGraph,
+    NamedNode,
+    QuerySolutions,
+    RdfFormat,
+    Store,
+)
 
 GRAPH_DIR = "graph"
 
@@ -19,6 +27,11 @@ INFERRED_GRAPH = "urn:bricklogger:inferred"
 VALUES_GRAPH = "urn:bricklogger:values"
 
 Triple = tuple[rdflib.term.Node, rdflib.term.Node, rdflib.term.Node]
+
+_CORE_GRAPHS: list[NamedNode | BlankNode | DefaultGraph] = [
+    NamedNode(iri)
+    for iri in (MODEL_GRAPH, ONTOLOGY_GRAPH, INFERRED_GRAPH, VALUES_GRAPH)
+]
 
 
 class WorkingGraph:
@@ -50,13 +63,33 @@ class WorkingGraph:
         self.store.load(document.encode("utf-8"), RdfFormat.N_QUADS)
         self.store.flush()
 
-    def query(self, sparql: str) -> Any:
-        """A read-only query over the union of all graphs."""
-        return self.store.query(sparql, use_default_graph_as_union=True)
+    def query(self, sparql: str, *, references: bool = False) -> Any:
+        """A read-only query over the union of the model, the ontology, the
+        inferred graph and the values.
+
+        The destinations' time-series references join the union only with
+        ``references``, as on the SPARQL endpoint: the rules, the plan and the
+        sources' reference lookups must see the model's references alone. A
+        ``GRAPH`` clause reaches every named graph either way.
+        """
+        if references:
+            return self.store.query(sparql, use_default_graph_as_union=True)
+        return self.store.query(sparql, default_graph=_CORE_GRAPHS)
 
     def update(self, sparql: str) -> None:
         """A SPARQL update; the daemon uses it for the value overlay only."""
         self.store.update(sparql)
+
+    def replace_graph(self, graph_iri: str, triples: Iterable[Triple]) -> None:
+        """Put new contents into one named graph of the daemon's own."""
+        document = _nquads({graph_iri: triples})
+        self.clear_graph(graph_iri)
+        self.store.load(document.encode("utf-8"), RdfFormat.N_QUADS)
+        self.store.flush()
+
+    def named_graphs(self) -> list[str]:
+        """The IRIs of the named graphs in the store."""
+        return [graph.value for graph in self.store.named_graphs()]
 
     def clear_graph(self, graph_iri: str) -> None:
         """Empty one named graph, if it exists."""

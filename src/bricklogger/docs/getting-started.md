@@ -23,7 +23,7 @@ uv tool install bricklogger
 The environment lands in uv's tool directory and the `bricklogger` command in
 `~/.local/bin`; nothing outside the home directory is touched. When
 `~/.local/bin` is not on the path, `uv tool update-shell` puts it there. A
-given version is `uv tool install bricklogger==0.2.3`, and a wheel on disk is
+given version is `uv tool install bricklogger==0.2.4`, and a wheel on disk is
 installed by its path instead of the name.
 
 Bricklogger runs **as the login that installed it**, with its configuration

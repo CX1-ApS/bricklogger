@@ -4,9 +4,11 @@ Everything a source or destination plugin needs is importable from here — the
 contract, the declaration, the configuration value types, prefixed names,
 the BACnet tables in :mod:`bricklogger.sdk.bacnet` and the test kit in
 :mod:`bricklogger.sdk.testing` — and nothing else in the package is public.
-The contract is stable within a minor version of Bricklogger: a change to it
-raises the minor version, and a plugin pins the minor version it was built
-for. See ``docs/features/plugins.md``, "The SDK".
+The contract is stable within a minor version of Bricklogger: a change that
+breaks plugins raises the minor version, an addition they do not need raises
+the patch version, and a plugin pins the minor version it was built for and
+requires the version that brought an addition it uses. See
+``docs/features/plugins.md``, "The SDK".
 """
 
 from bricklogger.config.values import (
@@ -23,6 +25,7 @@ from bricklogger.sdk.contract import (
     Destination,
     GraphReader,
     InstanceState,
+    ModelDocument,
     NullReason,
     Observation,
     Outcome,
@@ -53,6 +56,7 @@ __all__ = [
     "Duration",
     "GraphReader",
     "InstanceState",
+    "ModelDocument",
     "NullReason",
     "Observation",
     "Outcome",

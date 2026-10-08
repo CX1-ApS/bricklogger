@@ -335,6 +335,8 @@ def _row(role: str, name: str, type_name: str, state: str) -> dict[str, Any]:
         "written": 0,
         "last_write": None,
         "stores_metadata": None,
+        "stores_model": None,
+        "model_version": None,
         "spool": {
             "observations": 0,
             "bytes": 0,
@@ -438,7 +440,8 @@ def _echo_detail(role: str, row: Mapping[str, Any]) -> None:
     age = spool.get("oldest_age_seconds")
     typer.echo(
         f"{row['name']}: last write {row.get('last_write') or 'never'}, "
-        f"stores metadata {'yes' if row.get('stores_metadata') else 'no'}"
+        f"stores metadata {'yes' if row.get('stores_metadata') else 'no'}, "
+        f"stores the model {_model_note(row)}"
     )
     typer.echo(
         f"  spool: {spool.get('observations', 0)} observations, "
@@ -683,3 +686,11 @@ def _file(role: str) -> str:
 
 sources_app = _role_app("source", _SourcesGroup)
 destinations_app = _role_app("destination", _DestinationsGroup)
+
+
+def _model_note(row: Mapping[str, Any]) -> str:
+    """Whether a destination stores the model, and the version it last wrote."""
+    if not row.get("stores_model"):
+        return "no"
+    version = row.get("model_version")
+    return "yes" if version is None else f"yes (version {version})"

@@ -141,6 +141,7 @@ def describe_plugin(
         ]
     elif destination is not None:
         data["stores_metadata"] = destination.stores_metadata
+        data["stores_model"] = destination.stores_model
     return data
 
 

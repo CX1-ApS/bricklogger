@@ -158,6 +158,7 @@ class DestinationDeclaration:
     config_schema: type[BaseModel]
     stores_metadata: bool = True
     factory: DestinationFactory | None = None
+    stores_model: bool = False
 
     role = "destination"
 

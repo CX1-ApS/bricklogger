@@ -206,6 +206,8 @@ TEXTS: dict[str, str] = {
     "instances.restarts": "Restarts",
     "instances.last_error": "Last error",
     "instances.metadata": "Stores metadata",
+    "instances.model": "Stores the model",
+    "instances.model_version": "version",
     "instances.written": "Written",
     "instances.spool": "Spool",
     "devices.device": "Device",

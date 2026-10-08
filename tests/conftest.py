@@ -47,6 +47,8 @@ def _no_package_index(monkeypatch: pytest.MonkeyPatch) -> None:
 def _reset_fakes() -> None:
     FakeDestination.received.clear()
     FakeDestination.metadata_received.clear()
+    FakeDestination.models_received.clear()
+    FakeDestination.keys.clear()
     FakeDestination.starts.clear()
     FakeSource.instances.clear()
 

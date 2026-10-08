@@ -7,6 +7,7 @@ from __future__ import annotations
 import hmac
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 
 import uvicorn
 from mcp.server import MCPServer
@@ -19,6 +20,7 @@ from starlette.routing import Mount, Route
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from bricklogger.config.schema import is_loopback
+from bricklogger.ops.status import live_answer
 
 PROBLEM = "application/problem+json"
 
@@ -68,8 +70,10 @@ def build_http_app(server: MCPServer, *, host: str, token: str | None) -> ASGIAp
             )
         )
 
+    started_at = datetime.now(UTC)
+
     async def live(_: Request) -> Response:
-        return JSONResponse({"live": "ok"})
+        return JSONResponse(live_answer(started_at))
 
     @asynccontextmanager
     async def lifespan(_: Starlette) -> AsyncIterator[None]:

@@ -10,6 +10,7 @@ import pytest
 from typer.testing import CliRunner
 
 import bricklogger.cli.config as config_cli
+from tests.fakes import FakeDestination
 from tests.support import (
     EX,
     INVALID_MODEL,
@@ -115,6 +116,17 @@ def test_model_commands_through_the_api(served: Served, tmp_path: Path) -> None:
 
     code, output = served.invoke("model", "export", "--inferred")
     assert code == 0 and "hasPoint" in output, output
+
+    wait_for(lambda: served.daemon.destinations["sink_a"].model_version == 2)
+    ours = f'hasTimeseriesId "{FakeDestination.keys["sink_a"][f"{EX}SAT"]}"'
+    code, output = served.invoke("model", "export", "--timeseries")
+    assert code == 0 and ours in output, output
+    code, output = served.invoke(
+        "model", "export", "--timeseries", "--destination", "sink_a"
+    )
+    assert code == 0 and ours in output, output
+    code, output = served.invoke("model", "export", "--destination", "sink_a")
+    assert code == 1 and "goes with --timeseries" in output, output
 
     code, output = served.invoke("model", "activate", "1")
     assert code == 0 and "activated version 1" in output, output

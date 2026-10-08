@@ -37,9 +37,10 @@ daemon to talk to.
   keeps polling; the status line and the health in the top bar turn to the
   signal colour.
 
-- **A liveness answer.** `serve` answers `GET /health/live` with `200` while
-  it runs, so `bricklogger status` can say whether the web interface is up
-  without rendering a page.
+- **A liveness answer.** `serve` answers `GET /health/live` with `200`, its
+  process ID and the time it started while it runs, so `bricklogger status`
+  can say whether the web interface is up, and since when, without rendering a
+  page. It needs no login and tells nothing more.
 
 ## Access
 

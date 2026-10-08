@@ -5,6 +5,7 @@ transport with its token."""
 from __future__ import annotations
 
 import json
+import os
 import threading
 from pathlib import Path
 from typing import Any
@@ -333,7 +334,9 @@ def test_the_http_transport_answers_live_and_checks_the_token(tmp_path: Path) ->
     wait_for(lambda: http_server.started)
     try:
         base = f"http://127.0.0.1:{port}"
-        assert httpx.get(f"{base}/health/live").json() == {"live": "ok"}
+        live = httpx.get(f"{base}/health/live").json()
+        assert live["live"] == "ok" and live["pid"] == os.getpid()
+        assert live["started_at"]
         refused_post = httpx.post(f"{base}/mcp", json={"jsonrpc": "2.0"})
         assert refused_post.status_code == 401
         assert refused_post.headers["www-authenticate"] == "Bearer"

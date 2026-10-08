@@ -61,6 +61,7 @@ from bricklogger.model import (
     Inference,
     ModelDiff,
     ModelInvalid,
+    ModelNotFound,
     ModelReport,
     ModelStore,
     ModelUnreadable,
@@ -78,8 +79,14 @@ from bricklogger.model.prefixes import (
     declared_prefixes,
     expand,
 )
+from bricklogger.model.timeseries import (
+    REF,
+    TIMESERIES_GRAPH_PREFIX,
+    reference_triples,
+    timeseries_graph,
+)
 from bricklogger.model.working_graph import GRAPH_DIR
-from bricklogger.sdk.contract import AssignedPoint, Outcome
+from bricklogger.sdk.contract import AssignedPoint, ModelDocument, Outcome
 from bricklogger.sdk.registry import PluginRegistry
 
 log = logging.getLogger(__name__)
@@ -225,6 +232,7 @@ class Daemon:
         self.model_error: str | None = None
         self.started_at: datetime | None = None
         self._fallback_active: set[str] = set()
+        self._turtle: dict[int, str] = {}
         self._lock = threading.RLock()
         self.jobs = JobRunner()
 
@@ -375,6 +383,9 @@ class Daemon:
             self.graph.replace_model(
                 inference.model, inference.ontology, inference.inferred
             )
+            if number != self.active_version:
+                # another version's references until each destination writes this one
+                self._clear_timeseries_graphs()
             self.model_store.set_active(number)
             self.state.record_activation(number)
             self.active_version = number
@@ -488,10 +499,8 @@ class Daemon:
 
     def models(self) -> dict[str, Any]:
         """The stored versions, which one is active, and when each was activated."""
-        assert self.model_store is not None and self.state is not None
-        history: dict[int, list[str]] = {}
-        for row in self.state.activations():
-            history.setdefault(int(row["version"]), []).append(str(row["activated_at"]))
+        assert self.model_store is not None
+        history = self._activation_history()
         return {
             "active": self.active_version,
             "prefixes": dict(self.graph_access.prefixes) if self.graph_access else {},
@@ -512,20 +521,30 @@ class Daemon:
         return run_query(self.graph, prefixes, query, accept)
 
     def export(
-        self, version: int, *, inferred: bool = False, values: bool = False
+        self,
+        version: int,
+        *,
+        inferred: bool = False,
+        values: bool = False,
+        timeseries: str | None = None,
     ) -> tuple[bytes, str]:
         """A version as uploaded, with its format name.
 
-        With the inferred graph or the values added the result is Turtle built
-        from the working graph, which holds them for the active version only.
+        With the inferred graph, the values or a destination's time-series
+        references added the result is Turtle built from the working graph,
+        which holds them for the active version only. ``timeseries`` names the
+        destination instance, or is ``"true"`` for the one that stores the
+        model.
         """
         assert self.model_store is not None and self.graph is not None
         stored = self.model_store.get(version)
-        if not inferred and not values:
+        if not inferred and not values and timeseries is None:
             return self.model_store.read(version), stored.format
+        instance = None if timeseries is None else self._reference_instance(timeseries)
         if version != self.active_version:
             raise ExportUnavailable(
-                "the inferred graph and the values exist for the active version only"
+                "the inferred graph, the values and the time-series references "
+                "exist for the active version only"
             )
         graph = rdflib.Graph()
         graph.parse(data=self.graph.dump(MODEL_GRAPH), format="nt")
@@ -533,6 +552,9 @@ class Daemon:
             graph.parse(data=self.graph.dump(INFERRED_GRAPH), format="nt")
         if values:
             graph.parse(data=self.graph.dump(VALUES_GRAPH), format="nt")
+        if instance is not None:
+            graph.parse(data=self.graph.dump(timeseries_graph(instance)), format="nt")
+            graph.bind("ref", REF)
         prefixes = self.graph_access.prefixes if self.graph_access else WELL_KNOWN
         for prefix, iri in prefixes.items():
             graph.bind(prefix, iri, override=True)
@@ -551,6 +573,7 @@ class Daemon:
             last is None or last[0] != marker or self.graph.count(MODEL_GRAPH) == 0
         )
         if needs_build:
+            self._clear_timeseries_graphs()
             try:
                 activate_version(
                     self.model_store,
@@ -570,6 +593,101 @@ class Daemon:
             self.state.record_activation(marker)
         self.active_version = marker
         self._refresh_graph_access()
+
+    # --- the model in destinations -------------------------------------------
+
+    def _reference_instance(self, timeseries: str) -> str:
+        """The destination instance whose references an export adds: the one
+        named, or with ``"true"`` the only one that stores the model."""
+        storing = sorted(
+            name for name, runner in self.destinations.items() if runner.stores_model
+        )
+        if timeseries == "true":
+            if not storing:
+                raise NotFound("no destination stores the model")
+            if len(storing) > 1:
+                raise ExportUnavailable(
+                    "several destinations store the model; name one: "
+                    + ", ".join(storing)
+                )
+            return storing[0]
+        if timeseries not in storing:
+            raise NotFound(f"no destination {timeseries!r} stores the model")
+        return timeseries
+
+    def _clear_timeseries_graphs(self, instance: str | None = None) -> None:
+        assert self.graph is not None
+        for iri in self.graph.named_graphs():
+            if iri.startswith(TIMESERIES_GRAPH_PREFIX) and (
+                instance is None or iri == timeseries_graph(instance)
+            ):
+                self.graph.clear_graph(iri)
+
+    def _model_document(
+        self, version: int, activations: Sequence[str]
+    ) -> ModelDocument:
+        """A version as Turtle, without references; the runner adds them."""
+        assert self.model_store is not None
+        stored = self.model_store.get(version)
+        turtle = self._turtle.get(version)
+        if turtle is None:
+            model = parse_model(self.model_store.read(version), stored.format)
+            turtle = model.serialize(format="turtle")
+            self._turtle[version] = turtle
+        return ModelDocument(
+            version=version,
+            uploaded_at=stored.uploaded_at,
+            activations=tuple(datetime.fromisoformat(a) for a in activations),
+            turtle=turtle,
+        )
+
+    def _activation_history(self) -> dict[int, list[str]]:
+        assert self.state is not None
+        history: dict[int, list[str]] = {}
+        for row in self.state.activations():
+            history.setdefault(int(row["version"]), []).append(str(row["activated_at"]))
+        return history
+
+    def _offer_models(self, spools: Sequence[Spool], *, every: bool) -> None:
+        """Spool the active version, or every version that has been active,
+        for the destinations that store the model."""
+        assert self.model_store is not None
+        if not spools:
+            return
+        history = self._activation_history()
+        if every:
+            versions = sorted(history)
+        elif self.active_version is not None:
+            versions = [self.active_version]
+        else:
+            versions = []
+        for version in versions:
+            try:
+                document = self._model_document(version, history.get(version, []))
+            except (ModelNotFound, ModelUnreadable):
+                log.warning("model version %d cannot be offered", version)
+                continue
+            for spool in spools:
+                spool.append_model(document)
+
+    def _model_spools(self) -> list[Spool]:
+        return [
+            self.spools[name]
+            for name, runner in self.destinations.items()
+            if runner.stores_model
+        ]
+
+    def _on_model_written(
+        self, instance: str, version: int, ids: Mapping[str, str]
+    ) -> None:
+        """Called from a destination's thread once it stored a version; the
+        active version's keys become the instance's graph of references."""
+        if version != self.active_version or self.graph is None:
+            return
+        try:
+            self.graph.replace_graph(timeseries_graph(instance), reference_triples(ids))
+        except Exception:
+            log.exception("the time-series references of %s were not stored", instance)
 
     def _refresh_graph_access(self) -> None:
         assert self.graph is not None and self.model_store is not None
@@ -615,8 +733,12 @@ class Daemon:
             spool_max_age=instance.spool.max_age,
             stop_timeout=self.configuration.daemon.stop_timeout,
             stores_metadata=declaration.stores_metadata,
+            stores_model=declaration.stores_model,
+            on_model_written=self._on_model_written,
         )
         self.destinations[name] = runner
+        if declaration.stores_model:
+            self._offer_models([spool], every=True)
         if self.state.stop_intent(name):
             runner.current_state = "stopped"
             self.state.set_instance(
@@ -693,6 +815,7 @@ class Daemon:
                 continue
             self.destinations.pop(name).stop()
             self.spools.pop(name).close()
+            self._clear_timeseries_graphs(name)
         for name, instance in new.items():
             if name in old and old[name] == instance:
                 continue
@@ -854,6 +977,8 @@ class Daemon:
         if assigned and self.sink is not None:
             entries = graph_metadata(self.graph, self.graph_access.prefixes, assigned)
             self.sink.metadata(entries.values())
+        # behind the metadata, so the destinations hold the keys the model needs
+        self._offer_models(self._model_spools(), every=False)
         for name, runner in self.sources.items():
             runner.assign(plan.assignments.get(name, []))
 
@@ -1047,6 +1172,8 @@ class Daemon:
                     "type": runner.type_name,
                     "state": runner.current_state,
                     "stores_metadata": runner.stores_metadata,
+                    "stores_model": runner.stores_model,
+                    "model_version": runner.model_version,
                     "last_error": row.get("last_error"),
                     "last_write": runner.last_write,
                     "written": self.state.counter(f"written:{name}"),
@@ -1067,6 +1194,8 @@ class Daemon:
                     "type": entry.type_name,
                     "state": "failed",
                     "stores_metadata": None,
+                    "stores_model": None,
+                    "model_version": None,
                     "last_error": entry.error,
                     "last_write": None,
                     "written": 0,

@@ -1,8 +1,8 @@
 """The persistent spool between the daemon and one destination.
 
-An on-disk queue that observations and metadata are appended to and drained
-from in order, in batches; it survives a daemon restart and is bounded by size
-and age, dropping the oldest entries when a cap is reached. See
+An on-disk queue that observations, metadata and model versions are appended
+to and drained from in order, in batches; it survives a daemon restart and is
+bounded by size and age, dropping the oldest entries when a cap is reached. See
 ``docs/architecture.md``, "Backpressure: the spool".
 """
 
@@ -18,16 +18,17 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any, Literal
 
-from bricklogger.sdk.contract import Observation, PointMetadata
+from bricklogger.sdk.contract import ModelDocument, Observation, PointMetadata
 
 SPOOL_DIR = "spool"
 
-EntryKind = Literal["observations", "metadata"]
+EntryKind = Literal["observations", "metadata", "model"]
 
 
 @dataclass(frozen=True)
 class Entry:
-    """One spooled batch: observations or metadata, as it was appended."""
+    """One spooled batch: observations, metadata or one model version, as it
+    was appended."""
 
     id: int
     kind: EntryKind
@@ -38,6 +39,9 @@ class Entry:
 
     def metadata(self) -> list[PointMetadata]:
         return [PointMetadata.from_dict(item) for item in self.payload]
+
+    def model(self) -> ModelDocument:
+        return ModelDocument.from_dict(self.payload[0])
 
 
 @dataclass(frozen=True)
@@ -82,6 +86,9 @@ class Spool:
         if entries:
             self._append("metadata", [e.as_dict() for e in entries])
 
+    def append_model(self, model: ModelDocument) -> None:
+        self._append("model", [model.as_dict()])
+
     def _append(self, kind: EntryKind, items: list[dict[str, Any]]) -> None:
         payload = json.dumps(items, separators=(",", ":"))
         with self._lock:
@@ -95,8 +102,9 @@ class Spool:
     def next_entries(self, max_observations: int) -> list[Entry]:
         """The oldest entries, in order, up to about ``max_observations`` observations.
 
-        Metadata entries break a run, so a destination learns about a point
-        before it sees the point's values, in the order things were appended.
+        Metadata and model entries break a run, so a destination learns about
+        a point before it sees the point's values, and holds its key before
+        the model names it, in the order things were appended.
         """
         entries: list[Entry] = []
         collected = 0
@@ -110,7 +118,7 @@ class Spool:
                 break
             entries.append(Entry(int(row["id"]), kind, json.loads(row["payload"])))
             collected += int(row["items"])
-            if kind == "metadata" or collected >= max_observations:
+            if kind != "observations" or collected >= max_observations:
                 break
         return entries
 

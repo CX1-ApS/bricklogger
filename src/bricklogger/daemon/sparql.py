@@ -80,7 +80,7 @@ def run_query(
     if is_update(query):
         raise QueryError("update requests are refused: the graph is read-only")
     try:
-        result = graph.query(with_prefixes(query, prefixes))
+        result = graph.query(with_prefixes(query, prefixes), references=True)
     except SyntaxError as exc:
         raise QueryError(f"the query does not parse: {exc}") from exc
     except (OSError, ValueError) as exc:

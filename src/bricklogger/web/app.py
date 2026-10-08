@@ -28,6 +28,7 @@ from bricklogger.config import CONFIG_FILES, resolve_config_dir
 from bricklogger.ops.environment import InstancesConfigured, add_plugins, remove_plugin
 from bricklogger.ops.errors import OperationError
 from bricklogger.ops.plugin_volume import plugin_directory
+from bricklogger.ops.status import live_answer
 from bricklogger.ops.updates import CORE, UpdateRefused, update
 from bricklogger.ops.updates import status as update_status
 from bricklogger.web.client import ApiProblem, DaemonClient, DaemonUnavailable, shorten
@@ -90,6 +91,7 @@ def create_web_app(
     """
     client = DaemonClient(api_url, token)
     plugins_config_dir = config_dir if config_dir is not None else resolve_config_dir()
+    started_at = datetime.now(UTC)
     signer = TimestampSigner(secret or secrets.token_hex(32))
 
     @asynccontextmanager
@@ -178,9 +180,10 @@ def create_web_app(
         )
 
     @app.get("/health/live")
-    async def health_live() -> dict[str, str]:
-        """Alive while the process runs; what `bricklogger status` asks."""
-        return {"status": "ok"}
+    async def health_live() -> dict[str, Any]:
+        """Alive while the process runs, with its process ID and start time;
+        what `bricklogger status` asks."""
+        return live_answer(started_at)
 
     # --- login ---------------------------------------------------------------
 

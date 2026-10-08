@@ -8,10 +8,12 @@ from bricklogger.sdk.declaration import DestinationDeclaration
 
 DESTINATION = DestinationDeclaration(
     type_name="timescaledb",
-    description="TimescaleDB: one narrow numeric hypertable, metadata beside it.",
+    description="TimescaleDB: one narrow numeric hypertable, metadata and the "
+    "model beside it.",
     config_schema=TimescaleDBConfig,
     stores_metadata=True,
     factory=TimescaleDBDestination,
+    stores_model=True,
 )
 
 __all__ = ["DESTINATION", "TimescaleDBConfig", "TimescaleDBDestination"]

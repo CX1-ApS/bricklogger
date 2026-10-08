@@ -104,7 +104,11 @@ has a type for a system, the reference is written in it; where it has none — a
 cloud service such as iBOS — the source plugin brings a small
 [vocabulary](#declaration) of its own. Brick's `ref:TimeseriesReference` says
 where a point's time series is **stored**; it is reserved for the databases
-Bricklogger writes to and is never a source's address.
+Bricklogger writes to and is never a source's address. Bricklogger states it
+itself, beside the model rather than in it: in a
+[graph of its own](#the-working-graph) per destination and in the databases
+that [store the model](#the-model-in-destinations), so a point's time series
+can be found from the model.
 
 Bricklogger treats the graph as **read-only input**: it is produced and
 maintained by other tools. Bricklogger never defines points outside the model
@@ -179,7 +183,7 @@ activated, it is validated against Brick's shapes and loaded into a
 **working graph**: an
 [Oxigraph](https://github.com/oxigraph/oxigraph) store in the data directory,
 where all queries — rule evaluation, status, API and the source plugins'
-reference lookups — run as SPARQL. The store holds four named graphs:
+reference lookups — run as SPARQL. The store holds these named graphs:
 
 - **the active model version**, as uploaded — Bricklogger never writes to it,
 - **the ontology**: the bundled Brick with its RealEstateCore alignment, and
@@ -198,6 +202,14 @@ reference lookups — run as SPARQL. The store holds four named graphs:
   yet known. The overlay is updated in batches from runtime state, every few
   seconds, and rebuilt whenever the plan changes, so a point that leaves the
   plan leaves the overlay. It is a current snapshot, not a history.
+- **the time-series references**, one graph per destination instance that
+  [stores the model](#the-model-in-destinations): every point of the active
+  version that the destination holds data for carries
+  `ref:hasExternalReference` to a `ref:TimeseriesReference` whose
+  `ref:hasTimeseriesId` is the destination's own key for the point's time
+  series — the same references the destination stores with the model. The
+  graph is the instance's, so a reference carries no `ref:storedAt`. It is
+  rebuilt with every plan.
 
 **Inference.** On activation, the full OWL-RL closure of model plus ontology
 is derived with the Rust-based reasoner (`reasonable`), and the
@@ -217,9 +229,15 @@ part hierarchies — "everything on floor 1" — are Bricklogger's own selector
 semantics, not something Brick declares, and are expressed at query time with
 property paths such as `brick:isPartOf*`.
 
-Queries run over the union of the graphs. Export gives by default **the model
-alone, as uploaded**; the inferred graph and the values are opt-in. The SPARQL
-endpoint on the API gives read access to all of it.
+Queries run over the union of the graphs. The time-series references join
+that union only on the SPARQL endpoint: the rules, the plan, the model
+explorer and the sources' reference lookups see the model's own references
+alone, so a reference Bricklogger wrote never passes for an address. Export
+gives by default **the model alone, as uploaded**; the inferred graph, the
+values and a destination's time-series references are opt-in. The SPARQL
+endpoint on the API gives read access to all of it, and
+`GRAPH <urn:bricklogger:timeseries:INSTANCE>` narrows a query to one
+destination's references.
 
 The store is **derived state**. The truth is the version files and the
 runtime state; if the store is deleted, the daemon rebuilds it on the next
@@ -417,7 +435,7 @@ it runs is seen at its next start. A source declares:
 - **the protocol tools** it offers.
 
 A destination correspondingly declares its type name, its configuration
-schema and whether it stores metadata.
+schema, whether it stores metadata and whether it stores the model.
 
 Schemas are written as **pydantic models**. The plugin gets typed objects,
 errors become precise, and JSON Schema can be derived automatically, so the
@@ -603,6 +621,15 @@ in its own thread:
   same full-desired-state form. It travels through the same spool, so order is
   kept: the graph's part of a point's metadata precedes the point's first
   observation, and the plugin's part follows when known.
+- **The model** is offered to destinations that declared they store it. The
+  daemon asks the destination for its keys — point URI to time-series id —
+  adds a `ref:TimeseriesReference` per point to the version as uploaded, and
+  hands the result over as Turtle with the version's upload and activation
+  times; the destination stores text and needs no RDF. The model travels
+  through the spool behind the metadata, so every point the plan has offered
+  already has its key. The active version is offered with every plan, and
+  every version that has been active once when the instance starts. Writing
+  a version again replaces it, so a repeat is harmless.
 - **Stop.** The destination flushes what is in flight and closes, within
   `stop_timeout`. Whatever is not yet written stays in the spool for the next
   start.
@@ -770,6 +797,17 @@ own choice.
 A destination that cannot store metadata **opts out in its declaration**, and
 the daemon sends only measurements. Status shows which destinations store
 metadata, so it is visible whether the data can be read without Bricklogger.
+
+### The model in destinations
+
+A destination may also store **the Brick model beside the data**: every
+version that has been active, each with the destination's own
+`ref:TimeseriesReference` per point it holds data for, so the database can be
+analysed with the model and nothing else — points selected with SPARQL, their
+time series read with the database's own query language. A destination
+**opts in in its declaration**; one that does not receives no model, and
+status shows which destinations store it. What is stored is described on the
+[destinations page](features/destinations.md#the-model-beside-the-data).
 
 ## Data flow
 

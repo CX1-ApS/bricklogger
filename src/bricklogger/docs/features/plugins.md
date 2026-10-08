@@ -277,10 +277,12 @@ reaches into them is on its own.
 
 ### Compatibility
 
-The contract is stable within a **minor version** of Bricklogger: a change to
-it raises the minor version, and patch releases never touch it. A plugin
+The contract is stable within a **minor version** of Bricklogger: a change
+that breaks plugins raises the minor version, and a patch release at most adds
+to it — something new that plugins built before it do not need. A plugin
 therefore pins the minor version it was built for, `bricklogger>=0.2,<0.3`,
-and works with every patch release of it. The author releases the plugin
+and works with every patch release of it; a plugin that uses an addition
+raises the lower bound to the release that brought it, `bricklogger>=0.2.4,<0.3`. The author releases the plugin
 again for a new minor version after checking it against the changes the release notes of that version list. The version `bricklogger plugins`
 shows for a plugin is the plugin's own distribution version.
 
@@ -549,6 +551,15 @@ DESTINATION = DestinationDeclaration(
 
 A destination that cannot store metadata declares `stores_metadata=False` and
 receives measurements only; status shows which destinations store it.
+
+A destination that stores [the model](destinations.md#the-model-beside-the-data)
+declares `stores_model=True` — the default is `False` — and implements two
+methods more: `timeseries_ids()` returns its key per point URI for every point
+it holds data for, and `write_model(model)` stores one version, a
+`ModelDocument` with `version`, `uploaded_at`, `activations` and `turtle`,
+replacing it if it is there. The daemon adds the references to the Turtle
+before the call, so the destination stores text and needs no RDF. A plugin
+that uses them requires `bricklogger>=0.2.4`.
 
 ## Testing a plugin
 

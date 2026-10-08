@@ -7,11 +7,13 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from dataclasses import replace
 from datetime import timedelta
 
 from bricklogger.daemon.spool import Entry, Spool
 from bricklogger.daemon.state import RuntimeState
+from bricklogger.model.timeseries import with_references
 from bricklogger.sdk.contract import (
     AssignedPoint,
     Destination,
@@ -256,6 +258,8 @@ class DestinationRunner:
         spool_max_age: timedelta,
         stop_timeout: timedelta,
         stores_metadata: bool,
+        stores_model: bool = False,
+        on_model_written: Callable[[str, int, Mapping[str, str]], None] | None = None,
     ) -> None:
         self.name = name
         self.type_name = type_name
@@ -268,6 +272,9 @@ class DestinationRunner:
         self.spool_max_age = spool_max_age
         self.stop_timeout = stop_timeout
         self.stores_metadata = stores_metadata
+        self.stores_model = stores_model
+        self.on_model_written = on_model_written
+        self.model_version: int | None = None
         self._thread: threading.Thread | None = None
         self._stopping = threading.Event()
         self._failures = 0
@@ -375,6 +382,10 @@ class DestinationRunner:
                 if self.stores_metadata:
                     for entry in batch:
                         self.destination.write_metadata(entry.metadata())
+            elif batch[0].kind == "model":
+                if self.stores_model:
+                    for entry in batch:
+                        self._write_model(entry)
             else:
                 observations = [o for entry in batch for o in entry.observations()]
                 self.destination.write(observations)
@@ -396,6 +407,19 @@ class DestinationRunner:
         self._set_state("running")
         self.last_write = time.strftime("%Y-%m-%dT%H:%M:%S%z")
         return True
+
+    def _write_model(self, entry: Entry) -> None:
+        """Add the destination's references to a model version and store it.
+
+        The keys are asked for at write time, after the metadata ahead of the
+        model in the spool, so every point the plan offered already has one.
+        """
+        model = entry.model()
+        turtle, used = with_references(model.turtle, self.destination.timeseries_ids())
+        self.destination.write_model(replace(model, turtle=turtle))
+        self.model_version = model.version
+        if self.on_model_written is not None:
+            self.on_model_written(self.name, model.version, used)
 
     def _enforce_caps(self) -> None:
         dropped = self.spool.enforce_caps(self.spool_max_size, self.spool_max_age)

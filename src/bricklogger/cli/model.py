@@ -299,11 +299,30 @@ def export(
     values: Annotated[
         bool, typer.Option("--values", help="Add the value overlay.")
     ] = False,
+    timeseries: Annotated[
+        bool,
+        typer.Option(
+            "--timeseries",
+            help="Add the time-series references of the destination that stores "
+            "the model.",
+        ),
+    ] = False,
+    destination: Annotated[
+        str | None,
+        typer.Option(
+            "--destination",
+            help="With --timeseries: the destination instance, when several "
+            "store the model.",
+        ),
+    ] = None,
     output: Annotated[
         Path | None, typer.Option("-o", "--output", help="Write to a file.")
     ] = None,
 ) -> None:
-    """The model as uploaded; the inferred graph and the values need the daemon."""
+    """The model as uploaded; the inferred graph, the values and the time-series
+    references need the daemon."""
+    if destination is not None and not timeseries:
+        raise fail("--destination goes with --timeseries")
     context = cli_context(ctx)
     client = reachable_client(context)
     if client is not None:
@@ -316,11 +335,13 @@ def export(
             f"/v1/models/{number}",
             inferred="true" if inferred else None,
             values="true" if values else None,
+            timeseries=(destination or "true") if timeseries else None,
         )
     else:
-        if inferred or values:
+        if inferred or values or timeseries:
             raise fail(
-                "--inferred and --values need the running daemon's working graph"
+                "--inferred, --values and --timeseries need the running daemon's "
+                "working graph"
             )
         store = _store(ctx)
         number = version if version is not None else store.active()

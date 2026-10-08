@@ -24,6 +24,44 @@ If a destination cannot store metadata — e.g. a purely numeric write-only API
 — **it opts out in its declaration**, and the daemon sends only measurements.
 Status shows which destinations store metadata.
 
+## The model beside the data
+
+A destination can also store **the Brick model**, so that someone with access
+to the database alone can use the model to find the data: select points with
+SPARQL, then read their time series with the database's own query language.
+A destination **opts in in its declaration**; one that does not receives no
+model, and status shows which destinations store it.
+
+It stores **every version that has been active**, with its upload time and
+the times it was activated, as Turtle: the model as uploaded with one
+addition — every point the destination holds data for carries Brick's
+time-series reference:
+
+```turtle
+bldg:AHU1_SAT ref:hasExternalReference [
+    a ref:TimeseriesReference ;
+    ref:hasTimeseriesId "17"
+] .
+```
+
+- **`ref:hasTimeseriesId` is the destination's own key** for the point's time
+  series — for TimescaleDB its `point_id`. Each destination's copy carries its
+  own keys, and since the model lies in the database it describes, the
+  reference has no `ref:storedAt`.
+- **A point has a reference once the destination has met it,** whether or not
+  a rule still accepts it: a point that left the plan keeps its history and
+  its reference, and a point that was never stored has none.
+- **The model follows the plan.** The daemon offers the active version with
+  every new plan — at start, on activation and on a configuration reload —
+  and every version that has been active once when the instance starts. It
+  travels through the spool behind the metadata, so the points it names
+  already have their keys, and writing a version again replaces it.
+
+The same references are in Bricklogger's own
+[working graph](../architecture.md#the-working-graph), one graph per
+destination, and `bricklogger model export --timeseries` adds them to an
+export.
+
 ## What a destination promises
 
 Observations arrive in **batches** through a persistent spool, and delivery is
@@ -63,6 +101,10 @@ observations       (time timestamptz, point_id integer,
 observations_text  (time timestamptz, point_id integer,
                     value_text text, value_time timestamptz)  -- hypertable
                     PRIMARY KEY (point_id, time)
+models             (version integer PK, uploaded_at timestamptz,
+                    document text, written_at timestamptz)    -- Turtle with references
+model_activations  (version integer, activated_at timestamptz)
+                    PRIMARY KEY (version, activated_at)
 ```
 
 - **One numeric value column.** `number`, `integer`, `boolean` and `enum` all
@@ -96,6 +138,41 @@ observations_text  (time timestamptz, point_id integer,
 - **Metadata arrives whole.** The daemon merges the graph's part and the
   source's part before it offers the entry, so `points` is written from one
   entry; a field the entry does not carry keeps its stored value.
+- **The model lies beside the data.** `models` holds every version that has
+  been active, with a `ref:TimeseriesReference` per point whose
+  `ref:hasTimeseriesId` is the point's `point_id`; `model_activations` holds
+  when each was activated, and the active version is the one activated last.
+  A version written again replaces its row.
+
+Reading the database with the model alone — fetch the active version, query
+it, then read the series:
+
+```sql
+SELECT m.document
+FROM models m JOIN model_activations a USING (version)
+ORDER BY a.activated_at DESC
+LIMIT 1;
+```
+
+```sparql
+PREFIX brick: <https://brickschema.org/schema/Brick#>
+PREFIX ref: <https://brickschema.org/schema/Brick/ref#>
+SELECT ?point ?id WHERE {
+  ?point a brick:Supply_Air_Temperature_Sensor ;
+         ref:hasExternalReference [ a ref:TimeseriesReference ;
+                                    ref:hasTimeseriesId ?id ] .
+}
+```
+
+```sql
+SELECT time, point_id, value
+FROM observations
+WHERE point_id IN (17, 18) AND time > now() - interval '7 days';
+```
+
+The model is stored as uploaded, without the inferred graph, so a query that
+should hit subclasses either runs an OWL-RL reasoner over the model and Brick
+first or walks `rdfs:subClassOf*` itself.
 
 The connection settings are shown in the
 [configuration document](configuration.md#sourcesyaml-and-destinationsyaml).

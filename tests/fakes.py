@@ -19,6 +19,7 @@ from bricklogger.sdk.contract import (
     AssignedPoint,
     Destination,
     GraphReader,
+    ModelDocument,
     Observation,
     Outcome,
     PointMetadata,
@@ -177,10 +178,13 @@ class FakeDestinationConfig(BaseModel):
 
 
 class FakeDestination(Destination):
-    """Keeps every observation and metadata entry it is given."""
+    """Keeps every observation, metadata entry and model version it is given,
+    and numbers the points it meets as its keys."""
 
     received: ClassVar[dict[str, list[Observation]]] = {}
     metadata_received: ClassVar[dict[str, list[PointMetadata]]] = {}
+    models_received: ClassVar[dict[str, list[ModelDocument]]] = {}
+    keys: ClassVar[dict[str, dict[str, str]]] = {}
     starts: ClassVar[dict[str, int]] = {}
 
     def __init__(self, name: str, config: BaseModel) -> None:
@@ -192,6 +196,8 @@ class FakeDestination(Destination):
         self._writes = 0
         FakeDestination.received.setdefault(name, [])
         FakeDestination.metadata_received.setdefault(name, [])
+        FakeDestination.models_received.setdefault(name, [])
+        FakeDestination.keys.setdefault(name, {})
         FakeDestination.starts.setdefault(name, 0)
 
     def start(self) -> None:
@@ -216,9 +222,22 @@ class FakeDestination(Destination):
             raise ConnectionError("the connection is lost")
         self._writes += 1
         FakeDestination.received[self.name].extend(batch)
+        self._meet(o.point for o in batch)
 
     def write_metadata(self, entries: Sequence[PointMetadata]) -> None:
         FakeDestination.metadata_received[self.name].extend(entries)
+        self._meet(e.point for e in entries)
+
+    def timeseries_ids(self) -> Mapping[str, str]:
+        return dict(FakeDestination.keys[self.name])
+
+    def write_model(self, model: ModelDocument) -> None:
+        FakeDestination.models_received[self.name].append(model)
+
+    def _meet(self, points: Iterable[str]) -> None:
+        keys = FakeDestination.keys[self.name]
+        for point in points:
+            keys.setdefault(point, str(len(keys) + 1))
 
     def stop(self) -> None:
         return None
@@ -251,6 +270,7 @@ FAKE_DESTINATION = DestinationDeclaration(
     config_schema=FakeDestinationConfig,
     stores_metadata=True,
     factory=FakeDestination,
+    stores_model=True,
 )
 
 

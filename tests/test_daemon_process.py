@@ -52,9 +52,8 @@ def test_daemon_start_stop_and_restart_as_a_background_process(
     pid = read_pid(pid_file)
     assert pid is not None and process_alive(pid)
     try:
-        assert httpx.get(f"http://127.0.0.1:{port}/health/live").json() == {
-            "live": "ok"
-        }
+        live = httpx.get(f"http://127.0.0.1:{port}/health/live").json()
+        assert live["live"] == "ok" and live["pid"] == pid, "its own process ID"
         again = runner.invoke(app, [*base, "start"])
         assert again.exit_code == 1 and "already running" in again.output
 

@@ -193,15 +193,16 @@ daemon — one per door into the logger:
 ```
 daemon: running — pid 4711 since 2026-09-09T10:02:11Z at http://127.0.0.1:8420
 web:    not running — nothing answers at http://127.0.0.1:8421
-mcp:    running — http://127.0.0.1:8422/mcp
+mcp:    running — pid 4713 since 2026-09-09T10:02:12Z at http://127.0.0.1:8422/mcp
 ```
 
-The daemon is running when its API answers at the binding in `daemon.yaml`;
-the PID appears when the data directory's PID file names a live process, so a
-daemon under systemd is shown without one. The web interface is running when
-`serve` answers at its own binding, and the MCP server when
-[`mcp serve --http`](mcp.md#how-it-is-started) answers at the `mcp` binding;
-an assistant that speaks stdio has no server to answer there, which the line
+The daemon is running when its API answers at the binding in `daemon.yaml`,
+the web interface when `serve` answers at its own binding, and the MCP server
+when [`mcp serve --http`](mcp.md#how-it-is-started) answers at the `mcp`
+binding. Each of the three answers `GET /health/live` with its own process ID
+and the time it started, so a line reads the same whichever way the process
+was started — as a [service](#services), by hand or in a container. An
+assistant that speaks stdio has no server to answer there, which the line
 says — `not running — nothing answers at http://127.0.0.1:8422/mcp (stdio
 needs no server)`. No line makes the command fail: a daemon that is not
 running is an answer, not an error.
@@ -215,8 +216,9 @@ doing its job. `status warnings` is the flat warning list, and
 `CODE`, or the one with a `CODE` and a `SUBJECT` — as an acknowledgement; a
 cleared warning returns when its condition is asserted again, as the
 [warning list](daemon.md#status) explains. With `--json` the two probes and
-the summary come as one document: `daemon`, `web` and `status`, the last
-`null` when the daemon does not answer. The detail per instance belongs to the
+the summary come as one document: `daemon`, `web` and `mcp`, each with
+`running`, `url`, `pid` and `started_at`, and `status`, `null` when the
+daemon does not answer. The detail per instance belongs to the
 two roles and is described under
 [`sources` and `destinations`](#sources-and-destinations).
 
@@ -446,7 +448,7 @@ whenever it is run, whatever the setting.
 | `model list` | Versions with upload time, activation history and which one is active |
 | `model activate <version>` | Activates an earlier version with upload semantics: validate, atomic swap, re-evaluate — as a job, like upload |
 | `model diff <a> <b>` | Points added, removed or changed between two versions, computed on the uploaded models |
-| `model export [--version V] [--inferred] [--values] [-o FILE]` | The model as uploaded by default; `--inferred` adds the inferred graph, `--values` the value overlay |
+| `model export [--version V] [--inferred] [--values] [--timeseries [--destination NAME]] [-o FILE]` | The model as uploaded by default; `--inferred` adds the inferred graph, `--values` the value overlay, `--timeseries` the time-series references of the destination that stores the model, with `--destination` naming one when several do |
 | `model tree [--kind K] [--class C] [--finding F] [--warning W] [--outcome O] [--instance NAME] [--search TEXT] [--root URI] [--depth N] [--sort name\|class\|count]` | The active model as an indented hierarchy, built by the rules of the [model explorer](web.md#model-explorer): per line the URI, the class, the name where it differs, the [findings](daemon.md#model-findings) in brackets, a point's outcome and instance, and its warnings after `!`. `--root` on a [grouping](web.md#model-explorer) lists what it gathers instead, each member with its own subtree. `--json` gives the [entity document](api.md#entities) unchanged |
 
 The model commands go through the API whenever a daemon answers, and
@@ -475,8 +477,8 @@ other command. It reads `web.host`, `web.port` and `web.password` from
 points it at a daemon on another machine. Like `daemon run`, it logs to stdout
 and is meant to run under a service manager or in a container. It starts
 without a daemon and shows plainly when the daemon cannot be reached, and it
-answers `GET /health/live` with `200` while it runs, which is what `status`
-asks it.
+answers `GET /health/live` with `200`, its process ID and the time it started
+while it runs, which is what `status` asks it.
 
 ## `mcp`
 
@@ -496,8 +498,8 @@ when no daemon answers. Like every group, `mcp` alone shows its help.
 process itself; `--http` makes it listen as a streamable HTTP server on
 `mcp.host` and `mcp.port` from `daemon.yaml`, which `--host` and `--port`
 override, and the root option `--api URL` points it at a daemon on another
-machine. Over HTTP it answers `GET /health/live` with `200` while it runs,
-which is what `status` asks it. What it exposes to the assistant — resources,
+machine. Over HTTP it answers `GET /health/live` with `200`, its process ID
+and the time it started while it runs, which is what `status` asks it. What it exposes to the assistant — resources,
 tools and prompts — is defined on the same page.
 
 `mcp auth` is the token an HTTP client needs, and only that: over stdio

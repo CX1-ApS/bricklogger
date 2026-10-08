@@ -44,8 +44,9 @@ could not be done by hand.
   [Getting started](../getting-started.md#connect-an-assistant) shows the same
   steps.
 - **A liveness answer.** Over HTTP the server answers `GET /health/live` with
-  `200` while it runs, as `serve` does, and that answer is the third line of
-  [`status`](cli.md#status-and-points) — `mcp: running` — so an operator sees
+  `200`, its process ID and the time it started while it runs, as `serve`
+  does, and that answer is the third line of
+  [`status`](cli.md#status-and-points) — `mcp: running — pid …` — so an operator sees
   whether the server is up without going to the client. An installation that
   only speaks stdio has nothing answering there, and the line says as much.
 - **A unit of its own.** [`bricklogger services install --mcp`](cli.md#services)
@@ -63,7 +64,8 @@ CLI. Over HTTP the server binds to **localhost by default**, on port 8422, and
 is guarded by one token and no user accounts. **A token that is set is
 required**, wherever the server is bound: every request to `/mcp` carries it
 as `Authorization: Bearer <token>`, and a missing or wrong one gives `401`.
-Only `GET /health/live` is free, so `status` can see whether the server runs.
+Only `GET /health/live` is free, so `status` can see whether the server runs;
+it tells no more than the process ID and when the process started.
 Bound beyond localhost the token is not a choice — validation refuses the
 configuration without `mcp.token` — and on localhost it is one, made by
 generating a token. TLS is a reverse proxy's job, as for the API and the web

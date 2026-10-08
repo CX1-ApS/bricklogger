@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 
 from bricklogger.daemon.api import create_app
 from bricklogger.daemon.core import Daemon, DaemonError
+from bricklogger.model.timeseries import REF
 from bricklogger.sdk.contract import Observation
 from tests.fakes import FakeDestination, FakeSource
 from tests.support import (
@@ -94,7 +95,9 @@ def test_api_serves_health_status_and_points(tmp_path: Path, template: Path) -> 
     daemon.start()
     try:
         client = TestClient(create_app(daemon))
-        assert client.get("/health/live").json() == {"live": "ok"}
+        live = client.get("/health/live").json()
+        assert live["live"] == "ok" and live["pid"] == os.getpid()
+        assert live["started_at"].endswith("Z"), "UTC to the second"
         assert client.get("/health").json() == {"health": "ok"}
         status = client.get("/v1/status").json()
         assert status["points"]["assigned"] == 3
@@ -970,5 +973,80 @@ def test_api_entities_projects_the_active_model(tmp_path: Path, template: Path) 
         assert isinstance(reading["value"], int | float)
         assert reading["time"], "the observation's own time travels with it"
         assert value_of("ex:Meter_kWh") is None, "a point no source claims has none"
+    finally:
+        daemon.stop()
+
+
+def test_the_model_lies_beside_the_data(tmp_path: Path, template: Path) -> None:
+    config_dir = make_config(
+        tmp_path, template, sources=SOURCES, destinations=DESTINATIONS
+    )
+    daemon = Daemon(config_dir, registry=REGISTRY, env={})
+    daemon.start()
+    try:
+        client = TestClient(create_app(daemon))
+        wait_for(lambda: daemon.status_destinations()[0]["model_version"] == 1)
+        (destination,) = daemon.status_destinations()
+        assert destination["stores_model"] is True
+        model = FakeDestination.models_received["sink_a"][-1]
+        assert model.version == 1 and len(model.activations) == 1
+        keys = FakeDestination.keys["sink_a"]
+        assert f"{EX}SAT" in keys, "the destination met the point through metadata"
+        ours = f'hasTimeseriesId "{keys[f"{EX}SAT"]}"'
+        assert ours in model.turtle
+
+        query = (
+            "SELECT ?id WHERE { GRAPH <urn:bricklogger:timeseries:sink_a> { "
+            "ex:SAT ref:hasExternalReference ?r . ?r ref:hasTimeseriesId ?id } }"
+        )
+        bindings = client.get("/v1/sparql", params={"query": query}).json()["results"][
+            "bindings"
+        ]
+        assert [b["id"]["value"] for b in bindings] == [keys[f"{EX}SAT"]]
+        assert not daemon.status_destinations()[0]["last_error"]
+        assert daemon.graph is not None
+        ask = (
+            f"ASK {{ <{EX}SAT> <{REF}hasExternalReference> ?r . "
+            f"?r a <{REF}TimeseriesReference> }}"
+        )
+        assert daemon.graph.query(ask, references=True)
+        assert not daemon.graph.query(ask), "the plan and the sources do not see them"
+
+        exported = client.get("/v1/models/1", params={"timeseries": "true"})
+        assert exported.status_code == 200 and ours in exported.text
+        named = client.get("/v1/models/1", params={"timeseries": "sink_a"})
+        assert named.status_code == 200
+        assert client.get(
+            "/v1/models/1", params={"timeseries": "nope"}
+        ).status_code == (404)
+        assert ours not in client.get("/v1/models/1").text, "the model as uploaded"
+
+        accepted = client.post(
+            "/v1/models",
+            content=MODEL_WITH_RAT.encode(),
+            headers={"Content-Type": "text/turtle"},
+        )
+        assert finished_job(client, accepted.json()["id"])["state"] == "done"
+        wait_for(lambda: daemon.status_destinations()[0]["model_version"] == 2)
+        assert client.get(
+            "/v1/models/1", params={"timeseries": "true"}
+        ).status_code == (409), "the references exist for the active version only"
+
+        # a changed instance starts afresh and is offered every version
+        FakeDestination.models_received["sink_a"].clear()
+        changed = client.put(
+            "/v1/config/destinations",
+            content=DESTINATIONS.replace("size: 5", "size: 6"),
+        )
+        assert changed.status_code == 200, changed.text
+        wait_for(
+            lambda: (
+                {m.version for m in FakeDestination.models_received["sink_a"]} == {1, 2}
+            )
+        )
+        first = next(
+            m for m in FakeDestination.models_received["sink_a"] if m.version == 1
+        )
+        assert len(first.activations) == 1 and ours in first.turtle
     finally:
         daemon.stop()

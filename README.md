@@ -39,7 +39,7 @@ uv tool install bricklogger
 uv brings a Python that fits, so the machine needs nothing else. Everything
 stays in that login's home directory: the program in uv's tool directory, the
 command in `~/.local/bin`, the configuration in `~/.config/bricklogger` and the
-data in `~/.local/share/bricklogger`. `uv tool install bricklogger==0.2.3`
+data in `~/.local/share/bricklogger`. `uv tool install bricklogger==0.2.4`
 installs a given version.
 
 **As a container** the same program is `ghcr.io/cx1-aps/bricklogger`, with a

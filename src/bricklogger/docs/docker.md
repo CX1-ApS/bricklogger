@@ -14,7 +14,7 @@ published by GitHub Actions.
 
 | Tag | What it is |
 |-----|------------|
-| `0.2.3` | One released version — what a building's logger should name |
+| `0.2.4` | One released version — what a building's logger should name |
 | `0.2` | The newest patch of that minor version |
 | `latest` | The newest release |
 
@@ -55,7 +55,7 @@ name: bricklogger
 
 services:
   daemon:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.3
+    image: ghcr.io/cx1-aps/bricklogger:0.2.4
     network_mode: host
     restart: unless-stopped
     stop_grace_period: 30s
@@ -65,7 +65,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   web:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.3
+    image: ghcr.io/cx1-aps/bricklogger:0.2.4
     command: ["bricklogger", "serve"]
     profiles: ["web"]
     depends_on: ["daemon"]
@@ -77,7 +77,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   mcp:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.3
+    image: ghcr.io/cx1-aps/bricklogger:0.2.4
     command: ["bricklogger", "mcp", "serve", "--http"]
     profiles: ["mcp"]
     depends_on: ["daemon"]
@@ -357,7 +357,7 @@ docker run -d --name bricklogger \
   -v bricklogger-config:/etc/bricklogger \
   -v bricklogger-data:/var/lib/bricklogger \
   -v bricklogger-plugins:/var/lib/bricklogger/plugins \
-  ghcr.io/cx1-aps/bricklogger:0.2.3
+  ghcr.io/cx1-aps/bricklogger:0.2.4
 ```
 
 The web interface and the MCP server are two more `docker run` lines with the

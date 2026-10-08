@@ -327,6 +327,7 @@ def _echo_declaration(data: dict[str, Any]) -> None:
             echo_schema(tool.get("parameters"), indent="    ")
     else:
         typer.echo(f"stores metadata: {'yes' if data.get('stores_metadata') else 'no'}")
+        typer.echo(f"stores the model: {'yes' if data.get('stores_model') else 'no'}")
     typer.echo("configuration:")
     echo_schema(data.get("config_schema"), indent="  ")
 

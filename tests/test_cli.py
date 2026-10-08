@@ -10,6 +10,8 @@ from typer.testing import CliRunner
 from bricklogger import __version__
 from bricklogger.cli import app
 from bricklogger.ops import services
+from bricklogger.ops import status as status_module
+from bricklogger.ops.client import DaemonApi
 from tests.fakes import write_distribution
 from tests.support import free_port
 
@@ -488,6 +490,34 @@ def test_status_answers_when_nothing_runs(tmp_path: Path) -> None:
 
     warnings = runner.invoke(app, ["--config-dir", str(tmp_path), "status", "warnings"])
     assert warnings.exit_code == 1 and "not running" in warnings.output
+
+
+def test_status_lines_carry_each_process_id_and_start(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Each line is the process's own answer, so a daemon under a service
+    manager, without a PID file, shows its PID too; a process that gives
+    none is running without."""
+    answers = {
+        "http://127.0.0.1:8420": {"live": "ok", "pid": 11, "started_at": "T1"},
+        "http://127.0.0.1:8421": {"live": "ok", "pid": 12, "started_at": "T2"},
+        "http://127.0.0.1:8422": {},
+    }
+    monkeypatch.setattr(status_module, "liveness", answers.get)
+    monkeypatch.setattr(DaemonApi, "get", lambda self, path: {"started_at": "T0"})
+    result = runner.invoke(app, ["--config-dir", str(tmp_path), "status", "--json"])
+    data = json.loads(result.output)
+    assert data["daemon"]["pid"] == 11 and data["daemon"]["started_at"] == "T1"
+    assert data["mcp"] == {
+        "running": True,
+        "url": "http://127.0.0.1:8422/mcp",
+        "pid": None,
+        "started_at": None,
+    }
+    monkeypatch.setattr(DaemonApi, "get", lambda self, path: None)
+    lines = runner.invoke(app, ["--config-dir", str(tmp_path), "status"]).output
+    assert "web:    running — pid 12 since T2 at http://127.0.0.1:8421" in lines
+    assert "mcp:    running at http://127.0.0.1:8422/mcp" in lines
 
 
 def test_notify_is_a_group_with_status_and_test(tmp_path: Path) -> None:

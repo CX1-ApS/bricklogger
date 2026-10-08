@@ -59,6 +59,7 @@
     </div>
     <dl class="kv">
       <dt>{{ t('instances.metadata') }}</dt><dd>{{ t('common.yes') if d.stores_metadata else t('common.no') }}</dd>
+      <dt>{{ t('instances.model') }}</dt><dd>{% if d.stores_model %}{{ t('common.yes') }}{% if d.model_version is not none %} · {{ t('instances.model_version') }} {{ d.model_version }}{% endif %}{% else %}{{ t('common.no') }}{% endif %}</dd>
       <dt>{{ t('instances.written') }}</dt><dd>{{ d.written }}{% if d.last_write %} · {{ d.last_write | when }}{% endif %}</dd>
       <dt>{{ t('instances.spool') }}</dt><dd>{{ d.spool.observations }} observations · {{ d.spool.bytes }} bytes{% if d.spool.oldest_age_seconds %} · oldest {{ d.spool.oldest_age_seconds | int }} s{% endif %}{% if d.spool.dropped %} · <span class="signal">{{ d.spool.dropped }} dropped</span>{% endif %}</dd>
       {% if d.last_error %}<dt>{{ t('instances.last_error') }}</dt><dd class="signal">{{ d.last_error }}</dd>{% endif %}

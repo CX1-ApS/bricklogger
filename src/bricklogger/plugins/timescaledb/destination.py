@@ -1,11 +1,12 @@
 """The TimescaleDB destination: one narrow numeric hypertable, a text side
-table, and the point metadata beside them. See ``docs/features/destinations.md``.
+table, and the point metadata and the model beside them. See
+``docs/features/destinations.md``.
 """
 
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Any
 
@@ -13,11 +14,16 @@ import psycopg
 from pydantic import BaseModel
 
 from bricklogger.plugins.timescaledb.config import TimescaleDBConfig
-from bricklogger.sdk.contract import Destination, Observation, PointMetadata
+from bricklogger.sdk.contract import (
+    Destination,
+    ModelDocument,
+    Observation,
+    PointMetadata,
+)
 
 log = logging.getLogger(__name__)
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 REASON_CODES: dict[str, int] = {
     "fault": 1,
@@ -83,6 +89,21 @@ TABLES = [
         PRIMARY KEY (point_id, time)
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS models (
+        version integer PRIMARY KEY,
+        uploaded_at timestamptz NOT NULL,
+        document text NOT NULL,
+        written_at timestamptz NOT NULL DEFAULT now()
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS model_activations (
+        version integer NOT NULL REFERENCES models (version),
+        activated_at timestamptz NOT NULL,
+        PRIMARY KEY (version, activated_at)
+    )
+    """,
 ]
 
 HYPERTABLES = [
@@ -132,6 +153,18 @@ UPSERT_POINT = """
         updated_at = now()
     RETURNING point_id
 """
+UPSERT_MODEL = """
+    INSERT INTO models (version, uploaded_at, document)
+    VALUES (%s, %s, %s)
+    ON CONFLICT (version) DO UPDATE SET
+        uploaded_at = EXCLUDED.uploaded_at,
+        document = EXCLUDED.document,
+        written_at = now()
+"""
+INSERT_ACTIVATION = (
+    "INSERT INTO model_activations (version, activated_at) VALUES (%s, %s) "
+    "ON CONFLICT DO NOTHING"
+)
 
 
 def encode_observation(
@@ -247,6 +280,25 @@ class TimescaleDBDestination(Destination):
                         "VALUES (%s, %s, %s)",
                         [(point_id, ordinal, text) for ordinal, text in states],
                     )
+
+    def timeseries_ids(self) -> Mapping[str, str]:
+        """Every point's ``point_id``, as text, by URI."""
+        connection = self._require_connection()
+        with connection.transaction(), connection.cursor() as cursor:
+            cursor.execute("SELECT uri, point_id FROM points")
+            return {str(uri): str(point_id) for uri, point_id in cursor.fetchall()}
+
+    def write_model(self, model: ModelDocument) -> None:
+        """One version with its references; written again, it replaces the row."""
+        connection = self._require_connection()
+        with connection.transaction(), connection.cursor() as cursor:
+            cursor.execute(
+                UPSERT_MODEL, (model.version, model.uploaded_at, model.turtle)
+            )
+            cursor.executemany(
+                INSERT_ACTIVATION,
+                [(model.version, stamp) for stamp in model.activations],
+            )
 
     def _point_id(self, uri: str) -> int:
         """The point's id, assigned by the destination on first sight of the URI."""

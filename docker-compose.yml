@@ -2,7 +2,7 @@ name: bricklogger
 
 services:
   daemon:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.3
+    image: ghcr.io/cx1-aps/bricklogger:0.2.4
     network_mode: host
     restart: unless-stopped
     stop_grace_period: 30s
@@ -12,7 +12,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   web:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.3
+    image: ghcr.io/cx1-aps/bricklogger:0.2.4
     command: ["bricklogger", "serve"]
     profiles: ["web"]
     depends_on: ["daemon"]
@@ -24,7 +24,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   mcp:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.3
+    image: ghcr.io/cx1-aps/bricklogger:0.2.4
     command: ["bricklogger", "mcp", "serve", "--http"]
     profiles: ["mcp"]
     depends_on: ["daemon"]

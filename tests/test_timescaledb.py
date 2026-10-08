@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import time
 from collections.abc import Iterable
+from dataclasses import replace
 from datetime import UTC, datetime
 
 import pytest
@@ -23,7 +24,7 @@ from bricklogger.plugins.timescaledb.destination import (
     point_row,
     state_rows,
 )
-from bricklogger.sdk.contract import Observation, PointMetadata
+from bricklogger.sdk.contract import ModelDocument, Observation, PointMetadata
 
 P = "https://example.com/bldg#SAT"
 NOW = datetime(2026, 9, 1, 12, 0, tzinfo=UTC)
@@ -105,6 +106,7 @@ def test_metadata_merges_the_graphs_and_the_plugins_parts() -> None:
 
 def test_declaration_has_a_factory() -> None:
     assert DESTINATION.factory is TimescaleDBDestination
+    assert DESTINATION.stores_model is True
 
 
 @pytest.fixture(scope="module")
@@ -163,7 +165,7 @@ def test_round_trip_against_a_real_database(database_dsn: str) -> None:
     with psycopg.connect(dsn, autocommit=True) as connection:
         connection.execute(
             "DROP TABLE IF EXISTS observations, observations_text, point_states, "
-            "points, reasons, bricklogger_schema CASCADE"
+            "points, reasons, model_activations, models, bricklogger_schema CASCADE"
         )
     destination = TimescaleDBDestination("tsdb", TimescaleDBConfig(dsn=dsn))
     destination.start()
@@ -210,6 +212,22 @@ def test_round_trip_against_a_real_database(database_dsn: str) -> None:
             assert reason == ("fault",)
             assert connection.execute(
                 "SELECT max(version) FROM bricklogger_schema"
-            ).fetchone() == (1,)
+            ).fetchone() == (2,)
+        ids = destination.timeseries_ids()
+        assert set(ids) == {P, "https://example.com/bldg#Text"}
+        first = datetime(2026, 10, 1, tzinfo=UTC)
+        model = ModelDocument(1, first, (first,), "<urn:a> <urn:b> <urn:c> .\n")
+        destination.write_model(model)
+        again = datetime(2026, 10, 8, tzinfo=UTC)
+        destination.write_model(replace(model, activations=(first, again)))
+        with psycopg.connect(dsn) as connection:
+            assert connection.execute(
+                "SELECT m.version, m.document FROM models m "
+                "JOIN model_activations a USING (version) "
+                "ORDER BY a.activated_at DESC LIMIT 1"
+            ).fetchone() == (1, model.turtle)
+            assert connection.execute(
+                "SELECT count(*) FROM model_activations"
+            ).fetchone() == (2,), "a version written again replaces its row"
     finally:
         destination.stop()

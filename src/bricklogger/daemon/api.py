@@ -32,6 +32,7 @@ from bricklogger.daemon.core import (
 from bricklogger.daemon.jobs import Job
 from bricklogger.daemon.sparql import QueryError
 from bricklogger.model import ModelNotFound, ModelUnreadable
+from bricklogger.ops.status import live_answer
 
 PROBLEM = "application/problem+json"
 YAML = "application/yaml"
@@ -135,8 +136,8 @@ def create_app(
     # --- health and daemon ---------------------------------------------------
 
     @app.get("/health/live")
-    def live() -> dict[str, str]:
-        return {"live": "ok"}
+    def live() -> dict[str, Any]:
+        return live_answer(daemon.started_at)
 
     @app.get("/health")
     def health() -> JSONResponse:
@@ -483,12 +484,19 @@ def create_app(
 
     @app.get("/v1/models/{version}")
     def export_model(
-        version: int, inferred: bool = False, values: bool = False
+        version: int,
+        inferred: bool = False,
+        values: bool = False,
+        timeseries: str | None = None,
     ) -> Response:
         try:
-            data, fmt = daemon.export(version, inferred=inferred, values=values)
+            data, fmt = daemon.export(
+                version, inferred=inferred, values=values, timeseries=timeseries
+            )
         except ModelNotFound as exc:
             return problem(404, "Model version not found", str(exc))
+        except NotFound as exc:
+            return problem(404, "No time-series references", str(exc))
         except ExportUnavailable as exc:
             return problem(409, "Export unavailable", str(exc))
         return Response(
