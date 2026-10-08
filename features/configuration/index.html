@@ -1,0 +1,1458 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://cx1-aps.github.io/bricklogger/features/configuration/">
+      
+      
+        <link rel="prev" href="../api/">
+      
+      
+        <link rel="next" href="../web/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Configuration - Bricklogger</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Bricklogger" class="md-header__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Bricklogger
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Bricklogger" class="md-nav__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Bricklogger
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../daemon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daemon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-env-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The env file
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#daemonyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        daemon.yaml
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="daemon.yaml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notifications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sourcesyaml-and-destinationsyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sources.yaml and destinations.yaml
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rulesyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rules.yaml
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="rules.yaml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#collection-method-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collection method: method
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../destinations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Destinations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-env-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The env file
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#daemonyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        daemon.yaml
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="daemon.yaml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notifications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sourcesyaml-and-destinationsyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sources.yaml and destinations.yaml
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rulesyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rules.yaml
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="rules.yaml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#collection-method-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collection method: method
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="configuration">Configuration</h1>
+<p>All configuration lives in a config directory with four YAML files, which
+together are the source of truth. Write paths, reload semantics and secrets
+are described in the
+<a href="../../architecture/#configuration">architecture's configuration section</a>;
+this page defines the schema of the files.</p>
+<p>Each file's content is <strong>directly the section's content</strong> — the file name
+carries the meaning, and there is no wrapping top-level key.</p>
+<h2 id="location">Location</h2>
+<p>Configuration and data live where the user that runs Bricklogger can write:</p>
+<table>
+<thead>
+<tr>
+<th>Installation</th>
+<th>Configuration</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../../getting-started/#install"><code>uv tool install</code></a>, as a login</td>
+<td><code>~/.config/bricklogger</code></td>
+<td><code>~/.local/share/bricklogger</code></td>
+</tr>
+<tr>
+<td><a href="../../docker/">the container</a></td>
+<td><code>/etc/bricklogger</code></td>
+<td><code>/var/lib/bricklogger</code></td>
+</tr>
+</tbody>
+</table>
+<p>The config directory is resolved in this order: the CLI flag
+<strong><code>--config-dir</code></strong>, the environment variable <strong><code>BRICKLOGGER_CONFIG_DIR</code></strong>,
+and <strong><code>~/.config/bricklogger</code></strong> otherwise. An installation in a home directory
+thus needs neither flag nor variable, and the container names its directory
+with the variable. <code>status</code> and every <code>config</code> view name the directory in use,
+so a shell that reads a different one than the daemon does is visible at
+once.</p>
+<p>Bricklogger writes its own configuration: <code>init</code>, the <code>config edit</code> views,
+<code>add</code>, <code>edit</code> and <code>remove</code> of an instance and the web interface's editor write
+a temporary file in the config directory and rename it into place. <strong>The user the daemon runs as must therefore be able to
+write the directory itself</strong>, not only the files in it — a config directory
+owned by <code>root</code> and merely readable by the service leaves the daemon running,
+but refuses every edit.</p>
+<h2 id="the-files">The files</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>daemon.yaml</code></td>
+<td>The daemon's own settings (API binding, data directory, logging, notifications) and the bindings of the web interface and the MCP server</td>
+</tr>
+<tr>
+<td><code>sources.yaml</code></td>
+<td>Source instances, named as a map</td>
+</tr>
+<tr>
+<td><code>destinations.yaml</code></td>
+<td>Destination instances, named as a map</td>
+</tr>
+<tr>
+<td><code>rules.yaml</code></td>
+<td>The rule set for point selection, ordered list</td>
+</tr>
+</tbody>
+</table>
+<p>A file that does not exist is read as <strong>empty</strong>: <code>daemon.yaml</code> then gives
+every default, empty <code>sources.yaml</code> and <code>destinations.yaml</code> give no instances,
+and an empty <code>rules.yaml</code> accepts nothing. Validation <strong>warns</strong> — it does not
+fail — when the rule set accepts points but no destination is configured.
+<code>bricklogger init</code> writes all four files, guided or with commented examples.</p>
+<h3 id="the-env-file">The <code>env</code> file</h3>
+<p>Secrets live in an <code>env</code> file in the config directory, one <code>NAME=value</code> per
+line, and are interpolated into the YAML as <code>${NAME}</code>:</p>
+<div class="highlight"><pre><span></span><code>TSDB_PASSWORD=...
+SMTP_PASSWORD=...
+</code></pre></div>
+<p>The daemon and the CLI both read it, so every command works in any shell
+without the variables being exported first, and a value already in the
+process environment wins over the file — a single command can thus be run
+with another token. Blank lines and lines beginning with <code>#</code> are ignored, and
+a value may be quoted.</p>
+<p>The file is not one of the four: it is not reachable through the API or the
+web interface, no <code>config</code> view prints it, and <code>init</code> creates it with mode
+<code>600</code>. Under a service manager it is read by the daemon
+itself, so no <code>EnvironmentFile</code> is needed.</p>
+<h2 id="daemonyaml"><code>daemon.yaml</code></h2>
+<div class="highlight"><pre><span></span><code><span class="nt">api</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span><span class="w">                  </span><span class="c1"># default: localhost only</span>
+<span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8420</span>
+<span class="w">  </span><span class="nt">token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${BRICKLOGGER_API_TOKEN}</span><span class="w">  </span><span class="c1"># required when host is not loopback</span>
+<span class="nt">data_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/home/logger/.local/share/bricklogger</span><span class="w">  </span><span class="c1"># default; see Location</span>
+<span class="nt">stop_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10s</span><span class="w">                  </span><span class="c1"># default</span>
+<span class="nt">log</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">info</span><span class="w">                      </span><span class="c1"># default</span>
+<span class="w">  </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span><span class="w">                     </span><span class="c1"># default; or json</span>
+<span class="w">  </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/home/logger/.local/share/bricklogger/bricklogger.log</span><span class="w">  </span><span class="c1"># default: &lt;data_dir&gt;/bricklogger.log</span>
+<span class="w">  </span><span class="nt">max_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10MB</span><span class="w">                   </span><span class="c1"># default</span>
+<span class="w">  </span><span class="nt">keep</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w">                          </span><span class="c1"># default</span>
+<span class="nt">web</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span><span class="w">                  </span><span class="c1"># default: localhost only</span>
+<span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8421</span>
+<span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${BRICKLOGGER_WEB_PASSWORD}</span><span class="w">  </span><span class="c1"># required when host is not loopback</span>
+<span class="nt">mcp</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span><span class="w">                  </span><span class="c1"># default: localhost only</span>
+<span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8422</span>
+<span class="w">  </span><span class="nt">token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${BRICKLOGGER_MCP_TOKEN}</span><span class="w">  </span><span class="c1"># written by `bricklogger mcp auth generate`</span>
+<span class="nt">notifications</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">                   </span><span class="c1"># default; can only be set with an active model</span>
+<span class="w">  </span><span class="nt">smtp</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">smtp.example.com</span>
+<span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">587</span><span class="w">                      </span><span class="c1"># default</span>
+<span class="w">    </span><span class="nt">security</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">starttls</span><span class="w">             </span><span class="c1"># default; or tls, or none</span>
+<span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bricklogger@example.com</span><span class="w">    </span><span class="c1"># optional</span>
+<span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${SMTP_PASSWORD}</span><span class="w">     </span><span class="c1"># optional</span>
+<span class="w">  </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bricklogger@example.com</span>
+<span class="w">  </span><span class="nt">to</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drift@example.com</span>
+<span class="w">  </span><span class="nt">window</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2m</span><span class="w">                       </span><span class="c1"># default</span>
+<span class="w">  </span><span class="nt">min_interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15m</span><span class="w">                </span><span class="c1"># default</span>
+<span class="w">  </span><span class="nt">digest</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;07:00&quot;</span><span class="w">                  </span><span class="c1"># default; the machine&#39;s local time</span>
+<span class="nt">updates</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">check</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                      </span><span class="c1"># default; once a day against PyPI</span>
+</code></pre></div>
+<ul>
+<li><code>api.host</code>/<code>api.port</code>: where the HTTP API binds. The default is localhost;
+  exposing it externally is a deliberate choice.</li>
+<li><code>api.token</code>: required when <code>api.host</code> is not a loopback address — validation
+  refuses the configuration otherwise — and set through an environment
+  variable like every secret. Clients send it as a bearer token, as the
+  <a href="../api/#conventions">API reference</a> describes.</li>
+<li><code>data_dir</code>: the data directory with runtime state (SQLite), the model
+  versions and the working graph. The default is
+  <strong><code>~/.local/share/bricklogger</code></strong> beside a config directory under the home
+  directory, and <strong><code>/var/lib/bricklogger</code></strong> beside one in <code>/etc</code>, as in the
+  container; <code>init</code> writes the resolved path
+  into the file, so a written configuration never leaves it implicit.</li>
+<li><code>stop_timeout</code>: how long a plugin instance gets to stop gracefully before it
+  is abandoned and reported in status. The default is <strong><code>10s</code></strong>.</li>
+<li><code>log.level</code>, <code>log.format</code>: the daemon's own <a href="../daemon/#logging">logging</a>:
+  <code>debug</code>, <code>info</code>, <code>warning</code> or <code>error</code>, as <code>text</code> or <code>json</code>.</li>
+<li><code>log.file</code>, <code>log.max_size</code>, <code>log.keep</code>: the log file and its rotation by
+  size, used by <code>daemon start</code> only; <code>daemon run</code> logs to stdout.</li>
+<li><code>web.host</code>, <code>web.port</code>, <code>web.password</code>: where <a href="../cli/#serve"><code>bricklogger serve</code></a>
+  binds, and the password it requires when bound beyond loopback, set through
+  an environment variable. The daemon itself ignores this section.</li>
+<li><code>mcp.host</code>, <code>mcp.port</code>, <code>mcp.token</code>: where
+  <a href="../mcp/#access"><code>bricklogger mcp serve --http</code></a> binds, and the token clients
+  send as a bearer token — required when bound beyond loopback and enforced
+  whenever it is set, so a localhost server is guarded as soon as there is a
+  token. <a href="../cli/#mcp"><code>mcp auth generate</code></a> writes the value into the <code>env</code>
+  file and the reference here; by hand it is a secret like any other. The
+  daemon ignores this section too.</li>
+<li><code>notifications</code>: mail to the administrator, off by default, defined below.</li>
+<li><code>updates.check</code>: whether the daemon looks on PyPI once a day for newer
+  releases of Bricklogger and its plugins, and shows them in <code>status</code> and the
+  daily summary, as <a href="../cli/#update"><code>update</code></a> describes. On by default; turn
+  it off on a network with no way out. <code>update status</code> looks whenever it is
+  run, whatever the setting.</li>
+</ul>
+<h3 id="notifications">Notifications</h3>
+<p>What is sent and when is described on the
+<a href="../notifications/">notifications page</a>; this is the schema. An absent section
+is read as <code>enabled: false</code>, and nothing but <code>enabled</code> is required while
+notifications are off, so the section can be left out entirely.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Requirement</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td>default <code>false</code></td>
+<td>Whether mail is sent at all. Setting it to <code>true</code> requires an active model</td>
+</tr>
+<tr>
+<td><code>smtp.host</code></td>
+<td>required when enabled</td>
+<td>The mail server to submit to</td>
+</tr>
+<tr>
+<td><code>smtp.port</code></td>
+<td>default <code>587</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>smtp.security</code></td>
+<td>default <code>starttls</code></td>
+<td><code>starttls</code> for the submission port, <code>tls</code> for an implicit-TLS port, <code>none</code> for a relay on the local network</td>
+</tr>
+<tr>
+<td><code>smtp.username</code></td>
+<td>optional</td>
+<td>Left out for a relay that takes unauthenticated mail from its own hosts</td>
+</tr>
+<tr>
+<td><code>smtp.password</code></td>
+<td>optional</td>
+<td>A secret: given as <code>${VAR}</code> and kept in the <a href="#the-env-file"><code>env</code> file</a></td>
+</tr>
+<tr>
+<td><code>from</code></td>
+<td>required when enabled</td>
+<td>The sender address</td>
+</tr>
+<tr>
+<td><code>to</code></td>
+<td>required when enabled</td>
+<td>The recipients, at least one</td>
+</tr>
+<tr>
+<td><code>window</code></td>
+<td>default <code>2m</code></td>
+<td>How long the daemon gathers events before sending one mail</td>
+</tr>
+<tr>
+<td><code>min_interval</code></td>
+<td>default <code>15m</code></td>
+<td>The floor between two mails</td>
+</tr>
+<tr>
+<td><code>digest</code></td>
+<td>default <code>07:00</code></td>
+<td>When the daily summary is sent, in the machine's local time</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>enabled: true</code> requires an active model.</strong> Validation reads the data
+directory named by <code>data_dir</code>, and a configuration that switches
+notifications on where no model version is active is <strong>refused</strong> with an error
+on <code>notifications.enabled</code> — as <code>api.token</code> is required on a binding that is
+not loopback. Upload a model first, then switch notifications on. A model that
+goes missing afterwards does not stop the daemon; notifications go dormant and
+say so in status, as the <a href="../notifications/#switching-it-on">notifications page</a>
+describes.</p>
+<p><strong>Durations</strong> are written as everywhere else: <code>2m</code>, <code>15m</code>, <code>1h</code>. <code>digest</code> is
+a time of day as <code>HH:MM</code>, quoted, because YAML would otherwise read it as a
+sexagesimal number.</p>
+<h2 id="sourcesyaml-and-destinationsyaml"><code>sources.yaml</code> and <code>destinations.yaml</code></h2>
+<p>Instances are named with <strong>the name as key</strong>; the name is thereby unique by
+construction and can be referred to in status and error messages. <code>type</code>
+selects the plugin type — built-in types and custom plugins are given the
+same way. The remaining keys are the type's own settings and are validated
+against the type's <a href="../../architecture/#declaration">configuration schema</a>;
+errors name the instance and the key.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># sources.yaml</span>
+<span class="nt">bacnet_main</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bacnet-ip</span>
+<span class="w">  </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">192.168.10.5/24</span>
+<span class="w">  </span><span class="nt">device_instance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1200</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># destinations.yaml</span>
+<span class="nt">tsdb</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">timescaledb</span>
+<span class="w">  </span><span class="nt">dsn</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;postgres://bricklogger@db.example.com:5432/brick&quot;</span>
+<span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TSDB_PASSWORD}</span>
+</code></pre></div>
+<p>Accepted points are written to <strong>all</strong> configured destinations; there is no
+routing per rule.</p>
+<p>Two keys in a destination instance are <strong>reserved for the daemon</strong> and never
+reach the plugin: <code>spool</code> and <code>batch</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># destinations.yaml</span>
+<span class="nt">tsdb</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">timescaledb</span>
+<span class="w">  </span><span class="nt">dsn</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;postgres://bricklogger@db.example.com:5432/brick&quot;</span>
+<span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TSDB_PASSWORD}</span>
+<span class="w">  </span><span class="nt">spool</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">max_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1GB</span><span class="w">     </span><span class="c1"># default</span>
+<span class="w">    </span><span class="nt">max_age</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7d</span><span class="w">       </span><span class="c1"># default</span>
+<span class="w">  </span><span class="nt">batch</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w">        </span><span class="c1"># default: observations per write</span>
+<span class="w">    </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5s</span><span class="w">      </span><span class="c1"># default: flush at least this often</span>
+</code></pre></div>
+<ul>
+<li><code>spool.max_size</code> / <code>spool.max_age</code>: caps on the
+  <a href="../../architecture/#backpressure-the-spool">persistent spool</a> that sits
+  between the daemon and this destination; when a cap is reached, the oldest
+  observations are dropped and counted in status.</li>
+<li><code>batch.size</code> / <code>batch.interval</code>: how many observations go into one write,
+  and how long the daemon waits at most before writing a partial batch.</li>
+</ul>
+<p><strong>Sizes</strong> are written as a number with a unit: <code>500MB</code>, <code>1GB</code>, in binary
+multiples, so <code>1GB</code> is 1024³ bytes.</p>
+<h2 id="rulesyaml"><code>rules.yaml</code></h2>
+<p>The rule set's semantics (ordered, first match wins, implicit deny) are
+described in the <a href="../../architecture/">architecture</a>, and the selectors'
+vocabulary in the <a href="../daemon/">daemon document</a>. The file is an ordered list of
+rules with these keys:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Requirement</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>optional</td>
+<td>Readable name for status and troubleshooting</td>
+</tr>
+<tr>
+<td><code>match</code> / <code>match_regex</code> / <code>sparql</code></td>
+<td>exactly one</td>
+<td>The selection of points</td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td>required</td>
+<td><code>accept</code> or <code>deny</code></td>
+</tr>
+<tr>
+<td><code>method</code></td>
+<td>required with <code>accept</code></td>
+<td>Collection method: <code>poll</code> or a source-specific method declared by the source's plugin</td>
+</tr>
+<tr>
+<td><code>interval</code></td>
+<td>required with <code>method: poll</code>, forbidden otherwise</td>
+<td>Polling interval as a duration</td>
+</tr>
+<tr>
+<td><code>fallback</code></td>
+<td>optional with a source-specific <code>method</code></td>
+<td>Alternative collection method, same schema (<code>method</code> + <code>interval</code> if applicable)</td>
+</tr>
+</tbody>
+</table>
+<p>A position is always taken explicitly on both <code>action</code> and <code>method</code> — no rule
+is implicitly one or the other.</p>
+<p><strong>Durations</strong> are written as a number with a unit: <code>30s</code>, <code>5m</code>, <code>1h</code>, <code>7d</code>.</p>
+<h3 id="collection-method-method">Collection method: <code>method</code></h3>
+<p><code>poll</code> exists for all sources and requires an <code>interval</code>. In addition, a
+source can offer its own methods — e.g. a subscription to changes on the
+device instead of polling, which takes no <code>interval</code>. Which methods a source
+supports is declared by the source's plugin with a parameter schema per
+method, and validation catches unknown methods and parameters that do not fit
+the schema. The built-in source, BACnet/IP, offers <code>poll</code> only; the
+methods a source offers are listed on the <a href="../sources/">sources page</a>.</p>
+<p>If a rule with a source-specific method hits points whose source or device
+does <strong>not</strong> support the method, the rule's <code>fallback</code> is used. If there is no
+fallback, the points are not collected, and the daemon shows a clear warning
+in status.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># rules.yaml</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Exclude test room</span>
+<span class="w">  </span><span class="nt">match</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> location</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ex:Room_1_17&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deny</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ventilation temperatures</span>
+<span class="w">  </span><span class="nt">match</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> class</span><span class="p">:</span><span class="w"> </span><span class="nv">brick</span><span class="p p-Indicator">:</span><span class="nv">Temperature_Sensor</span><span class="p p-Indicator">,</span><span class="nt"> equipment</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ex:AHU_01&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">accept</span>
+<span class="w">  </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">poll</span>
+<span class="w">  </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5m</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">All energy meters</span>
+<span class="w">  </span><span class="nt">match</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> class</span><span class="p">:</span><span class="w"> </span><span class="nv">brick</span><span class="p p-Indicator">:</span><span class="nv">Energy_Sensor</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="w">  </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">accept</span>
+<span class="w">  </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">poll</span>
+<span class="w">  </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15m</span>
+
+<span class="c1"># everything else: implicit deny</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

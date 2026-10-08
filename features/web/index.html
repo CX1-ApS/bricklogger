@@ -1,0 +1,1285 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://cx1-aps.github.io/bricklogger/features/web/">
+      
+      
+        <link rel="prev" href="../configuration/">
+      
+      
+        <link rel="next" href="../mcp/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Web - Bricklogger</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#web" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Bricklogger" class="md-header__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Bricklogger
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Web
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Bricklogger" class="md-nav__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Bricklogger
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../daemon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daemon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-is-served" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it is served
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screens
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-explorer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model explorer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visual-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual identity
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../destinations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Destinations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-is-served" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it is served
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screens
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-explorer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model explorer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visual-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual identity
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="web">Web</h1>
+<p>The web interface is the second door into the same functionality as the CLI.
+It is served by <strong><code>bricklogger serve</code></strong>, a process of its own that talks to the
+daemon's <a href="../api/">HTTP API</a> exactly as the CLI does, and it has <strong>full parity</strong>
+with the CLI: every command has its screen, and nothing can be done in only one
+of them. The one exception is starting the daemon, which needs the CLI's
+<code>daemon start</code> or a service manager, because the web interface needs a running
+daemon to talk to.</p>
+<h2 id="how-it-is-served">How it is served</h2>
+<ul>
+<li><strong>A thin client over the API.</strong> The browser talks only to <code>serve</code>. <code>serve</code>
+  renders the pages and forwards API calls to the daemon under the same paths,
+  <code>/api/v1/...</code>, adding the API token itself when the daemon requires one. The
+  browser never sees the token, and there is no cross-origin traffic.</li>
+<li><strong>Server-rendered.</strong> Pages are rendered on the server with FastAPI, Jinja2
+  and HTMX, which gives partial updates and forms without a JavaScript build.
+  Three libraries ship as static files: CodeMirror for the YAML editor,
+  Yasgui for the SPARQL page, which works directly against the SPARQL endpoint
+  because it speaks the standard protocol, and Cytoscape.js for the explorer's
+  graph. Everything is inside the Python package, so installing Bricklogger
+  installs the web interface too.</li>
+<li><strong>Forms from schemas.</strong> Instance configuration and the parameters of plugin
+  tools are pydantic schemas, which the API exposes as JSON Schema. The web
+  interface generates its forms from them, as the CLI generates its flags, so
+  a new plugin brings its screens with it.</li>
+<li><strong>Polling.</strong> Status, points, instances and notifications are refreshed
+  every five seconds with HTMX, a running job every second. No API surface
+  exists for the web interface alone: the forwarded API answers under
+  <code>/api/v1/...</code> exactly as the daemon does, and a daemon that does not answer
+  gives <code>503</code> there.</li>
+<li><strong>Same site only.</strong> Every request that changes something is refused when the
+  browser marks it as coming from another site, so a page elsewhere cannot
+  drive a logged-in session; reads are unaffected.</li>
+<li>
+<p><strong>When the daemon is away.</strong> Every screen says so plainly in its place and
+  keeps polling; the status line and the health in the top bar turn to the
+  signal colour.</p>
+</li>
+<li>
+<p><strong>A liveness answer.</strong> <code>serve</code> answers <code>GET /health/live</code> with <code>200</code>, its
+  process ID and the time it started while it runs, so <code>bricklogger status</code>
+  can say whether the web interface is up, and since when, without rendering a
+  page. It needs no login and tells nothing more.</p>
+</li>
+</ul>
+<h2 id="access">Access</h2>
+<p><code>serve</code> binds to <strong>localhost by default</strong>, on port 8421. When it is
+deliberately bound elsewhere, <code>web.password</code> must be set — validation refuses
+the configuration otherwise — and the user logs in once with it and receives a
+session cookie that lasts twelve hours. On a loopback binding no login is
+asked for, whether or not a password is set, in line with the API's token
+rule. There is one password and no user accounts. TLS is a reverse proxy's
+job, as for the API. The settings live in
+<a href="../configuration/#daemonyaml"><code>daemon.yaml</code></a> under <code>web</code>, and the flags of
+<a href="../cli/#serve"><code>serve</code></a> override them when it runs on another machine.</p>
+<h2 id="screens">Screens</h2>
+<table>
+<thead>
+<tr>
+<th>Screen</th>
+<th>Content</th>
+<th>CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Overview</td>
+<td>Health, the daemon summary and the warning list with first and last seen, a Clear per warning and one for all</td>
+<td><code>status</code>, <code>status warnings</code>, <code>status warnings clear</code></td>
+</tr>
+<tr>
+<td>Points</td>
+<td>The paged points view with its filters and the last valid value per point</td>
+<td><code>points</code></td>
+</tr>
+<tr>
+<td>Sources and destinations</td>
+<td>Instances with state, devices and outcomes; start, stop and restart; the plugin's tools as forms with their results; a tool whose result is a document as a download — <code>&lt;instance&gt;-&lt;tool&gt;[-&lt;values&gt;]-&lt;date&gt;.json</code> — either from a form of its own or, when the plugin offers it on another tool's rows, as a button on each row of that result and one for the whole document above the rows</td>
+<td><code>sources</code>, <code>destinations</code></td>
+</tr>
+<tr>
+<td>Model</td>
+<td>Versions with activation history; upload with the job's progress and the resulting diff; activate, diff and export</td>
+<td><code>model</code></td>
+</tr>
+<tr>
+<td>Explorer</td>
+<td>The active model as a hierarchy of building, floor, room or zone, equipment and points, with sorting, filtering and search; a graph of the selected element's neighbourhood; a detail panel; findings and the runtime state per point in the signal colour</td>
+<td><code>model tree</code></td>
+</tr>
+<tr>
+<td>Configuration</td>
+<td>The four files in a YAML editor, validation before saving with errors shown at their keys, and <code>init</code> on an empty directory</td>
+<td><code>daemon config</code>, <code>sources config</code>, <code>destinations config</code>, <code>rules config</code> (<code>show</code> and <code>edit</code>), <code>init</code></td>
+</tr>
+<tr>
+<td>Plugins</td>
+<td>The installed plugins with type, role, version, description and instances, and the error of one that could not load; the newest release beside Bricklogger and each plugin, with an Update per plugin row; a package to install, a Remove per row, and the note that the daemon must be restarted</td>
+<td><code>plugins</code>, <code>plugins add</code>, <code>plugins remove</code>, <code>update status</code>, <code>update &lt;type&gt;</code></td>
+</tr>
+<tr>
+<td>Notifications</td>
+<td>Whether they are on, the recipients and the server, the last mail and the last error, when the next summary is due, and what waits in the open window; a Send test mail that reports what the mail server answered</td>
+<td><code>notify status</code>, <code>notify test</code></td>
+</tr>
+<tr>
+<td>Query</td>
+<td>SPARQL against the working graph with Yasgui: editor, results table and downloads. <code>?query=</code> fills the editor, which is how the explorer hands a query over</td>
+<td><code>query</code></td>
+</tr>
+<tr>
+<td>Daemon</td>
+<td>Reload and stop, with the daemon's version, uptime and directories</td>
+<td><code>daemon reload</code>, <code>daemon stop</code></td>
+</tr>
+</tbody>
+</table>
+<p>A job — upload or activation — shows its steps as they happen and ends with
+the diff or the error. An instance stopped from the web shows as stopped in
+the CLI and the other way round, because both change the same state through
+the same API.</p>
+<p><strong>Notifications</strong> have a screen of their own: whether they are on, the
+recipients and the server, the last mail and the last error, when the next
+summary is due, and what waits in the open window, with a <strong>Send test mail</strong>
+button that reports what the mail server answered and keeps the answer on the
+screen until the next test. That is <code>notify status</code> and <code>notify test</code>. The
+screen says plainly when notifications are off, and why, so a missing model is
+not mistaken for a quiet building. The overview carries nothing about mail: a
+mail that could not be sent raises <code>notify_failed</code>, which stands in the warning
+list there like any other warning. The settings themselves are edited in
+<code>daemon.yaml</code> on the configuration screen, as every other setting is; what the
+mails contain is described on the <a href="../notifications/">notifications page</a>.</p>
+<p><strong>Plugins</strong> has a screen of its own: the catalogue as the daemon sees it, a
+field for the packages to install and a Remove on every row. Installing and
+removing here is <a href="../plugins/#installing-a-plugin">the same operation as <code>plugins add</code> and <code>plugins remove</code></a>,
+run by <code>serve</code> in <strong>its own process</strong>: the package goes into the environment
+<code>serve</code> runs from — in a container, the plugin volume it shares with the
+daemon — with uv, and the screen waits while uv runs. It can do what the CLI
+could do from the same login, and since <code>serve</code> runs as the login that
+installed Bricklogger, that is everything the CLI can. Pointed at a daemon on another machine with <code>--api</code>, the screen
+installs on the machine <code>serve</code> runs on, which is not where that daemon looks,
+so that case too belongs to the CLI beside the daemon. A removal is refused
+while an instance of the type is configured, naming the instances, and then
+offers to remove anyway, as <code>--force</code> does.</p>
+<p>Beside Bricklogger and each plugin the screen shows the newest release that
+fits, from the daemon's daily <a href="../cli/#update">check</a>, and a Check now looks
+it up as <code>update status</code> does. A plugin row with a newer release has an
+Update, which is <code>update &lt;type&gt;</code> run the same way as an install, with the
+same validation and the same return to the previous version when it fails.
+Bricklogger itself is upgraded from the CLI, with the command the screen
+names: <code>serve</code> would be replacing the code it runs.</p>
+<p>No action here restarts the daemon: the result says that the daemon reads its
+plugins when it starts and names the command to restart it, and the catalogue
+shows the daemon's set until then. The MCP server has
+<a href="../mcp/#tools">no tool for this</a>, on purpose.</p>
+<h2 id="model-explorer">Model explorer</h2>
+<p>The explorer is where the model is read with the eye. A point list says what
+is logged; the explorer says what the building looks like and where each
+point sits in it, which is what reveals a point hung on the wrong equipment,
+a room no one modelled a location for, or a sensor the source will never
+find. It draws the <a href="../api/#entities">entity document</a>, and
+<a href="../cli/#model"><code>model tree</code></a> prints the same hierarchy as text.</p>
+<ul>
+<li><strong>The active model only.</strong> The explorer reads the working graph, which
+  holds the active version with its inference, so a stored version has to be
+  activated before it can be explored.</li>
+<li>
+<p><strong>The tree.</strong> The document says of every relation whether it contains, and
+  which end is the contained one, and the tree follows from that alone:</p>
+<ol>
+<li><strong>Bodies and groupings.</strong> A body holds what is inside it; a grouping
+   only gathers what is elsewhere. A grouping is a system, a collection
+   or an element whose class descends from <code>brick:Zone</code> or <code>rec:Zone</code>,
+   and the <a href="../api/#entities">document</a> marks it as one, so that no client
+   needs to know Brick's vocabulary to draw the tree. The hierarchy is
+   built of bodies alone: a grouping is never a container and never sits
+   inside the tree. An HVAC zone is not a step on the way from the
+   building to the sensor — it is a cut across it, and a spatial tree has
+   no place to put it without breaking the chain.</li>
+<li><strong>One container.</strong> A point sits under the equipment or location it is
+   a point of, else where it is located. Equipment sits where it is
+   located, else under what it is part of. A location or anything else
+   sits under what it is part of, else where it is located. Of several
+   candidates the first by URI decides — a last resort that keeps the
+   same model drawing the same tree, never a rule the reader should have
+   to reason about.</li>
+<li><strong>Three bands.</strong> Locations without a container are the roots of the
+   building. After them stand the groupings, <strong>gathered under class
+   headings in two levels</strong>: first the family that makes an element a
+   grouping — <code>brick:System</code>, <code>rec:Collection</code>, <code>brick:Zone</code> or
+   <code>rec:Zone</code> — and under it the element's own class, so that
+   <code>brick:System</code> holds <code>brick:Ventilation_Air_System</code> which holds the
+   ventilation systems, and one click folds every system away. An
+   element whose class is the family itself sits directly under it.
+   Brick's classes in between are not levels of their own: the band is
+   two deep in every model, however deep a class happens to sit in the
+   ontology, and nothing above the families — <code>brick:Collection</code>,
+   <code>rec:Resource</code> and the like — is ever drawn. A heading carries its
+   class and how many elements are beneath it, it is there even for a
+   single one so that folding is predictable, and headings are ordered
+   by class. Last comes the root named <code>Unplaced</code>, which holds
+   everything else without a container — a point of nothing, equipment
+   with neither a location nor a parent, a device — and folds like the
+   others, though it is itself a finding worth reading. So a room that
+   only a zone gathered stands among the roots, and an air handling unit
+   that only a system gathered stands under <code>Unplaced</code> beside the
+   <code>no_location</code> finding it already carried: what the model leaves out is
+   shown rather than covered up by a grouping that looked like a place.
+   A point whose only owner is a grouping goes there too — a zone's CO2
+   sensor is modelled the way Brick intends, and the model still gives it
+   no place in the building, which is what <code>Unplaced</code> reports. The tree
+   says where the model puts a thing, and never more than that.</li>
+<li><strong>Once.</strong> An element appears once. Its other containment relations
+   stay relations and are shown in the graph and the detail panel.</li>
+<li><strong>Cycles</strong> are broken at the member first by URI, which becomes
+   unplaced.</li>
+</ol>
+</li>
+<li>
+<p><strong>What a grouping gathers.</strong> A grouping's line carries the number of
+  elements it gathers, and it opens: in the explorer to a dimmed list of its
+  members, in the CLI with <code>model tree --root &lt;grouping&gt;</code>, which lists them
+  with their own subtrees. That list is a view of the grouping, not a place in
+  the building — the members keep their own place in the tree above, the
+  dimmed rows count towards nothing, and rule 4 stands. A grouping that
+  gathers another grouping shows it among its members like any other element.
+  A class heading is not an element of the model and cannot be selected; it
+  only folds, and <code>--root</code> does not take one.</p>
+</li>
+<li>
+<p><strong>The graph.</strong> The selected element with its neighbours out to a depth of
+  one, two or three, over every relation and not only the containing ones, so
+  <code>feeds</code> and the rest become visible where the tree cannot show them.
+  Containment is drawn as a solid edge and everything else dashed, each
+  labelled with its predicate; the shape says the kind. A neighbourhood
+  larger than three hundred elements is drawn at a smaller depth and says so.</p>
+</li>
+<li><strong>Three panes that give way.</strong> The dividers between the hierarchy, the
+  graph and the detail panel can be dragged, and the widths are remembered in
+  the browser, because how much room a tree needs depends on the model, not on
+  us. Dragging is for a pointer; the dividers also answer the arrow keys. On a
+  narrower window the panes stack instead and the dividers go away.</li>
+<li><strong>The detail panel.</strong> The selected element's URI, name, kind, classes,
+  unit, reference types, findings with their meaning, every relation in and
+  out, and for a point its instance, method, outcome and warnings. A point
+  that has delivered carries its <strong>last known value with the time it was
+  observed</strong>, so the model can be read against what the building is actually
+  saying — a temperature of 19.6 under a sensor confirms the reference reaches
+  the right object, and a value from last Tuesday says it no longer does. The
+  value is the one the graph holds, texts and all, and it is as fresh as the
+  moment the document was loaded; <a href="#screens">Points</a> is where values refresh
+  themselves. From here the point can be opened in <a href="#screens">Points</a> or
+  described in <a href="#screens">Query</a>.</li>
+<li><strong>Filtering and sorting.</strong> Filters on kind, class — subclasses included, as
+  in a rule's selector — finding, warning code, outcome, instance, and a text
+  search over URI and name. What matches is shown with its ancestors, which
+  stay as dimmed context so the path is never lost. Siblings are sorted by
+  name, by class or by the number of points beneath them. The filters live in
+  the address, so a filtered view can be kept or handed on.</li>
+<li><strong>Two lenses on the same tree.</strong> The <a href="../daemon/#model-findings">findings</a>
+  are what the model says about itself, and the runtime state — outcome,
+  instance and warnings — is what the daemon has made of it. Both mark their
+  element in the signal colour, and both are filters, so "every point without
+  a reference" and "every point no instance claims" are one click each.</li>
+<li><strong>Loaded once.</strong> The document is fetched when the screen opens and on
+  <strong>Reload</strong>, not every five seconds like the other screens: it is the size
+  of the model and changes only at activation. The status line keeps its own
+  cadence, and when it reports another active version the explorer says so
+  and offers to load it.</li>
+</ul>
+<h2 id="visual-identity">Visual identity</h2>
+<p>Bricklogger is part of the CX2 project and follows its visual identity, so
+that it looks like the other interfaces on the same edge server and its
+screens can be reused there:</p>
+<ul>
+<li><strong>Paper and ink.</strong> White background, near-black text and lines, a dim grey
+  for secondary text and hairlines between table rows. No shadows, gradients
+  or filled areas, and no rounded corners beyond small pill badges: the
+  interface is built from 1px lines, typography and whitespace.</li>
+<li><strong>One signal colour.</strong> Orange <code>#E35D28</code> marks only what needs attention —
+  <code>degraded</code> health, a <code>failed</code> instance, a warning count, a rejected point.
+  It is never the default colour of buttons or links.</li>
+<li><strong>Type.</strong> IBM Plex Sans for headings and running text; IBM Plex Mono for
+  everything the machine says — values, timestamps, status, codes, tags,
+  table headers and the wordmark. Numbers are set with tabular figures.</li>
+<li><strong>Wordmark.</strong> <code>bricklogger_</code> in IBM Plex Mono SemiBold, underscore
+  included, in the top bar.</li>
+<li><strong>Layout.</strong> A top bar with the wordmark and the daemon's health; a
+  collapsible sidebar with the screens; the content in the middle; and a
+  status line at the bottom in terminal style, e.g.
+  <code>&gt; daemon: ok · last observation 12:04:31 · spool 0</code>. On a phone the sidebar
+  becomes bottom tabs.</li>
+<li><strong>Terminal touches, sparingly.</strong> The <code>&gt;</code> prompt in the status line and in
+  empty states, monospace status fields, plain tables. No retro effects.</li>
+<li><strong>Offline by design.</strong> Fonts, HTMX, CodeMirror, Yasgui and Cytoscape.js
+  ship inside the package, so the interface works on an edge server without
+  internet access. IBM Plex is licensed under the SIL Open Font License.</li>
+<li><strong>Language.</strong> The texts are English, like the CLI, the codes and the
+  documentation, and are kept in one place so that a translation can be added
+  later without touching the screens.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

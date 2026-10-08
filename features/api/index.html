@@ -1,0 +1,1651 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://cx1-aps.github.io/bricklogger/features/api/">
+      
+      
+        <link rel="prev" href="../daemon/">
+      
+      
+        <link rel="next" href="../configuration/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>API - Bricklogger</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Bricklogger" class="md-header__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Bricklogger
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Bricklogger" class="md-nav__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Bricklogger
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../daemon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daemon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Endpoints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#health-and-daemon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Health and daemon
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-and-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status and points
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notifications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#models-and-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Models and jobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sparql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SPARQL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugins
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../destinations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Destinations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Endpoints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#health-and-daemon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Health and daemon
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-and-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status and points
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notifications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#models-and-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Models and jobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sparql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SPARQL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugins
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="api">API</h1>
+<p>The daemon's HTTP API is the one interface behind the CLI and the web
+interface: every CLI command maps to one operation here, and <code>--json</code> prints
+the responses unchanged. The API binds to localhost by default, as set in
+<a href="../configuration/#daemonyaml"><code>daemon.yaml</code></a>.</p>
+<h2 id="conventions">Conventions</h2>
+<ul>
+<li><strong>Base path.</strong> Every operation lives under <code>/v1</code>. The two health endpoints
+  live outside it, at <code>/health/live</code> and <code>/health</code>, as
+  <a href="../daemon/#health">defined for status</a>.</li>
+<li><strong>JSON</strong> in requests and responses, except where the content is a model, a
+  SPARQL query or a configuration file. Field names are stable within <code>/v1</code>.
+  Point URIs are returned in full; the CLI shortens them with the model's
+  prefixes. The <a href="#entities">entity document</a> is the one exception: it names
+  every element several times, so it writes URIs in prefixed form and carries
+  the prefixes itself.</li>
+<li><strong>Access.</strong> On a loopback binding no credentials are needed. When the API
+  is deliberately bound elsewhere, <code>api.token</code> must be set, and every request
+  outside <code>/health</code> carries it as <code>Authorization: Bearer &lt;token&gt;</code>; a missing
+  or wrong token gives <code>401</code>. The daemon does not terminate TLS: an exposed
+  API belongs behind a reverse proxy that does.</li>
+<li><strong>Errors</strong> are <code>application/problem+json</code> after RFC 9457: <code>type</code>, <code>title</code>,
+  <code>status</code> and <code>detail</code>, plus an <code>errors</code> list for validation failures in
+  which each entry names the file, the instance, rule or point, and the key it
+  concerns.</li>
+<li><strong>Pagination</strong> on the points view: <code>limit</code> (default 200, at most 1000) and
+  <code>offset</code>, with <code>total</code> in the response. The <a href="#entities">entity document</a> is
+  not paged — a tree cut into pages is no tree — and is narrowed by its
+  filters instead.</li>
+<li><strong>Writes take effect immediately</strong>, because they are validated first. An
+  invalid change is rejected as a whole with <code>422</code>, and the running
+  configuration is kept.</li>
+<li><strong>Long operations run as jobs.</strong> Model upload and activation answer <code>202</code>
+  with a job, because validation and inference take from seconds to minutes;
+  everything else answers synchronously, including protocol tools, which
+  declare their own duration.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;urn:bricklogger:problem:validation&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Configuration is invalid&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">422</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;detail&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2 errors&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;errors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sources.yaml&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;instance&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bacnet_main&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;address&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;not an IPv4 address with prefix length&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;rules.yaml&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;rule&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ventilation temperatures&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;interval&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;required with method poll&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="endpoints">Endpoints</h2>
+<h3 id="health-and-daemon">Health and daemon</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/health/live</code></td>
+<td>Alive: 200 while the daemon runs, with its <code>pid</code> and <code>started_at</code></td>
+<td><code>status</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/health</code></td>
+<td>Doing its job: 200 for <code>ok</code> and <code>idle</code>, 503 for <code>degraded</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/daemon/reload</code></td>
+<td>Reload the configuration from disk, validated as a whole</td>
+<td><code>daemon reload</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/daemon/stop</code></td>
+<td>Graceful stop within <code>stop_timeout</code></td>
+<td><code>daemon stop</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="status-and-points">Status and points</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/v1/status</code></td>
+<td>The daemon summary</td>
+<td><code>status</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/v1/status/sources</code></td>
+<td>Sources per instance, with devices and outcomes</td>
+<td><code>sources status</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/v1/status/destinations</code></td>
+<td>Destinations per instance, with spool and writes</td>
+<td><code>destinations status</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/v1/status/warnings</code></td>
+<td>The flat warning list: code, kind, subject, message, first seen, last seen, count</td>
+<td><code>status warnings</code></td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/v1/status/warnings</code></td>
+<td>Clears warnings by hand: all of them, those with <code>?code=</code>, or the one with <code>?code=</code> and <code>?subject=</code>; answers with the number cleared</td>
+<td><code>status warnings clear</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/v1/points</code></td>
+<td>The paged points view; filters <code>instance</code> and <code>outcome</code> on the whole value, <code>warning</code> and <code>class</code> on part of it</td>
+<td><code>points</code></td>
+</tr>
+</tbody>
+</table>
+<p>The status tree and the points view are defined on the
+<a href="../daemon/#status">daemon page</a>; the API returns them as JSON with those
+fields. A page of points:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1834</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;offset&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;uri&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com/bldg#AHU_01_SAT&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AHU 01 supply air temperature&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;instance&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bacnet_main&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;poll&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;fallback_active&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;outcome&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;last_observation&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-09-05T09:12:30Z&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;last_valid&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">18.4</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-09-05T09:12:30Z&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;warnings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="notifications">Notifications</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/v1/notifications</code></td>
+<td>Whether notifications are on, the last mail with its time and recipients, the last error, when the next summary is due, and what waits in the open window</td>
+<td><code>notify status</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/notifications/test</code></td>
+<td>Sends a test mail at once and answers with what the mail server said, the failure included</td>
+<td><code>notify test</code></td>
+</tr>
+</tbody>
+</table>
+<p>What is sent and when is defined on the
+<a href="../notifications/">notifications page</a>, and the settings under
+<code>notifications</code> in <a href="../configuration/#notifications"><code>daemon.yaml</code></a> are read
+and written through the <a href="#configuration">configuration endpoints</a> like every
+other setting. <code>POST /v1/notifications/test</code> sends on the configuration as
+written, whether or not it is switched on, and answers <code>200</code> with the server's
+reply or <code>502</code> with a problem document naming the failure; it is the one
+operation here that reaches outside the machine.</p>
+<h3 id="configuration">Configuration</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/v1/config</code></td>
+<td>All four files as one JSON document, environment variables left as written</td>
+<td>the web interface</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/v1/config/{file}</code></td>
+<td>One file — <code>daemon</code>, <code>sources</code>, <code>destinations</code> or <code>rules</code> — as <code>application/yaml</code>, or parsed as JSON on <code>Accept: application/json</code></td>
+<td><code>daemon config show</code>, <code>sources config show</code>, <code>destinations config show</code>, <code>rules config show</code></td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>/v1/config/{file}</code></td>
+<td>Replace one file with the YAML text in the body: the directory is validated with the change applied, the text is written atomically and verbatim, and the change takes effect</td>
+<td><code>… config edit</code>, <code>sources add</code>, <code>edit</code>, <code>remove</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/config/validate</code></td>
+<td>Validate without writing: the files on disk, or a proposed set of files given in the body</td>
+<td><code>validate</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/config/init</code></td>
+<td>Write the four files with commented examples into the config directory; refused with <code>409</code> if any of them exists</td>
+<td><code>init --non-interactive</code></td>
+</tr>
+</tbody>
+</table>
+<p>The files travel as <strong>YAML text</strong>, not as parsed data, so comments and layout
+survive a round trip through the API. Secrets are never expanded in what the
+API returns. A validation result carries <code>valid</code>, the <code>errors</code> and the
+<code>warnings</code>; a configuration that accepts points but has no destination is a
+warning, not an error.</p>
+<h3 id="models-and-jobs">Models and jobs</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/v1/models</code></td>
+<td>The versions: number, upload time, activation history and which one is active</td>
+<td><code>model list</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/models</code></td>
+<td>Upload a model as <code>text/turtle</code>, or another RDF serialisation named by <code>Content-Type</code>; activates unless <code>?activate=false</code>. Answers <code>202</code> with a job</td>
+<td><code>model upload</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/models/{version}/activate</code></td>
+<td>Activate a stored version. Answers <code>202</code> with a job</td>
+<td><code>model activate</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/v1/models/diff?a=&amp;b=</code></td>
+<td>Points added, removed or changed between two versions, computed on the uploaded models</td>
+<td><code>model diff</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/v1/models/{version}</code></td>
+<td>The model as uploaded, as <code>text/turtle</code>; <code>?inferred=true</code> adds the inferred graph, <code>?values=true</code> the value overlay and <code>?timeseries=true</code> the time-series references of the destination that stores the model, or <code>?timeseries=&lt;instance&gt;</code> those of a named one</td>
+<td><code>model export</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/v1/jobs/{id}</code></td>
+<td>The state of a job</td>
+<td>followed by the CLI</td>
+</tr>
+</tbody>
+</table>
+<p>Versions are numbered in upload order. Model operations run <strong>one at a
+time</strong>; a second one is queued behind the first. A job carries its <code>id</code>, the
+<code>operation</code>, a <code>state</code> of <code>queued</code>, <code>running</code>, <code>done</code> or <code>failed</code>, the current
+<code>step</code> — <code>validating</code>, <code>inferring</code> or <code>activating</code> — the times it <code>started</code>
+and <code>finished</code>, and on completion either a <code>result</code> or a <code>problem</code> in the
+error format above. Finished jobs stay readable until the daemon restarts.
+The <code>202</code> answer carries the job and a <code>Location</code> header pointing at it.</p>
+<p>A <code>result</code> carries the stored <code>version</code>, the validation <code>report</code> with its
+warnings, whether the model was <code>activated</code>, the <code>previous</code> active version,
+the <code>diff</code> to it, and for an activation the <code>activation</code> summary: how many
+triples the model, the ontology and the inferred graph hold and how long it
+took. An upload that does not conform stores nothing and fails with a
+<code>422</code> problem whose <code>errors</code> list the violations. An upload in a
+serialisation the daemon does not read is refused with <code>415</code> before a job
+is created.</p>
+<p>Export answers in the serialisation the version was uploaded in. With
+<code>?inferred</code>, <code>?values</code> or <code>?timeseries</code> the answer is Turtle built from the
+working graph, which holds these graphs for the active version only; for
+another version the request is refused with <code>409</code>. <code>?timeseries=true</code> is
+refused with <code>409</code> when several destinations store the model, naming them,
+and <code>?timeseries=&lt;instance&gt;</code> with <code>404</code> when that instance does not store
+it. <code>GET /v1/models</code> lists
+every version with its upload time, whether it is active and when it was
+activated, together with the prefixes of the active model.</p>
+<h3 id="entities">Entities</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/v1/entities</code></td>
+<td>The active model as one document: its elements, the relations between them, what the model lacks and what the daemon has made of each point</td>
+<td><code>model tree</code></td>
+</tr>
+</tbody>
+</table>
+<p>The document is what the <a href="../web/#model-explorer">model explorer</a> draws and
+<code>model tree</code> prints. It is a projection of the working graph, so it describes
+the <strong>active version</strong> only; without one the answer is the empty document with
+<code>version</code> null.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;prefixes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;brick&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://brickschema.org/schema/Brick#&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;ex&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com/bldg#&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;classes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;brick:Zone_Air_Temperature_Sensor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;brick:Air_Temperature_Sensor&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;brick:Temperature_Sensor&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;brick:Sensor&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;brick:Point&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;counts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1712</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;relations&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3488</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;kinds&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">94</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;equipment&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">41</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;point&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1575</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;system&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;other&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;findings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;no_owner&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;no_reference&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;no_location&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;no_relations&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;deprecated_class&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">96</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;uri&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ex:AHU_01_SAT&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;point&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;class&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;brick:Supply_Air_Temperature_Sensor&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;types&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;brick:Supply_Air_Temperature_Sensor&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;grouping&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AHU 01 supply air temperature&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;unit:DEG_C&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;references&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ref:BACnetReference&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;last_known_value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">18.4</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-09-05T09:12:30Z&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;findings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">      </span><span class="nt">&quot;runtime&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;accepted&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;instance&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bacnet_main&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;poll&quot;</span><span class="p">,</span>
+<span class="w">                   </span><span class="nt">&quot;fallback_active&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;outcome&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;warnings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">      </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;relations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;subject&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ex:AHU_01_SAT&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;predicate&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;brick:isPointOf&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;object&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ex:AHU_01&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;point&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;child&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;subject&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;subject&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ex:AHU_01&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;predicate&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;brick:feeds&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;object&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ex:VAV_1_17&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;child&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>The elements</strong> are the nodes the model gives a type to. Reference nodes are
+left out — they describe an address, not a thing in the building — and so are
+the value overlay's nodes and everything the inference adds. <code>kind</code> is
+<code>point</code>, <code>equipment</code>, <code>location</code> — a Brick location or a RealEstateCore space
+— <code>system</code> or <code>other</code>, decided with the subclass hierarchy, so a plugin's own
+class lands in the right one. <code>class</code> is the element's first asserted Brick or
+RealEstateCore class and <code>types</code> all of its asserted types; <code>classes</code> maps
+each of those to its ancestors, so a client can filter by class with
+subclasses without asking again. <code>grouping</code> names the family that makes an
+element one that gathers rather than holds — <code>brick:System</code>, <code>rec:Collection</code>,
+<code>brick:Zone</code> or <code>rec:Zone</code> — and is null for a body. It is what keeps the
+element out of the <a href="../web/#model-explorer">hierarchy</a> and what its band is
+headed by, and it is decided here over the subclass hierarchy so that no
+client needs to know the vocabulary, as with <code>role</code> on the relations below. <code>name</code> is the label, else the local part of
+the URI, as in the points view. <code>references</code> names the types of the point's
+external references, <code>unit</code> the unit the graph gives it.</p>
+<p><strong>The relations</strong> are the triples the model asserts between two elements, as
+written and without the inverses the inference adds. Each says whether it
+contains and which end is the contained one, so a client needs no knowledge of
+Brick's vocabulary to build the hierarchy:</p>
+<table>
+<thead>
+<tr>
+<th>Predicate</th>
+<th><code>role</code></th>
+<th><code>child</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>brick:isPartOf</code>, <code>rec:isPartOf</code></td>
+<td><code>part</code></td>
+<td><code>subject</code></td>
+</tr>
+<tr>
+<td><code>brick:hasPart</code>, <code>rec:hasPart</code>, <code>rec:includes</code></td>
+<td><code>part</code></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><code>brick:hasLocation</code>, <code>rec:locatedIn</code></td>
+<td><code>location</code></td>
+<td><code>subject</code></td>
+</tr>
+<tr>
+<td><code>brick:isLocationOf</code>, <code>rec:isLocationOf</code></td>
+<td><code>location</code></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td><code>brick:isPointOf</code>, <code>rec:isPointOf</code></td>
+<td><code>point</code></td>
+<td><code>subject</code></td>
+</tr>
+<tr>
+<td><code>brick:hasPoint</code>, <code>rec:hasPoint</code></td>
+<td><code>point</code></td>
+<td><code>object</code></td>
+</tr>
+<tr>
+<td>anything else, <code>brick:feeds</code> among them</td>
+<td><code>null</code></td>
+<td><code>null</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>The last known value</strong> is read from the working graph's own value overlay —
+<code>brick:lastKnownValue</code> with its <code>brick:value</code> and <code>brick:timestamp</code>, which the
+daemon keeps in step with the runtime state — so it is the same value the
+<a href="#sparql">SPARQL endpoint</a> and <code>model export --values</code> answer with, and an
+enumeration or a boolean appears as its text where the source knows one. It is
+null for a point that has yet to deliver a valid value and for everything that
+is not a point. The time is the observation's own, not the time of the
+request: the document is a snapshot, so a value is as fresh as the moment the
+document was built.</p>
+<p><strong>The two lenses.</strong> <code>findings</code> are what the model lacks, read from the graph
+at every request and listed on the <a href="../daemon/#model-findings">daemon page</a>.
+<code>runtime</code> is what the daemon has made of a point — whether a rule accepted it,
+which instance holds it, with which method and to which outcome — and is null
+for everything that is not a point; <code>warnings</code> carries the codes the daemon
+holds against the element, <code>unclaimed</code> among them.</p>
+<p><strong>Narrowing.</strong> <code>kind</code>, <code>class</code> — subclasses included — <code>finding</code>, <code>warning</code>,
+<code>outcome</code>, <code>instance</code> and <code>search</code>, which matches URI and name without regard
+to case. <code>root</code> limits the document to one element and what sits under it — for a
+grouping, which holds nothing in the tree, to what it gathers — and <code>depth</code> to
+that many levels. The ancestors of a match are kept with <code>context</code>
+true so the result is still a tree, and <code>counts</code> counts the matches, not the
+context. An unknown <code>root</code> gives <code>404</code>, an unknown value for <code>kind</code>, <code>finding</code>
+or <code>outcome</code> gives <code>422</code>, and a prefix no model declares simply matches
+nothing.</p>
+<h3 id="sparql">SPARQL</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/v1/sparql?query=</code></td>
+<td>A read-only query after the SPARQL 1.1 Protocol</td>
+<td><code>query</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/sparql</code></td>
+<td>The same, with the query as <code>application/sparql-query</code> or form-encoded <code>query</code></td>
+<td><code>query</code></td>
+</tr>
+</tbody>
+</table>
+<p>Queries run against the union of the four graphs of the
+<a href="../../architecture/#the-working-graph">working graph</a>. Results come as
+<code>application/sparql-results+json</code> by default and as CSV, TSV or XML by
+<code>Accept</code>; CONSTRUCT and DESCRIBE results come as Turtle. Update requests are
+refused: the graph is read-only input, and only the daemon writes the
+overlay. Because the protocol is the standard one, curl, Yasgui and rdflib's
+SPARQL store work against the endpoint unchanged.</p>
+<p>The model's prefixes and Brick's are declared for the query, so <code>brick:</code> and
+the model's own prefix can be used without a <code>PREFIX</code> line; a query that
+declares them itself is left alone. A query that does not parse, or an
+update, is refused with <code>400</code>; a body in another encoding than the two above
+with <code>415</code>.</p>
+<h3 id="plugins">Plugins</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>CLI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/v1/plugins</code></td>
+<td>Installed plugins: type, role, version, description, instances, and <code>error</code>, the reason a plugin could not be loaded, <code>null</code> otherwise</td>
+<td><code>plugins</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/v1/plugins/{type}</code></td>
+<td>The declaration: reference types, vocabulary, collection methods with parameter schemas, configuration schema and tools — each with its parameter schema, whether its result is a document and, if so, on which tool's rows it is offered — schemas as JSON Schema. For a plugin that could not be loaded: type, role, version and <code>error</code>, without schemas</td>
+<td><code>plugins &lt;type&gt;</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/plugins/{type}/instances/{name}/tools/{tool}</code></td>
+<td>Run a tool with its parameters as the JSON body; the structured result is returned unchanged</td>
+<td><code>sources NAME &lt;tool&gt;</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/plugins/{type}/instances/{name}/start</code></td>
+<td>Start the instance; likewise <code>stop</code> and <code>restart</code>. A stop persists across reload and restart</td>
+<td><code>sources start NAME</code></td>
+</tr>
+</tbody>
+</table>
+<p>The API always names the instance; the CLI fills it in when the type has
+exactly one.</p>
+<p>The list carries each plugin's description and its configured instances; a
+plugin that could not be loaded carries the error in place of a description.
+A tool answers with the plugin's own result; parameters the tool does not
+accept give <code>422</code> with the offending keys, a tool on an instance that is
+not running <code>409</code>, and a tool that fails <code>500</code> with the plugin's message.
+Start, stop and restart answer with the instance's status entry; an instance
+whose plugin could not be loaded answers <code>409</code> with the error. An unknown
+type, instance, tool or action is <code>404</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

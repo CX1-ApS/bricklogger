@@ -1,0 +1,1240 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://cx1-aps.github.io/bricklogger/features/notifications/">
+      
+      
+        <link rel="prev" href="../plugins/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Notifications - Bricklogger</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#notifications" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Bricklogger" class="md-header__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Bricklogger
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Notifications
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Bricklogger" class="md-nav__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Bricklogger
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../daemon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daemon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../destinations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Destinations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-sent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is sent
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What is sent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-daemons-own-start-and-stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The daemon's own start and stop
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-warnings-raise-an-alarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which warnings raise an alarm
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-window-and-the-floor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The window and the floor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-subject-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The subject line
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#switching-it-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switching it on
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#delivery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delivery
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-and-the-test-mail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status and the test mail
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-sent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is sent
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What is sent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-daemons-own-start-and-stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The daemon's own start and stop
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-warnings-raise-an-alarm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which warnings raise an alarm
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-window-and-the-floor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The window and the floor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-subject-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The subject line
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#switching-it-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switching it on
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#delivery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delivery
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-and-the-test-mail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status and the test mail
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="notifications">Notifications</h1>
+<p>Bricklogger can send mail to an administrator: an <strong>alarm</strong> when something
+goes wrong, an <strong>all clear</strong> when it is put right, and a <strong>summary</strong> once a
+day. The summary is sent whether or not anything is wrong, so a morning
+without one says the machine is gone — which is what a monitoring probe on
+<a href="../daemon/#health"><code>/health</code></a> cannot tell you when the whole host is down.</p>
+<p>Notifications are <strong>off until they are switched on</strong>, and they can only be
+switched on when a model is active. A daemon with nothing to collect has
+nothing to report.</p>
+<h2 id="what-is-sent">What is sent</h2>
+<p>Three kinds of mail, all drawn from the same runtime state the
+<a href="../daemon/#status">status tree</a> shows. None of them asks a plugin anything,
+on the same principle as status itself.</p>
+<table>
+<thead>
+<tr>
+<th>Mail</th>
+<th>Sent when</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Alarm</strong></td>
+<td>A warning of kind <code>operation</code> is raised for the first time, health becomes <code>degraded</code>, or the daemon starts or stops</td>
+<td>The conditions that opened, grouped by code, and the health before and after</td>
+</tr>
+<tr>
+<td><strong>All clear</strong></td>
+<td>Such a warning is withdrawn, or health leaves <code>degraded</code></td>
+<td>The conditions that closed, and what still stands</td>
+</tr>
+<tr>
+<td><strong>Summary</strong></td>
+<td>Every day at <code>digest</code>, whatever the state</td>
+<td>Health, uptime, the active model, the point counts, every instance with its state, every warning that stands, of both kinds, and the newer releases the daily <a href="../cli/#update">update check</a> found</td>
+</tr>
+</tbody>
+</table>
+<p>An alarm and an all clear are <strong>the two ends of one condition</strong>. That is
+possible because every warning in Bricklogger is a condition that holds now,
+with a defined end the daemon watches for, as the
+<a href="../daemon/#status">warning list</a> describes. A mail therefore never says
+"something happened"; it says "this is true now", or "this is no longer
+true".</p>
+<p><strong>The summary is the heartbeat.</strong> It is sent on a green morning too, because
+that is what makes its absence mean something. Silence from a system that
+writes only when it is unhappy cannot be told apart from a dead machine.</p>
+<h3 id="the-daemons-own-start-and-stop">The daemon's own start and stop</h3>
+<p>A start and a stop count as <code>operation</code> and travel in the same window as
+everything else, so an upgrade that stops and starts the daemon gives <strong>one</strong>
+mail that says both, not two. An unplanned restart is thereby visible,
+without a restart loop being able to fill the mailbox.</p>
+<p>A stop is <strong>held rather than sent</strong>, and reported by the start that follows;
+that is what keeps the pair to one mail. A daemon stopped and never started
+again therefore says nothing on its way down, and is reported instead by the
+summary that fails to arrive the next morning — which is what the summary is
+for.</p>
+<p><strong>At most 20 events are held at once</strong>, and the twenty-first drops the
+oldest. Every event that is held gets a line of its own in the mail, with
+what happened and when: unlike the conditions, events are never grouped or
+counted, because there are only two kinds of them and they never become
+many. Twenty is reached only by a daemon that restarts ten times between
+two mails, and a restart loop is a larger problem than the line that fell
+off the end. Events are recorded <strong>only while notifications are on</strong>, and
+the list is emptied by the mail that carries it.</p>
+<h2 id="which-warnings-raise-an-alarm">Which warnings raise an alarm</h2>
+<p>Every warning code has a <strong>kind</strong>, given in the
+<a href="../daemon/#status">warning table</a>:</p>
+<ul>
+<li><strong><code>operation</code></strong> — the logger is not doing its job right now: an instance is
+  down, a device answers reads with errors, a spool is dropping observations.
+  These raise an alarm as soon as they appear.</li>
+<li><strong><code>model</code></strong> — the model or the rule set leaves something unresolved: a point
+  without a reference, a rule that could not be evaluated, a unit the graph
+  and the protocol disagree about. These appear <strong>only in the summary</strong>.</li>
+</ul>
+<p>The split follows how the two behave. A <code>model</code> warning is raised when the
+plan is evaluated, stands unchanged until the model or the rules change, and
+is work for a working day. An <code>operation</code> warning means data is not arriving
+now. Waking someone at three in the morning over a point whose reference was
+never filled in would teach them to ignore the mail that matters.</p>
+<p>A deliberately stopped instance (<code>instance_stopped</code>) is <code>operation</code>, although
+it is not a failure and leaves <a href="../daemon/#health">health</a> at <code>ok</code>. An instance
+that is not collecting is worth a record either way, and the all clear when it
+is started again closes the loop.</p>
+<p>Two codes are <code>operation</code> but <strong>never</strong> raise a mail, for the plain reason
+that they are about the mail itself: <code>notify_failed</code>, when a mail could not be
+sent, and <code>notifications_dormant</code>, when notifications are switched on but no
+model is active. Both stand in status and in the log, where the CLI, the web
+interface and a health probe find them.</p>
+<h2 id="the-window-and-the-floor">The window and the floor</h2>
+<p>A site has thousands of points, and one dead switch raises <code>read_error</code> on
+every point behind it within seconds. Two settings keep that from becoming
+thousands of mails:</p>
+<ul>
+<li><strong><code>window</code></strong> — after the first event the daemon waits this long and gathers
+  everything else that happens, then sends one mail. Default <strong><code>2m</code></strong>.</li>
+<li><strong><code>min_interval</code></strong> — the floor between two mails. What arrives under the
+  floor is held and folded into the next one. Default <strong><code>15m</code></strong>.</li>
+</ul>
+<p>Within a mail the conditions are <strong>grouped by code</strong>, not listed by subject:
+one line saying that 142 points on <code>bacnet_main</code> stopped answering, with the
+first few named and the rest counted. The whole list is always one
+<code>bricklogger points --warning read_error</code> away, and a mail that has to carry
+it is a mail nobody reads.</p>
+<p>Both settings hold for alarms and all clears alike, so a device that goes up
+and down cannot produce a pair of mails per cycle. The summary is subject to
+neither: it is sent at its hour regardless.</p>
+<h2 id="the-subject-line">The subject line</h2>
+<p>The subject names <strong>the building and the machine</strong>:</p>
+<div class="highlight"><pre><span></span><code>[Baltorpvej 20 / cx1h-tst001] Bricklogger: 2 instances failed
+</code></pre></div>
+<p>The building comes from the active model, which is why a model is a
+precondition: an administrator who runs Bricklogger in several buildings has
+to tell from the subject alone which one is writing. A model with several
+buildings names them all, separated by commas; a model that names none leaves
+the machine's host name standing alone. Neither is configured — both are read
+where they already are.</p>
+<h2 id="switching-it-on">Switching it on</h2>
+<p>Notifications live in a <code>notifications</code> section of
+<a href="../configuration/#daemonyaml"><code>daemon.yaml</code></a>, beside <code>log</code> and <code>web</code>, with
+<code>enabled: false</code> as the default. The schema is defined in the
+<a href="../configuration/#notifications">configuration document</a>.</p>
+<p><strong>Switching them on requires an active model.</strong> <code>enabled: true</code> in a config
+directory whose data directory holds no active model is a <strong>validation
+error</strong> naming <code>notifications.enabled</code>, and the write is refused as a whole,
+exactly as <code>api.token</code> is required on a binding that is not loopback. The
+order on a new machine is therefore: upload a model, then switch notifications
+on.</p>
+<p><strong>If the model later goes missing</strong> — a data directory deleted while
+<code>enabled: true</code> stands — the daemon still <strong>starts</strong>. Notifications go
+dormant and <code>notifications_dormant</code> stands in status until a model is active
+again. Refusing to start would take the logger down over a mail setting, which
+is the wrong trade, and the daemon cannot mail about the very thing that has
+silenced it.</p>
+<h2 id="delivery">Delivery</h2>
+<p>Mail is sent over SMTP from a thread of the daemon's own, on the pattern of
+the other background work, so a slow or unreachable mail server never touches
+collection.</p>
+<ul>
+<li><strong>Transport.</strong> <code>starttls</code> on the submission port is the default, with <code>tls</code>
+  for an implicit-TLS port and <code>none</code> for a relay on the local network.
+  Credentials are optional: many site relays take unauthenticated mail from
+  their own hosts. The password is a secret like any other and belongs in the
+  <a href="../configuration/#the-env-file"><code>env</code> file</a>.</li>
+<li><strong>Both forms.</strong> Every mail carries a plain-text part and an HTML part. A
+  client that renders HTML shows the warnings as a table with the health state
+  in the signal colour; everything else reads the text.</li>
+<li><strong>Retry.</strong> A send that fails is retried with backoff a few times and then
+  dropped. What was in it is not lost: an alarm's conditions still stand in
+  status, and the next summary carries them.</li>
+<li><strong>A failure never mails.</strong> <code>notify_failed</code> is raised when mail cannot be
+  sent, and withdrawn when a mail goes through again.</li>
+</ul>
+<p><strong>What the daemon remembers.</strong> The conditions the administrator has been told
+about are kept in the <a href="../../architecture/#runtime-state">runtime state</a>, and so
+is the health last reported. An alarm and an all clear are the difference
+between that set and what stands now, which is why a restart does not mail
+everything that stands all over again. Deleting the runtime state does: the
+daemon comes up knowing nothing, and the first window after start carries what
+it finds.</p>
+<p><strong>A manual clear is silent.</strong> Clearing a warning by hand is an acknowledgement
+rather than an end, so the notifier forgets it along with the warning and sends
+no all clear for something that may still be true. A condition that is asserted
+again afterwards opens again, and that is worth a mail.</p>
+<h2 id="status-and-the-test-mail">Status and the test mail</h2>
+<p>Two commands, defined in the <a href="../cli/#notify">CLI document</a> and answered by the
+endpoints in the <a href="../api/#notifications">API reference</a>:</p>
+<ul>
+<li><strong><code>bricklogger notify test</code></strong> sends a test mail at once and prints what the
+  server answered, the failure included. It is the command to run on site,
+  behind the customer's firewall, before believing that mail leaves the
+  machine at all.</li>
+<li><strong><code>bricklogger notify status</code></strong> shows whether notifications are on, when the
+  last mail went and to whom, the last error, when the next summary is due,
+  and what is waiting in the open window right now.</li>
+</ul>
+<p>Both have their place on the web interface's
+<a href="../web/#screens">Notifications screen</a>, as parity requires.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1892 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://cx1-aps.github.io/bricklogger/features/cli/">
+      
+      
+        <link rel="prev" href="../../architecture/">
+      
+      
+        <link rel="next" href="../daemon/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>CLI - Bricklogger</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cli" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Bricklogger" class="md-header__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Bricklogger
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CLI
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Bricklogger" class="md-nav__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Bricklogger
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command tree
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        init
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-config-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The config views
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#daemon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        daemon
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        services
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-and-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        status and points
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-and-destinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sources and destinations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        notify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        query
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        serve
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mcp
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../daemon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daemon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../destinations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Destinations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command tree
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        init
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-config-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The config views
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#daemon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        daemon
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        services
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-and-points" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        status and points
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-and-destinations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sources and destinations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        notify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        query
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        serve
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mcp
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cli">CLI</h1>
+<p>The command is <code>bricklogger</code>. It is the control plane and the primary user
+interface: every command maps to one operation on the daemon's API, which is
+what gives the web interface its parity. The exceptions are running the daemon
+itself, serving the web interface and the MCP server, and the offline
+fallbacks: configuration, model upload and protocol tools also work without a
+running daemon.</p>
+<h2 id="conventions">Conventions</h2>
+<ul>
+<li><strong>Output.</strong> Human-readable tables by default. <code>--json</code> emits the API's JSON
+  unchanged, for scripts. Errors go to stderr with a non-zero exit code.</li>
+<li><strong>Finding the daemon.</strong> The CLI reads <code>daemon.yaml</code> in the config directory
+  and talks to the API binding found there, with the token from the same file
+  when one is set. <code>--api URL</code> overrides the binding for a deliberately
+  exposed daemon, and the token then comes from <code>--token</code> or the environment
+  variable <code>BRICKLOGGER_API_TOKEN</code>. The endpoint behind every command is
+  listed in the <a href="../api/">API reference</a>.</li>
+<li><strong>Config directory.</strong> <code>--config-dir PATH</code>, then the environment variable
+  <code>BRICKLOGGER_CONFIG_DIR</code>, then <code>~/.config/bricklogger</code>, as defined in the
+  <a href="../configuration/#location">configuration document</a>. <code>status</code> and every
+  <code>config</code> view name the directory they read.</li>
+<li><strong>Secrets.</strong> The <a href="../configuration/#the-env-file"><code>env</code> file</a> in the config
+  directory is read before the configuration is interpolated, so no command
+  needs exported variables; a variable set in the shell wins over the file.</li>
+<li><strong>Without a daemon.</strong> <code>status</code> says plainly that the daemon is not running.
+  Commands that need it — points, query, <code>model tree</code>, start and stop of an
+  instance — say so and fail. Configuration commands work directly on the files with the same
+  validation; <code>model upload</code> and <code>model activate</code> validate the model and mark
+  the version active in the data directory, and the daemon builds the working
+  graph for it at start; protocol tools run in-process.</li>
+<li><strong>Writes through the API take effect immediately</strong>, because they are
+  validated. <code>daemon reload</code> exists for edits made outside the API.</li>
+<li><strong>A group without a subcommand shows its help.</strong> <code>bricklogger sources</code>
+  lists what can be done with sources; nothing is done until a subcommand is
+  named.</li>
+</ul>
+<h2 id="command-tree">Command tree</h2>
+<div class="highlight"><pre><span></span><code>bricklogger init [--non-interactive]
+bricklogger validate
+bricklogger status [warnings [clear [CODE [SUBJECT]]]]
+bricklogger points [--instance NAME] [--outcome STATE] [--warning CODE] [--class CLASS]
+bricklogger daemon run|start|stop|restart|reload|config
+bricklogger services install|uninstall [--web] [--mcp]
+bricklogger services status
+bricklogger sources status [--state STATE]
+bricklogger sources add NAME --type TYPE [settings]
+bricklogger sources edit NAME [settings]
+bricklogger sources remove NAME
+bricklogger sources start|stop|restart NAME
+bricklogger sources config show|edit
+bricklogger sources NAME show|&lt;tool&gt; [params]
+bricklogger destinations …                (the same commands)
+bricklogger rules config show|edit
+bricklogger notify test|status
+bricklogger plugins [&lt;type&gt;]
+bricklogger plugins add PACKAGE...
+bricklogger plugins remove TYPE [--force]
+bricklogger update status
+bricklogger update all|core|&lt;type&gt; [--no-restart]
+bricklogger model upload|list|activate|diff|export|tree
+bricklogger query &lt;sparql | @file&gt;
+bricklogger serve [--host HOST] [--port PORT] [--api URL]
+bricklogger mcp serve [--http] [--host HOST] [--port PORT] [--api URL]
+bricklogger mcp auth status|show|generate
+</code></pre></div>
+<h2 id="init"><code>init</code></h2>
+<p><code>init</code> is the first command on a new machine. It writes the four files into
+the config directory and refuses to overwrite a file that exists, so it can
+never destroy a configuration.</p>
+<p>Run in a terminal it is <strong>a guided setup</strong>: it names the config and data
+directories it will use, then asks which sources and which destinations to
+configure, choosing among the installed types. For each instance it asks for
+a name and then for every setting of the type's configuration schema —
+required settings first, optional ones with their default offered, so Enter
+keeps it. A setting the plugin marks as a secret is asked for without echo and
+written to the <a href="../configuration/#the-env-file"><code>env</code> file</a> under a variable
+named after the instance and the key, <code>TSDB_PASSWORD</code> for the <code>password</code> of
+<code>tsdb</code>; the YAML gets <code>${TSDB_PASSWORD}</code>. <code>daemon.yaml</code> is written with its
+defaults and the resolved <code>data_dir</code>, <code>rules.yaml</code> with the one rule that
+accepts every point every five minutes, and the result is validated and
+printed with what to do next. A new plugin brings its own questions, since
+they come from its schema, exactly as <code>add</code> gets its flags from it.</p>
+<p>Last, the guided setup <strong>offers the services</strong>: whether to set them up now,
+and if so whether the web interface and the MCP server over HTTP should run
+too. A yes runs <a href="#services"><code>services install</code></a> with the answers as its
+flags; a no says that the same command does it later. The question is left
+out where <code>services install</code> would refuse — without systemd, as root or in a
+container — and so is the daemon, which is then started as the
+<a href="#daemon"><code>daemon</code></a> commands describe.</p>
+<p><code>init --non-interactive</code> asks nothing and writes the four files with
+commented examples, for scripts and for a machine set up by hand afterwards;
+it sets up no services. Through <code>--api</code> only this form is available.</p>
+<h2 id="validate"><code>validate</code></h2>
+<p><code>validate</code> validates the whole config directory with the daemon's validation,
+including plugin schemas and rule parameters. Warnings, such as accepted
+points without any destination, are reported beside errors. It works on the
+files in the config directory and gives the same answer as the daemon would;
+with <code>--api</code> it goes through the daemon's API instead, for a daemon on another
+machine.</p>
+<h2 id="the-config-views">The <code>config</code> views</h2>
+<p>Every owner of a file has a <code>config</code> group — <code>daemon config</code>, <code>sources
+config</code>, <code>destinations config</code> and <code>rules config</code> — with two commands.
+<code>… config show</code> prints the file as written, with environment variables left as
+they stand — secrets are never printed — and names the directory it read.
+<code>… config edit</code> opens the file in <code>$EDITOR</code> on a copy, validates the whole
+directory with the change applied, and writes atomically — through the API
+when the daemon runs, so the change takes effect at once, directly to the file
+otherwise. A file that does not exist is shown as such and edited as empty.
+A type that is <a href="../plugins/#a-type-that-is-not-installed">not installed</a> is an
+error for an instance the change adds or changes, and only a warning for one
+it leaves as it was.
+Like every group, <code>… config</code> alone shows its help.</p>
+<h2 id="daemon"><code>daemon</code></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>daemon run</code></td>
+<td>Runs the daemon in the foreground with logs on stdout — for systemd and Docker</td>
+</tr>
+<tr>
+<td><code>daemon start</code></td>
+<td>Starts the daemon as a background process with a PID file in the data directory; refuses if one is already running</td>
+</tr>
+<tr>
+<td><code>daemon stop</code></td>
+<td>Graceful stop through the API, falling back to the PID file and a signal; waits for exit within <code>stop_timeout</code></td>
+</tr>
+<tr>
+<td><code>daemon restart</code></td>
+<td><code>stop</code>, then <code>start</code></td>
+</tr>
+<tr>
+<td><code>daemon reload</code></td>
+<td>Reloads the configuration: validated as a whole, rejected with an error on failure, the running configuration kept</td>
+</tr>
+<tr>
+<td><code>daemon config show\|edit</code></td>
+<td><code>daemon.yaml</code>, shown or edited as <a href="#the-config-views">the <code>config</code> views</a> do</td>
+</tr>
+</tbody>
+</table>
+<p>Under the <a href="#services">services</a>, start, stop and restart are done with
+<code>systemctl --user</code>; the CLI's versions are for a machine without systemd,
+such as a commissioning laptop.</p>
+<p><code>daemon start</code> waits until the API answers before it returns, and reports
+the PID and the log file. It refuses when the PID file names a live process
+or when a daemon already answers at the API binding, however it was started.
+A daemon that exits during start is reported with the last lines of its log.</p>
+<h2 id="services"><code>services</code></h2>
+<p>The daemon, the web interface and the MCP server over HTTP run as
+<code>systemd --user</code> units of the login that installed Bricklogger.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>services install [--web] [--mcp]</code></td>
+<td>Writes the daemon's unit, and the web interface's and the MCP server's when their flag is given, enables lingering, reloads systemd, and enables and starts what it wrote</td>
+</tr>
+<tr>
+<td><code>services uninstall [--web] [--mcp]</code></td>
+<td>Stops, disables and removes the units — all of them without a flag, the ones named with one — and reloads systemd; the configuration and the data stay</td>
+</tr>
+<tr>
+<td><code>services status</code></td>
+<td>For each of the three units: whether it is written, enabled and active, and whether lingering is on</td>
+</tr>
+</tbody>
+</table>
+<p>The units live in <code>~/.config/systemd/user</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Unit</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bricklogger.service</code></td>
+<td><code>bricklogger daemon run</code></td>
+</tr>
+<tr>
+<td><code>bricklogger-web.service</code></td>
+<td><code>bricklogger serve</code></td>
+</tr>
+<tr>
+<td><code>bricklogger-mcp.service</code></td>
+<td><code>bricklogger mcp serve --http</code></td>
+</tr>
+</tbody>
+</table>
+<p>They are written from templates in the package, with the absolute path of the
+command and the config directory in use, so a service reads the same
+directory as the shell that installed it. The web interface and the MCP server
+start after the daemon. <strong><code>install</code> can be run again:</strong> a flag adds its unit
+and leaves the others as they are, and a unit that is already written is
+rewritten only when the templates differ — and then restarted if it runs.
+<a href="#update"><code>update</code></a> brings the units up to date the same way.</p>
+<p><strong>Lingering</strong> lets the login's services start when the machine boots and keep
+running after a logout. <code>install</code> enables it with <code>loginctl enable-linger</code>;
+where the distribution reserves that for root, it says so, prints
+<code>sudo loginctl enable-linger &lt;login&gt;</code>, and writes and starts the units
+anyway, so they run until the next logout. <code>uninstall</code> leaves lingering as it
+is, since other services of the login may rely on it.</p>
+<p><code>install</code> refuses, and changes nothing, in four cases: run as root, since
+Bricklogger is installed per login; where <code>systemctl --user</code> does not answer,
+such as WSL without systemd, naming <code>daemon start</code> and <code>serve</code> instead; in a
+container, naming the compose file; and while a daemon started by hand answers
+at the API binding, naming <code>daemon stop</code>. Like every group, <code>services</code> alone
+shows its help.</p>
+<h2 id="status-and-points"><code>status</code> and <code>points</code></h2>
+<p><code>status</code> begins with three lines that are always answered, daemon or no
+daemon — one per door into the logger:</p>
+<div class="highlight"><pre><span></span><code>daemon: running — pid 4711 since 2026-09-09T10:02:11Z at http://127.0.0.1:8420
+web:    not running — nothing answers at http://127.0.0.1:8421
+mcp:    running — pid 4713 since 2026-09-09T10:02:12Z at http://127.0.0.1:8422/mcp
+</code></pre></div>
+<p>The daemon is running when its API answers at the binding in <code>daemon.yaml</code>,
+the web interface when <code>serve</code> answers at its own binding, and the MCP server
+when <a href="../mcp/#how-it-is-started"><code>mcp serve --http</code></a> answers at the <code>mcp</code>
+binding. Each of the three answers <code>GET /health/live</code> with its own process ID
+and the time it started, so a line reads the same whichever way the process
+was started — as a <a href="#services">service</a>, by hand or in a container. An
+assistant that speaks stdio has no server to answer there, which the line
+says — <code>not running — nothing answers at http://127.0.0.1:8422/mcp (stdio
+needs no server)</code>. No line makes the command fail: a daemon that is not
+running is an answer, not an error.</p>
+<p>When the daemon answers, the daemon summary of the
+<a href="../daemon/#status">status tree</a> follows — version, health, the directories,
+the active model and the point counts — with one line per configured instance
+of either role beneath it, so a single command answers whether the logger is
+doing its job. <code>status warnings</code> is the flat warning list, and
+<code>status warnings clear</code> clears it by hand — all of it, the warnings with a
+<code>CODE</code>, or the one with a <code>CODE</code> and a <code>SUBJECT</code> — as an acknowledgement; a
+cleared warning returns when its condition is asserted again, as the
+<a href="../daemon/#status">warning list</a> explains. With <code>--json</code> the two probes and
+the summary come as one document: <code>daemon</code>, <code>web</code> and <code>mcp</code>, each with
+<code>running</code>, <code>url</code>, <code>pid</code> and <code>started_at</code>, and <code>status</code>, <code>null</code> when the
+daemon does not answer. The detail per instance belongs to the
+two roles and is described under
+<a href="#sources-and-destinations"><code>sources</code> and <code>destinations</code></a>.</p>
+<p><code>points</code> is the paged, filterable <a href="../daemon/#points">points view</a>. The table
+prints the URI, the source instance, the method with its fallback, the
+outcome, the last valid value with its time and the warnings; the name and the
+Brick class are too wide to stand beside them in a terminal and are carried by
+<code>--json</code>, which is the whole view. Filters: <code>--instance</code>,
+<code>--outcome</code>, <code>--warning</code> and <code>--class</code>; the last two search, so
+<code>--class Temperature</code> is enough, as the
+<a href="../daemon/#points">points view</a> describes.</p>
+<h2 id="sources-and-destinations"><code>sources</code> and <code>destinations</code></h2>
+<p>The two roles have the same commands, each on the instances of its own file.
+<code>NAME</code> is the instance's name, the key in the file; <code>TYPE</code> is the plugin type
+written in <code>type</code>, e.g. <code>bacnet-ip</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sources status [--state STATE]</code></td>
+<td>The configured instances with their state and the detail of the <a href="../daemon/#status">status tree</a> — devices and outcomes for a source, spool and writes for a destination — narrowed to one state</td>
+</tr>
+<tr>
+<td><code>sources add NAME --type TYPE [settings]</code></td>
+<td>Writes a new instance into the file; refuses a name that already exists. Without settings it asks for them, as <code>init</code> does</td>
+</tr>
+<tr>
+<td><code>sources edit NAME [settings]</code></td>
+<td>Changes the settings given and leaves the rest as they are. Without settings it walks through them all, each with its current value to keep</td>
+</tr>
+<tr>
+<td><code>sources remove NAME</code></td>
+<td>Removes the instance from the file</td>
+</tr>
+<tr>
+<td><code>sources start\|stop\|restart NAME</code></td>
+<td>Starts, stops or restarts the instance</td>
+</tr>
+<tr>
+<td><code>sources config show\|edit</code></td>
+<td><code>sources.yaml</code>, shown or edited as <a href="#the-config-views">the <code>config</code> views</a> do</td>
+</tr>
+<tr>
+<td><code>sources NAME</code></td>
+<td>The instance's own help: <code>show</code>, and one command per tool of its type</td>
+</tr>
+<tr>
+<td><code>sources NAME show</code></td>
+<td>The instance's state and its configuration as written</td>
+</tr>
+<tr>
+<td><code>sources NAME &lt;tool&gt; [params]</code></td>
+<td>Runs one of the type's protocol tools on the instance; <code>--help</code> lists its parameters. A tool whose result is a document takes <code>-o FILE</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>The states</strong> are the instance states of the status tree — <code>starting</code>,
+<code>running</code>, <code>failed</code> and <code>stopped</code> — and one more that only these views know:
+<code>unconfigured</code>, an installed type without a single instance. <code>--state</code> takes
+one of the five. Without a daemon the table shows the configured instances from
+the file, their state unknown, and says so.</p>
+<p><strong>The table lists instances, not possibilities.</strong> An installed type with no
+instance is not a source, so it is left out: on a machine where one of the
+installed plugins is never used, a row for it would say nothing for ever under
+a heading that asks what the sources are doing. <code>--state unconfigured</code> asks
+which types are installed and unused, and <a href="#plugins"><code>plugins</code></a> is the
+catalogue proper.</p>
+<p><strong>The settings of <code>add</code> and <code>edit</code> are flags generated from the plugin's
+configuration schema</strong>, as tool flags are generated from the declaration, so
+a new plugin brings its own flags and nothing in the CLI has to know them;
+<a href="#plugins"><code>plugins &lt;type&gt;</code></a> shows the schema, and a flag the schema does not
+have is refused with the ones it does. Values are typed by the schema:
+<code>--device-instance 1201</code> is written as a number. Every string setting also
+takes <code>--&lt;key&gt;-env NAME</code>, which writes <code>${NAME}</code> into the YAML instead of the
+value, so the value stays in the <a href="../configuration/#the-env-file"><code>env</code> file</a>.
+A setting the plugin marks as a <strong>secret</strong> — <code>password</code> and <code>token</code> in the
+built-in plugins — takes only that form: a literal value is refused, so a
+secret cannot end up in the file by accident.</p>
+<div class="highlight"><pre><span></span><code>bricklogger<span class="w"> </span>destinations<span class="w"> </span>add<span class="w"> </span>tsdb<span class="w"> </span>--type<span class="w"> </span>timescaledb<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--dsn<span class="w"> </span><span class="s2">&quot;postgres://bricklogger@127.0.0.1:5432/brick&quot;</span><span class="w"> </span>--password-env<span class="w"> </span>TSDB_PASSWORD
+</code></pre></div>
+<p>The variable has to carry a value already: an unset one makes the
+configuration invalid, and the write is refused as a whole, so the secret goes
+into the <code>env</code> file first — <a href="#init"><code>init</code></a> does both in one go.</p>
+<p><strong>Without settings, <code>add</code> and <code>edit</code> ask.</strong> <code>sources add NAME --type TYPE</code>
+alone walks through the type's settings exactly as <code>init</code> does — required
+first, optional with the default offered — and <code>sources edit NAME</code> alone walks
+through them with the instance's current values offered instead, so Enter
+keeps each one. A secret that already stands as <code>${VAR}</code> is shown by its
+variable's name only; Enter keeps it, and a new value is written to the <code>env</code>
+file under the same variable, never into the YAML. Through <code>--api</code>, against a
+daemon on another machine, the settings are given as flags, because the
+secrets belong in that machine's <code>env</code> file.</p>
+<p><code>add</code>, <code>edit</code> and <code>remove</code> write the file exactly as the
+<a href="#the-config-views"><code>config</code> views</a> do: the whole configuration is validated
+with the change applied and rejected as a whole if it does not hold, the file
+is written atomically, and the write goes through the API whenever a daemon
+answers, so the change takes effect at once. An instance is spliced into the
+file as text, so its comments and the other instances stay as they were.
+Removing a running instance stops it as the new configuration is applied.</p>
+<p><strong>The instance is the address.</strong> Tools and start/stop act on one instance,
+because the instance owns the connection, and the instance's type says which
+tools it has — so <code>sources bacnet_main discover</code> needs no type and no flag. A
+tool always runs on a configured instance, with or without a daemon: without
+one it binds the instance's configuration in-process. <code>sources NAME</code> alone
+lists what can be done with it — <code>show</code>, and the tools as commands, each with
+its parameters in its own <code>--help</code> — so a name is a place to start.</p>
+<p><strong>Reserved words win.</strong> <code>status</code>, <code>add</code>, <code>edit</code>, <code>remove</code>, <code>start</code>, <code>stop</code>,
+<code>restart</code> and <code>config</code> are the subcommands; an instance may not be named after
+one of them, and validation refuses such a name.</p>
+<p><strong>Tools</strong> and their flags are generated from the plugin's declaration, so a
+new plugin brings its tools with it and nothing in the CLI has to know them.
+Parameters are given as <code>--name value</code> after the tool, named as the
+declaration shows them. The result is printed as a table or key-value lines,
+or unchanged with <code>--json</code>. A tool whose result is a
+<a href="../../architecture/#protocol-tools">document</a> — an export, such as the BACnet/IP source's <code>pointlist</code> — is written as JSON, to standard output or to a file
+with <code>-o FILE</code>. Long-running tools declare their duration as a parameter and
+return a complete result.</p>
+<p><strong>Stopping an instance</strong> is a graceful stop within <code>stop_timeout</code>: for a
+source, subscriptions are cancelled and sockets closed and freed; for a
+destination, the connection is closed while its spool keeps filling. The
+instance shows as <code>stopped</code> in status and appears in the warning list as
+<code>instance_stopped</code>, so a forgotten stop stays visible. The operator's intent
+<strong>persists</strong> across <code>daemon reload</code> and daemon restarts until someone starts
+the instance again. A deliberate stop is not a failure: health stays <code>ok</code>
+while at least one source runs, and reports <code>idle</code> when every source instance
+is stopped.</p>
+<h2 id="rules"><code>rules</code></h2>
+<p><code>rules config show</code> and <code>rules config edit</code> show and edit <code>rules.yaml</code> as
+<a href="#the-config-views">the <code>config</code> views</a> do. The rule set itself is defined on
+the <a href="../daemon/#point-selection-selectors">daemon page</a>.</p>
+<h2 id="notify"><code>notify</code></h2>
+<p>Mail to the administrator: what is sent and when is defined on the
+<a href="../notifications/">notifications page</a>, and the settings live under
+<code>notifications</code> in <a href="../configuration/#notifications"><code>daemon.yaml</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>notify test</code></td>
+<td>Sends a test mail to the configured recipients at once and prints what the server answered, the failure included</td>
+</tr>
+<tr>
+<td><code>notify status</code></td>
+<td>Whether notifications are on, the last mail with its time and recipients, the last error, when the next summary is due, and what waits in the open window</td>
+</tr>
+</tbody>
+</table>
+<p><code>notify test</code> is the command for a commissioning visit: it proves that mail
+leaves the machine through the customer's firewall before anyone waits for an
+alarm that never comes. It sends on the configuration as written, whether or
+not <code>enabled</code> is true, so a mail server can be tried before notifications are
+switched on — which is the order the model requirement imposes anyway. Both
+commands need a running daemon, because both ask it what it knows, and both
+take <code>--json</code> like every other command. Like every group, <code>notify</code> alone shows
+its help.</p>
+<h2 id="plugins"><code>plugins</code></h2>
+<p>The catalogue: what this installation can do, whichever role a plugin has.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>plugins</code></td>
+<td>Installed plugins: type, role, version; a plugin that could not be loaded shows <code>failed:</code> and the error where its description would be</td>
+</tr>
+<tr>
+<td><code>plugins &lt;type&gt;</code></td>
+<td>The plugin's declaration: reference types, vocabulary, collection methods with their parameters, configuration schema and tools; for a plugin that could not be loaded, the error</td>
+</tr>
+<tr>
+<td><code>plugins add PACKAGE...</code></td>
+<td>Installs one or more packages into the uv tool environment the command runs from, holding the other installed plugins at their versions so a package that cannot live with them is refused, and prints the catalogue as it now is. <code>PACKAGE</code> is anything uv installs: a name, <code>name==version</code>, a wheel on disk or a git URL</td>
+</tr>
+<tr>
+<td><code>plugins remove TYPE [--force]</code></td>
+<td>Uninstalls the distribution that provides the type, with every other type it provides and the libraries only it needed; refuses while an instance of the type is configured, unless <code>--force</code></td>
+</tr>
+</tbody>
+</table>
+<p>The first two read the installed declarations themselves when no daemon
+answers, so they answer before anything is configured — which is where a new
+installation starts, since the configuration schema shown here is what
+<a href="#init"><code>init</code></a> asks about and <a href="#sources-and-destinations"><code>sources add</code></a>
+turns into flags. <code>add</code> and <code>remove</code> change the environment, not the
+configuration, and the daemon reads its plugins when it starts, so both end
+by saying that it must be restarted; they restart nothing themselves, and
+outside an installation made with <code>uv tool install</code> they print the uv command
+to run instead. The <a href="../plugins/#installing-a-plugin">plugins page</a> has the whole
+procedure, from the install to what happens to a plugin that cannot be
+loaded.</p>
+<h2 id="update"><code>update</code></h2>
+<p><code>update</code> upgrades the installation from PyPI with uv, in the uv tool
+environment the command runs from, as <a href="#plugins"><code>plugins add</code></a> does. Alone it
+shows its help, like every group.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>update status</code></td>
+<td>Installs nothing: for Bricklogger and every installed plugin, the version installed, the newest release, and the newest release that fits the rest; when the last two differ, what holds it back</td>
+</tr>
+<tr>
+<td><code>update core</code></td>
+<td>Upgrades Bricklogger alone, the plugins held at their versions, to the newest release they allow; a newer one they exclude is named, with the plugin that excludes it and <code>update all</code> as the way past</td>
+</tr>
+<tr>
+<td><code>update &lt;type&gt;</code></td>
+<td>Upgrades the plugin that provides the type — and every other type the same distribution provides, which it names — to its newest release that fits the installed Bricklogger and the other plugins; a newer one that needs more is named the same way</td>
+</tr>
+<tr>
+<td><code>update all</code></td>
+<td>Upgrades Bricklogger and every plugin to the newest releases that fit together</td>
+</tr>
+</tbody>
+</table>
+<p>The three that install go through the same steps:</p>
+<ol>
+<li><strong>The versions are noted</strong>, of Bricklogger and of every plugin, before
+   anything is installed.</li>
+<li><strong>The new set is installed and validated</strong> by the new version's own
+   <a href="#validate"><code>validate</code></a>, in a process of its own, since the one running is
+   still the old code. Warnings are reported and stop nothing, so a configured
+   type that is not installed is reported
+   <a href="../plugins/#a-type-that-is-not-installed">as everywhere</a>. Errors, such as a
+   setting the new version no longer accepts, put the noted versions back,
+   are printed, and restart nothing: the machine stays as it was. A version
+   installed from a wheel on disk is on no index and cannot be fetched
+   again; then <code>update</code> says so, and the new version stays installed while
+   what runs is still the previous one, until the configuration is made to
+   fit or the previous wheel is installed again.</li>
+<li><strong>The units are brought up to date.</strong> The units are written from
+   templates in the package, by <a href="#services"><code>services install</code></a> and by
+   <code>update</code> alike; when the new version's differ from those installed,
+   <code>update</code> rewrites the ones that are written and reloads systemd.</li>
+<li><strong>What runs is restarted.</strong> Of <code>bricklogger</code>, <code>bricklogger-web</code> and
+   <code>bricklogger-mcp</code>, the units that are active are restarted in that order,
+   and <code>update</code> waits until each answers again. A daemon or a server started
+   by hand is not restarted; <code>update</code> names the command that restarts it.
+   <code>--no-restart</code> leaves every process alone. A unit that does not answer is
+   reported with where its log is, and nothing is rolled back then, because
+   the destination may already have migrated its schema to the new version.</li>
+</ol>
+<p>Like <code>plugins add</code>, <code>update</code> works on an installation made with
+<code>uv tool install</code> and prints the uv command to run anywhere else. It needs no
+rights beyond the login's own, and <code>update status</code> changes nothing.</p>
+<p><strong>In a container</strong> Bricklogger comes with the image. <code>update core</code> refuses and
+names <code>docker compose pull</code> and <code>docker compose up -d</code>; <code>update &lt;type&gt;</code> and
+<code>update all</code> upgrade the plugins in the <a href="../../docker/#plugins">plugin volume</a>
+and its manifest, held to the image's version of Bricklogger, and <code>all</code> says
+that the rest comes with a new image. Nothing is restarted in a container;
+<code>update</code> names <code>docker compose restart</code>. The newest release that
+<code>update status</code> shows for Bricklogger is also the newest image's tag.</p>
+<p><strong>Knowing there is one.</strong> The daemon looks for newer releases once a day,
+unless <a href="../configuration/#daemonyaml"><code>updates.check</code></a> is off.
+What it finds stands as a line beneath the daemon summary in <a href="#status-and-points"><code>status</code></a>
+and in the daily <a href="../notifications/#what-is-sent">summary mail</a>. A lookup that
+cannot reach PyPI is silent: it is not a warning. <code>update status</code> looks
+whenever it is run, whatever the setting.</p>
+<h2 id="model"><code>model</code></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>model upload &lt;file&gt; [--no-activate]</code></td>
+<td>Validates the model, stores it as a new version and activates it. The CLI follows the daemon's <a href="../api/#models-and-jobs">job</a> and shows its steps; the result shows the diff to the previously active version. <code>--no-activate</code> stores without activating</td>
+</tr>
+<tr>
+<td><code>model list</code></td>
+<td>Versions with upload time, activation history and which one is active</td>
+</tr>
+<tr>
+<td><code>model activate &lt;version&gt;</code></td>
+<td>Activates an earlier version with upload semantics: validate, atomic swap, re-evaluate — as a job, like upload</td>
+</tr>
+<tr>
+<td><code>model diff &lt;a&gt; &lt;b&gt;</code></td>
+<td>Points added, removed or changed between two versions, computed on the uploaded models</td>
+</tr>
+<tr>
+<td><code>model export [--version V] [--inferred] [--values] [--timeseries [--destination NAME]] [-o FILE]</code></td>
+<td>The model as uploaded by default; <code>--inferred</code> adds the inferred graph, <code>--values</code> the value overlay, <code>--timeseries</code> the time-series references of the destination that stores the model, with <code>--destination</code> naming one when several do</td>
+</tr>
+<tr>
+<td><code>model tree [--kind K] [--class C] [--finding F] [--warning W] [--outcome O] [--instance NAME] [--search TEXT] [--root URI] [--depth N] [--sort name\|class\|count]</code></td>
+<td>The active model as an indented hierarchy, built by the rules of the <a href="../web/#model-explorer">model explorer</a>: per line the URI, the class, the name where it differs, the <a href="../daemon/#model-findings">findings</a> in brackets, a point's outcome and instance, and its warnings after <code>!</code>. <code>--root</code> on a <a href="../web/#model-explorer">grouping</a> lists what it gathers instead, each member with its own subtree. <code>--json</code> gives the <a href="../api/#entities">entity document</a> unchanged</td>
+</tr>
+</tbody>
+</table>
+<p>The model commands go through the API whenever a daemon answers, and
+<code>upload</code> and <code>activate</code> then show the job's steps as they happen. Without a
+daemon they work on the data directory, as described above — all but
+<code>model tree</code>, which reads the working graph and therefore needs the daemon,
+as <code>points</code> and <code>query</code> do.</p>
+<h2 id="query"><code>query</code></h2>
+<p><code>query &lt;sparql&gt;</code> runs a read-only SPARQL query against the working graph —
+model, ontology, inferred graph and value overlay — and prints the result as a
+table, with URIs shortened by the model's prefixes, or raw with <code>--json</code> (the
+SPARQL results JSON) or <code>--format csv|tsv|xml|turtle</code>. <code>@file</code> reads the
+query from a file. The same guidance as for
+<a href="../daemon/#sparql-as-an-escape-hatch">rules</a> applies: subclasses and inverse
+relations are materialised, transitive part hierarchies are written with
+property paths.</p>
+<h2 id="serve"><code>serve</code></h2>
+<p><code>serve</code> runs the <a href="../web/">web interface</a>: a web server in the foreground that
+serves browsers on a port of its own and talks to the daemon's API like every
+other command. It reads <code>web.host</code>, <code>web.port</code> and <code>web.password</code> from
+<code>daemon.yaml</code>; <code>--host</code> and <code>--port</code> override the binding, and <code>--api URL</code>
+points it at a daemon on another machine. Like <code>daemon run</code>, it logs to stdout
+and is meant to run under a service manager or in a container. It starts
+without a daemon and shows plainly when the daemon cannot be reached, and it
+answers <code>GET /health/live</code> with <code>200</code>, its process ID and the time it started
+while it runs, which is what <code>status</code> asks it.</p>
+<h2 id="mcp"><code>mcp</code></h2>
+<p><code>mcp</code> is the group around the <a href="../mcp/">MCP server</a>, through which an AI
+assistant reads and changes the configuration and looks at status, points and
+the model, over the daemon's API like every other command and on the files
+when no daemon answers. Like every group, <code>mcp</code> alone shows its help.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mcp serve [--http]</code></td>
+<td>Runs the server in the foreground: stdio without the flag, a streamable HTTP server with it</td>
+</tr>
+<tr>
+<td><code>mcp auth status</code></td>
+<td>Whether a token is set, where its value lives, and whether a running server accepts it</td>
+</tr>
+<tr>
+<td><code>mcp auth show</code></td>
+<td>Prints the token and the line that registers the server in a client</td>
+</tr>
+<tr>
+<td><code>mcp auth generate</code></td>
+<td>Writes a new token, prints it, and restarts a running server so it takes effect</td>
+</tr>
+</tbody>
+</table>
+<p><code>mcp serve</code> without a flag speaks stdio, for a client that launches the
+process itself; <code>--http</code> makes it listen as a streamable HTTP server on
+<code>mcp.host</code> and <code>mcp.port</code> from <code>daemon.yaml</code>, which <code>--host</code> and <code>--port</code>
+override, and the root option <code>--api URL</code> points it at a daemon on another
+machine. Over HTTP it answers <code>GET /health/live</code> with <code>200</code>, its process ID
+and the time it started while it runs, which is what <code>status</code> asks it. What it exposes to the assistant — resources,
+tools and prompts — is defined on the same page.</p>
+<p><code>mcp auth</code> is the token an HTTP client needs, and only that: over stdio
+nothing is bound and nothing is asked for. <code>generate</code> makes a token of 32
+random bytes, writes the value into the <a href="../configuration/#the-env-file"><code>env</code> file</a>
+as <code>BRICKLOGGER_MCP_TOKEN</code> — or as the variable <code>mcp.token</code> already names —
+and puts the reference <code>${BRICKLOGGER_MCP_TOKEN}</code> into <code>daemon.yaml</code> when that
+setting is empty, so the secret stands as a reference like every other. It
+then prints the token and the registration line, because a token is of no use
+until it is in the client; that is the one place a secret is printed, and it
+is printed because it has nowhere else to go. Whatever token was there stops
+working. Since it writes the <code>env</code> file, <code>mcp auth generate</code> works on the
+machine whose file it is and refuses with <code>--api</code>, as
+<a href="#sources-and-destinations"><code>sources edit</code></a> refuses a typed secret.</p>
+<p>A server that is already running keeps the old token until it is restarted.
+<code>generate</code> does that itself when the server answers and
+<code>bricklogger-mcp.service</code> is active, and waits until it answers again; when
+the server was started by hand it says so instead, and <code>--no-restart</code> leaves
+it alone in either case. <code>mcp auth status</code> answers the same question whenever
+it is asked: it puts the token to a running server and reports whether it is
+accepted or rejected, and a rejection means a restart is missing. <code>mcp auth
+show</code> prints the token and the registration line again, for the next client.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

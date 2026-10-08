@@ -1,0 +1,1680 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://cx1-aps.github.io/bricklogger/features/sources/">
+      
+      
+        <link rel="prev" href="../mcp/">
+      
+      
+        <link rel="next" href="../destinations/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Sources - Bricklogger</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sources" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Bricklogger" class="md-header__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Bricklogger
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Sources
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Bricklogger" class="md-nav__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Bricklogger
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../daemon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daemon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sources
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bacnetip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BACnet/IP
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BACnet/IP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read only
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finding-the-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding the device
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#polling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Polling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#value-types-and-units" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Value types and units
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status flags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#failed-reads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Failed reads
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protocol-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocol tools
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Protocol tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-point-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The point list
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-points-the-source-serves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which points the source serves
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-source-delivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a source delivers
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../destinations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Destinations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bacnetip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BACnet/IP
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BACnet/IP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read only
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finding-the-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding the device
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#polling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Polling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#value-types-and-units" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Value types and units
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#status-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status flags
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#failed-reads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Failed reads
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protocol-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protocol tools
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Protocol tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-point-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The point list
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-points-the-source-serves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which points the source serves
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-source-delivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a source delivers
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="sources">Sources</h1>
+<p>Sources are <a href="../../architecture/#plugins-sources-and-destinations">plugins</a> —
+the built-in ones follow the same contract as <a href="../plugins/">custom plugins</a>. Bricklogger
+comes with one, BACnet/IP; other sources are installed as plugins, such as the
+<a href="https://github.com/CX1-ApS/bricklogger-ibos">iBOS source</a> for the iBOS Data
+API, and document themselves. Every source declares which <a href="../configuration/#collection-method-method">collection methods</a>
+it supports; <code>poll</code> exists for all sources.</p>
+<h2 id="bacnetip">BACnet/IP</h2>
+<p>The first version's source. Its collection method is <strong><code>poll</code></strong>: the points
+are read at the rule's interval. Change of Value (COV), where the source
+subscribes to changes on the device instead of polling, follows in a later
+version as a method of its own.</p>
+<p>A BACnet read carries no time, so the source <strong>stamps every observation
+itself</strong> with the machine's clock when the response is received.</p>
+<h3 id="read-only">Read only</h3>
+<p>Bricklogger <strong>never writes to a BACnet device.</strong> The only services it sends
+are Who-Is, ReadProperty and ReadPropertyMultiple. There is no WriteProperty,
+no WritePropertyMultiple, no SubscribeCOV, no ReinitializeDevice and no time
+synchronisation, neither in the daemon nor in any of the
+<a href="#protocol-tools">protocol tools</a>, and the
+<a href="../../architecture/#the-phases-of-the-contract">source contract</a> has no way to
+express a command: a source is handed points and returns observations. No rule
+can be written that changes anything in the building, because the rule schema
+has nothing to write with.</p>
+<p>The instance is itself a BACnet device on the network, with a device object
+and a network port object, so that it can be found and addressed like any
+other. It answers WriteProperty to <strong>its own two objects</strong>, because the
+protocol stack it is built on serves that service, and it exposes <strong>no
+commandable points</strong>: there is no present value and no priority array anywhere
+in it, so nothing in the building can be driven through Bricklogger. What
+another device can reach that way are the logger's own settings, such as its
+APDU timeout and its retry count.</p>
+<h3 id="configuration">Configuration</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># sources.yaml</span>
+<span class="nt">bacnet_main</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bacnet-ip</span>
+<span class="w">  </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">192.168.10.5/24</span><span class="w">        </span><span class="c1"># required: local address with prefix length</span>
+<span class="w">  </span><span class="nt">device_instance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1200</span><span class="w">           </span><span class="c1"># required: the instance&#39;s own device object</span>
+<span class="w">  </span><span class="nt">device_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bricklogger-main</span><span class="w">   </span><span class="c1"># default: the instance name</span>
+<span class="w">  </span><span class="nt">vendor_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">999</span><span class="w">                  </span><span class="c1"># default: 999 until a vendor identifier is assigned</span>
+<span class="w">  </span><span class="nt">devices</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;1000-1999&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2500</span><span class="p p-Indicator">]</span><span class="w">    </span><span class="c1"># optional: claim scope by device instance</span>
+<span class="w">  </span><span class="nt">subnet</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">192.168.10.0/24</span><span class="w">         </span><span class="c1"># optional: claim scope by the graph&#39;s IP</span>
+<span class="w">  </span><span class="nt">bbmd</span><span class="p">:</span><span class="w">                           </span><span class="c1"># optional: register as a foreign device</span>
+<span class="w">    </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0.0.1</span>
+<span class="w">    </span><span class="nt">ttl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60s</span>
+<span class="w">  </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3s</span><span class="w">                     </span><span class="c1"># default</span>
+<span class="w">  </span><span class="nt">retries</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w">                      </span><span class="c1"># default</span>
+<span class="w">  </span><span class="nt">max_in_flight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span><span class="w">                </span><span class="c1"># default: requests on the wire at once</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Requirement</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>address</code></td>
+<td>required</td>
+<td>The local IPv4 address with prefix length, e.g. <code>192.168.10.5/24</code>; the prefix gives the broadcast address. A port other than 47808 is appended: <code>192.168.10.5/24:47809</code></td>
+</tr>
+<tr>
+<td><code>device_instance</code></td>
+<td>required</td>
+<td>The number of the instance's own device object. It must be unique on the BACnet network, so there is no default</td>
+</tr>
+<tr>
+<td><code>device_name</code></td>
+<td>optional</td>
+<td>The name of the instance's own device object; default the instance name</td>
+</tr>
+<tr>
+<td><code>vendor_id</code></td>
+<td>optional</td>
+<td>The vendor identifier the instance's own device object reports. Vendor identifiers are assigned by ASHRAE; the default <code>999</code> stands in until Bricklogger has one of its own</td>
+</tr>
+<tr>
+<td><code>devices</code></td>
+<td>optional</td>
+<td>The device instances the instance claims: a list of numbers and ranges written <code>"low-high"</code></td>
+</tr>
+<tr>
+<td><code>subnet</code></td>
+<td>optional</td>
+<td>The instance claims only devices whose IP in the graph lies in the subnet; a device without an IP in the graph is then not claimed</td>
+</tr>
+<tr>
+<td><code>bbmd.address</code></td>
+<td>optional</td>
+<td>A BBMD to register with as a foreign device, for broadcast discovery across routers</td>
+</tr>
+<tr>
+<td><code>bbmd.ttl</code></td>
+<td>default <code>60s</code></td>
+<td>How often the registration is renewed</td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td>default <code>3s</code></td>
+<td>How long a request waits for an answer before a retry</td>
+</tr>
+<tr>
+<td><code>retries</code></td>
+<td>default <code>2</code></td>
+<td>Retries per request before the read counts as failed</td>
+</tr>
+<tr>
+<td><code>max_in_flight</code></td>
+<td>default <code>8</code></td>
+<td>How many requests the instance may have on the wire at once, across every device and every search</td>
+</tr>
+</tbody>
+</table>
+<p>A device is in scope when it satisfies <strong>every</strong> restriction given. Without
+<code>devices</code> and <code>subnet</code> the instance claims every device with a BACnet
+reference — the simple installation configures nothing. The exclusive
+<a href="../../architecture/#isolation-and-resources">resource</a> the instance declares
+is <code>udp:&lt;address&gt;:&lt;port&gt;</code>, so two instances on the same socket are caught at
+validation.</p>
+<h3 id="the-reference">The reference</h3>
+<p>A point is addressed through Brick's external reference: the point carries
+<code>ref:hasExternalReference</code> to a reference node, and the source accepts that
+node in its <strong>property form</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nn">ex</span><span class="p">:</span><span class="nt">AHU_01_SAT</span> <span class="kt">a</span> <span class="nn">brick</span><span class="p">:</span><span class="nt">Supply_Air_Temperature_Sensor</span> <span class="p">;</span>
+    <span class="nn">ref</span><span class="p">:</span><span class="nt">hasExternalReference</span> <span class="p">[</span>
+        <span class="kt">a</span> <span class="nn">ref</span><span class="p">:</span><span class="nt">BACnetReference</span> <span class="p">;</span>
+        <span class="nn">bacnet</span><span class="p">:</span><span class="nt">object-identifier</span> <span class="s">&quot;analog-input,3&quot;</span> <span class="p">;</span>
+        <span class="nn">bacnet</span><span class="p">:</span><span class="nt">objectOf</span> <span class="nn">ex</span><span class="p">:</span><span class="nt">AHU_01_Controller</span> <span class="p">;</span>
+        <span class="nn">ref</span><span class="p">:</span><span class="nt">read-property</span> <span class="s">&quot;present-value&quot;</span>      <span class="c"># optional; this is the default</span>
+    <span class="p">]</span> <span class="p">.</span>
+
+<span class="nn">ex</span><span class="p">:</span><span class="nt">AHU_01_Controller</span> <span class="kt">a</span> <span class="nn">bacnet</span><span class="p">:</span><span class="nt">BACnetDevice</span> <span class="p">;</span>
+    <span class="nn">bacnet</span><span class="p">:</span><span class="nt">device-instance</span> <span class="mi">1201</span> <span class="p">;</span>
+    <span class="nn">bacnet</span><span class="p">:</span><span class="nt">hasPort</span> <span class="p">[</span>
+        <span class="kt">a</span> <span class="nn">bacnet</span><span class="p">:</span><span class="nt">Port</span> <span class="p">;</span>
+        <span class="nn">bacnet</span><span class="p">:</span><span class="nt">ip-address</span> <span class="s">&quot;C0A80A14&quot;</span><span class="p">^^</span><span class="nn">xsd</span><span class="p">:</span><span class="nt">hexBinary</span>   <span class="c"># optional; 192.168.10.20</span>
+    <span class="p">]</span> <span class="p">.</span>
+</code></pre></div>
+<ul>
+<li><strong>The object:</strong> <code>bacnet:object-identifier</code> names it as <code>type,instance</code> with
+  the standard's hyphenated type names, e.g. <code>analog-input,3</code> or
+  <code>multi-state-value,12</code>. The literal may be plain or typed
+  <code>bacnet:objectIdentifier</code>. The source recognises a BACnet reference by this
+  property, whether or not the node is typed <code>ref:BACnetReference</code> — Brick's
+  own example leaves the type to inference.</li>
+<li><strong>The device:</strong> reached through <code>bacnet:objectOf</code> or <code>bacnet:contains</code>;
+  Brick's example uses the first and its shape the second, so the source
+  accepts both. Two BACnet vocabularies occur in models,
+  <code>http://data.ashrae.org/bacnet/2020#</code> in the bundled Brick and
+  <code>http://data.ashrae.org/bacnet/</code> in Brick's current schema, and the source
+  accepts both. The device node must carry <code>bacnet:device-instance</code>. A port
+  with <code>bacnet:ip-address</code> is optional and is used as a hint when
+  <a href="#finding-the-device">finding the device</a>.</li>
+<li><strong>The property:</strong> <code>ref:read-property</code> names the property to read and
+  defaults to Present_Value. Any readable property can be named, e.g.
+  <code>reliability</code> or <code>out-of-service</code>, in the standard's hyphenated spelling or
+  as the ASHRAE vocabulary's IRI — both forms occur in models. Array elements
+  cannot be addressed in the first version.</li>
+<li><code>bacnet:object-name</code>, <code>bacnet:description</code> and <code>bacnet:units</code> on the
+  reference are informational and play no part in addressing.</li>
+</ul>
+<p>The source reads the reference, the device and its port from the graph itself
+with the <a href="../../architecture/#graph-access-for-sources">read-only SPARQL access</a>
+every source has; the daemon hands over nothing about references.</p>
+<p><strong>What is rejected.</strong> A reference the source recognises but cannot use gives
+the point the outcome <code>rejected</code> with a reason that names the problem, and the
+point is not collected until the model is fixed. That covers the URI form
+(<code>ref:BACnetURI</code>), a reference with only an object name, a malformed object
+identifier, a device node without <code>bacnet:device-instance</code>, a
+<code>bacnet:object-type</code> that contradicts the type in the identifier, an unknown
+property name, and a point with two BACnet references of which neither is
+marked <code>ref:preferred true</code> — where one is marked, it is used. The rule is
+one: a reference that is not complete and unambiguous is not read, because a
+point logged from the wrong object under the right name is worse than a
+visible gap.</p>
+<h3 id="finding-the-device">Finding the device</h3>
+<p>The source finds a device on the network <strong>by its device instance</strong> with
+Who-Is; an address from the graph is a hint, never the truth:</p>
+<ul>
+<li>If the graph carries an IP for the device, a <strong>unicast Who-Is</strong> goes to that
+  address first. The I-Am confirms that the instance lives there, no
+  broadcast is needed, and it works across subnets.</li>
+<li>Otherwise — or if the hinted address does not answer — a <strong>broadcast
+  Who-Is</strong> for that instance goes out on the local network, or through the
+  BBMD in the instance's configuration. An instance bound to a single address
+  without a network, a <code>/32</code>, has no broadcast address and reaches only
+  devices the graph gives an IP.</li>
+<li>The address that answers is <strong>cached</strong> and looked up again when the device
+  stops answering, so a device that is re-addressed comes back by itself.
+  Devices behind BACnet routers are reached through the routed address their
+  I-Am carries.</li>
+</ul>
+<h3 id="polling">Polling</h3>
+<p>The source owns the rhythm, and what it puts on the network is bounded. A
+logger on a building's own network must never be the reason something else
+stops answering:</p>
+<ul>
+<li>Points on the same device with the same interval are read together in one
+  <strong>ReadPropertyMultiple</strong>, so they share one request and one timestamp. A
+  device that does not support it is read with ReadProperty, one property at a
+  time.</li>
+<li><strong>One outstanding request per device and interval.</strong> Within a round the
+  requests follow one another; a device whose points are accepted at two
+  different intervals is polled by two rounds, which can overlap.</li>
+<li><strong>At most <code>max_in_flight</code> requests are on the wire at once</strong>, counted per
+  instance and whatever the number of devices; the default is <strong>8</strong>.
+  Everything the instance sends passes that ceiling, the searches included, so
+  a network never sees more of Bricklogger's requests at a time than the
+  number configured. It is the setting to lower on a fragile network or one
+  where everything sits behind a single router.</li>
+<li><strong>First rounds are spread</strong> over the interval, at most a minute, so a rule
+  with hundreds of devices does not start them all in the same instant. Each
+  device keeps its offset afterwards, so the load stays even instead of
+  gathering at every interval boundary.</li>
+<li><strong>Reads never pile up.</strong> If a device's round is still running when the next
+  is due, the next round is skipped. Skipped rounds are counted per device in
+  status, and a device that keeps missing its interval gets the warning
+  <code>poll_overrun</code>. The interval is thus a minimum, and every observation carries
+  the time it was actually received, so a device that cannot keep up is
+  visible both in status and in the time series.</li>
+</ul>
+<h3 id="value-types-and-units">Value types and units</h3>
+<p>The value type follows the <strong>datatype of the property as read</strong>, not the
+object type alone, because <code>ref:read-property</code> can name any property. For a
+standard property the datatype is known from the standard before the first
+read; for a proprietary property it is the datatype of the first successful
+read.</p>
+<table>
+<thead>
+<tr>
+<th>BACnet datatype</th>
+<th>Value type</th>
+<th>Texts and notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>REAL, DOUBLE</td>
+<td><code>number</code></td>
+<td>Analog objects, Large_Analog_Value, Loop. NaN and infinity become <code>null</code> with reason <code>no_value</code></td>
+</tr>
+<tr>
+<td>Unsigned, INTEGER</td>
+<td><code>integer</code></td>
+<td>Integer_Value, Positive_Integer_Value, Accumulator</td>
+</tr>
+<tr>
+<td>BOOLEAN</td>
+<td><code>boolean</code></td>
+<td>e.g. Out_Of_Service</td>
+</tr>
+<tr>
+<td>Present_Value of a binary object</td>
+<td><code>boolean</code></td>
+<td><code>active</code> is true; texts from Active_Text and Inactive_Text when the object has them</td>
+</tr>
+<tr>
+<td>Present_Value of a multi-state object</td>
+<td><code>enum</code></td>
+<td>The ordinal is BACnet's own value, counting from 1; texts from State_Text</td>
+</tr>
+<tr>
+<td>ENUMERATED elsewhere</td>
+<td><code>enum</code></td>
+<td>e.g. Reliability; the ordinal is the enumeration value, the texts are the standard's names</td>
+</tr>
+<tr>
+<td>CharacterString</td>
+<td><code>string</code></td>
+<td></td>
+</tr>
+<tr>
+<td>DateTime</td>
+<td><code>datetime</code></td>
+<td>BACnet's DateTime carries no zone; it is read as the machine's local time and stored in UTC, since device and logger share a building</td>
+</tr>
+<tr>
+<td>BitString, OctetString, ObjectIdentifier, Date or Time alone, lists and structures</td>
+<td>—</td>
+<td>The point is <code>rejected</code>: the datatype has no counterpart in the vocabulary</td>
+</tr>
+</tbody>
+</table>
+<p>Bit strings are not a type, and with the property form a single bit cannot be
+addressed, so there is nothing to decompose them into. A status word that is
+wanted as a time series is modelled as its own boolean points where the device
+offers them.</p>
+<p><strong>Units.</strong> The protocol's unit is the object's Units property, one of
+BACnet's engineering units. The source translates it into Brick's unit
+vocabulary (QUDT) where the standard's unit has a counterpart —
+<code>degrees-celsius</code> to <code>unit:DEG_C</code>, <code>kilowatt-hours</code> to <code>unit:KiloW-HR</code> and so
+on — and otherwise delivers the BACnet name itself, e.g. a proprietary unit as
+<code>proprietary-&lt;number&gt;</code>. <code>no-units</code>, and objects without a Units property, give
+no protocol unit. As for every source, the graph's unit stays primary, a
+disagreement gives the <code>unit_conflict</code> warning, and values are never
+converted.</p>
+<p><strong>When metadata is read.</strong> Units, State_Text, Active_Text and Inactive_Text
+are read once when a point is assigned and delivered as the point's metadata.
+For a point that reads another property than Present_Value, the value type and
+the enumeration's texts follow the first successful read. Metadata is read
+again whenever the device has been rediscovered after being unreachable, since
+a device may have been reconfigured while it was gone.</p>
+<h3 id="status-flags">Status flags</h3>
+<p>Every BACnet object carries four status flags. When Present_Value is read,
+the source maps them to observations as follows; a rule that reads another
+property, such as Reliability, gets that property's value whatever the flags
+say, because logging the status is what such a point is for:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Observation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IN_ALARM</td>
+<td>The value is delivered unchanged</td>
+</tr>
+<tr>
+<td>FAULT</td>
+<td><code>null</code> with reason <code>fault</code></td>
+</tr>
+<tr>
+<td>OUT_OF_SERVICE</td>
+<td><code>null</code> with reason <code>out_of_service</code></td>
+</tr>
+<tr>
+<td>OVERRIDDEN</td>
+<td><code>null</code> with reason <code>overridden</code></td>
+</tr>
+</tbody>
+</table>
+<p>The status flags are read together with the value. If the status itself is to
+be logged as a time series, it is modelled as its own point in the graph:
+Brick's BACnet reference can, with <code>ref:read-property</code>, point at e.g.
+Reliability or Out_Of_Service instead of Present_Value.</p>
+<h3 id="failed-reads">Failed reads</h3>
+<p>If the device does not answer — timeout or offline — every poll attempt
+yields <code>null</code> with reason <code>unreachable</code>, and so does every attempt before the
+device has been found on the network. If it answers with an error — unknown
+object, unknown property, access denied — the attempt yields <code>null</code> with
+reason <code>read_error</code>.</p>
+<p>A device that has been lost is looked for again with a Who-Is, but <strong>not on
+every round</strong>. The search backs off: the first retry after 30 seconds, then
+doubling to at most 5 minutes, and the count resets the moment the device
+answers. A search that finds nothing at the address the model gives has to
+<strong>broadcast</strong>, which every device on the network must process and which a
+BBMD forwards to other subnets, so a controller switched off for a working day
+must not become a broadcast every few seconds. The points keep yielding
+<code>unreachable</code> at their own interval while the search waits, so status and the
+time series are unchanged by the backoff; only the searching is.</p>
+<h3 id="protocol-tools">Protocol tools</h3>
+<p>The tools run with <code>bricklogger sources bacnet-ip &lt;tool&gt;</code> — through the daemon
+when it runs, in-process otherwise — as described for
+<a href="../../architecture/#protocol-tools">protocol tools</a> in general. Every tool
+returns a structured result that the CLI renders as a table or emits as JSON.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Parameters</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>discover</code></td>
+<td><code>--low</code> and <code>--high</code> bound the device instances asked for (default: all); <code>--duration</code> is the listening time (default <code>3s</code>); <code>--address</code> sends the Who-Is to one address instead of broadcasting, for an interface without a broadcast address or a device or BBMD on another network</td>
+<td>The devices that answered: instance, address, name, vendor and model</td>
+</tr>
+<tr>
+<td><code>read</code></td>
+<td><code>--device</code> as instance number or address, <code>--object</code> identifier, <code>--property</code> (default <code>present-value</code>), <code>--index</code> for an array element</td>
+<td>The value as the vocabulary sees it, BACnet's own datatype and the status flags; an error the device answers with is returned as <code>error</code></td>
+</tr>
+<tr>
+<td><code>objects</code></td>
+<td><code>--device</code>; <code>--values</code> adds Present_Value and Units</td>
+<td>The device's object list: identifier, name and type, optionally value, unit and its QUDT counterpart</td>
+</tr>
+<tr>
+<td><code>resolve</code></td>
+<td><code>--point</code>, a URI in full or prefixed form</td>
+<td>How the point's reference resolves — device instance, the address found, object and property, whether the device is in the instance's scope — and the value with its status flags, or the problem with the reference</td>
+</tr>
+<tr>
+<td><code>pointlist</code></td>
+<td><code>--device</code> for one device, in scope or not; <code>--low</code> and <code>--high</code> bound the search as for <code>discover</code>; <code>--values</code> adds each object's Present_Value</td>
+<td>The point list: the devices the instance claims, or the one device, with the objects on each, as one JSON document to keep as a file</td>
+</tr>
+</tbody>
+</table>
+<p><code>discover</code>, <code>read</code>, <code>objects</code> and <code>pointlist</code> need nothing but the instance's
+configuration, so they also run without a daemon; a device given by instance
+number is found with a Who-Is, so on an interface that cannot broadcast it
+is given by address. <code>resolve</code> needs the running
+daemon, because the working graph is the daemon's; without one the command
+says so plainly, like <code>status</code> and <code>points</code>. It is the shortest path from a
+warning in status to its cause.</p>
+<p>No tool writes to a device. The first version reads only.</p>
+<h4 id="the-point-list">The point list</h4>
+<p>The point list is what the network has, without a single sample: the devices in
+the instance's scope and the objects on each — an inventory to file with the
+building's documentation, or to hand to whoever builds the Brick model. On a
+BACnet site there is rarely another one. It is a
+<a href="../../architecture/#protocol-tools">document</a>, so the CLI writes it as JSON, to
+standard output or to a file with <code>-o</code>:</p>
+<div class="highlight"><pre><span></span><code>bricklogger sources bacnet_main pointlist -o building-a.json
+</code></pre></div>
+<p>In the web interface it is offered on the <code>discover</code> listing: run <code>discover</code>,
+and every device row carries a Download for that device's point list, with a
+Download for the whole list above the table. The tool has no form of its own
+there.</p>
+<p>Without arguments the list covers <strong>the devices the instance claims</strong>, so the
+Who-Is is bounded by the <code>devices</code> ranges and the answers are filtered by
+<code>devices</code> and <code>subnet</code> both. <code>--low</code> and <code>--high</code> widen or narrow the search
+deliberately, as they do for <code>discover</code>, and <code>--device</code> covers one device
+whether or not the instance claims it. <code>--values</code> adds each object's
+Present_Value, which costs one more reading per object.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;instance&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bacnet_main&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;192.168.10.5/24:47808&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;exported_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-09-15T13:05:12+00:00&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;counts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;devices&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;objects&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;devices&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;instance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1201</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;192.168.10.20&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AHU-01 controller&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;vendor&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Siemens&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PXC36.1-E.D&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;objects&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;analog-input&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;instance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AHU01_SAT&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;degreesCelsius&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;qudt&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://qudt.org/vocab/unit/DEG_C&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;binary-input&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;instance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AHU01_FAN&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;qudt&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">}</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The header names the instance, its own address, the time of the export in UTC
+and the counts; then follow the devices, each with its objects. The fields are
+those of <code>discover</code> and <code>objects</code>, so the document reads as the two lists
+nested. A device that stops answering halfway through is kept with the objects
+it managed to give and an <code>error</code> beside them, because half a site's inventory
+is worth more than none.</p>
+<p><strong>It asks one thing at a time.</strong> The sweep is one Who-Is, then per device one
+read of the object list and one ReadPropertyMultiple per twenty objects, with
+never more than a single request outstanding. A whole site therefore takes a
+while and puts no more on the network at any instant than one poll round does,
+which is why it needs no ceiling of its own.</p>
+<h2 id="which-points-the-source-serves">Which points the source serves</h2>
+<p>A source instance <strong>claims</strong> the points whose external references it can
+reach. It finds the references of its type in the Brick graph itself, through
+the <a href="../../architecture/#graph-access-for-sources">read-only SPARQL access</a>
+every source has, and decides the claim from its own configuration —
+address, subnet, device range — without touching the network, so the
+binding can be shown and validated before collection starts. If there is no
+network restriction in the configuration, the instance claims all points with
+a reference of its type. If several instances claim the same accepted point,
+that is a validation error; if none does, the point is not collected and
+status warns. The source may query the graph at any time, and every model
+activation binds it anew, so it resolves its references again against the new
+model. The mechanics and the arbitration are described in the
+<a href="../../architecture/#which-source-owns-which-point">architecture</a>.</p>
+<h2 id="what-a-source-delivers">What a source delivers</h2>
+<p>A source pushes <strong>observations</strong> up into the daemon — point, timestamp, type
+and value. <strong>The timestamp belongs to the source:</strong> the daemon never stamps
+anything itself. If the protocol carries no time, the source stamps with the
+machine's clock when the response is received; if the source receives
+timestamped samples, it passes the sample's timestamp on. Timestamps are
+always timezone-aware and in UTC, and a plugin that passes on device time
+must say so in its documentation.</p>
+<p>A source only delivers a value it can <strong>vouch for</strong> as the point's value. If
+the device itself disputes the value, or the read fails, the source delivers
+<code>null</code> with a reason from the closed reason vocabulary in the
+<a href="../../architecture/#observations-and-metadata">architecture</a>. Every poll
+attempt of a <strong>live</strong> source thereby yields exactly one observation. A
+<strong>history source</strong>, which copies samples the system has already recorded,
+delivers nothing for a failed request and fetches the stretch when the next
+one succeeds; the <a href="https://github.com/CX1-ApS/bricklogger-ibos">iBOS source</a> is one.</p>
+<p>In addition the source delivers <strong>point metadata</strong> for what only the protocol
+knows: the value type, the state texts for <code>enum</code>, the texts for <code>boolean</code>
+and the protocol's own unit designation — translated into Brick's unit
+vocabulary (QUDT) where possible, otherwise as the protocol's own
+designation. The source never converts values. Both vocabularies are closed
+and defined in the
+<a href="../../architecture/#observations-and-metadata">architecture</a>; a source cannot
+add its own types or fields, but must map its protocol's values into the set.</p>
+<p>For every assigned point the source reports an outcome on the status channel —
+<code>active</code>, <code>unsupported</code> or <code>rejected</code> with a reason — initially and whenever
+it changes. The daemon applies the rule's <code>fallback</code> on <code>unsupported</code>.</p>
+<p>The source never talks to the destinations. It knows neither their number nor
+their kind.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

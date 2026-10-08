@@ -1,0 +1,1975 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://cx1-aps.github.io/bricklogger/features/plugins/">
+      
+      
+        <link rel="prev" href="../destinations/">
+      
+      
+        <link rel="next" href="../notifications/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Plugins - Bricklogger</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#plugins" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Bricklogger" class="md-header__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Bricklogger
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Plugins
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Bricklogger" class="md-nav__button md-logo" aria-label="Bricklogger" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Bricklogger
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/CX1-ApS/bricklogger" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../daemon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Daemon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../web/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../destinations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Destinations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-plugin-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a plugin is
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installing-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing a plugin
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installing a plugin">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#in-a-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In a container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-afterwards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restart afterwards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removing-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing a plugin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upgrading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upgrading
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-a-plugin-cannot-load" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a plugin cannot load
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="When a plugin cannot load">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-type-that-is-not-installed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A type that is not installed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing a plugin
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Writing a plugin">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#naming-and-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Naming and layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-project-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The project file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-sdk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The SDK
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-declaration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The declaration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-source-phase-by-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A source, phase by phase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-destination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A destination
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing a plugin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#distributing-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distributing a plugin
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-plugin-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What a plugin is
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installing-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing a plugin
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installing a plugin">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#in-a-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In a container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-afterwards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restart afterwards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removing-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing a plugin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upgrading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upgrading
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-a-plugin-cannot-load" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a plugin cannot load
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="When a plugin cannot load">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-type-that-is-not-installed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A type that is not installed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing a plugin
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Writing a plugin">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#naming-and-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Naming and layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-project-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The project file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-sdk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The SDK
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-declaration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The declaration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-source-phase-by-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A source, phase by phase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-destination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A destination
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing a plugin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#distributing-a-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distributing a plugin
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="plugins">Plugins</h1>
+<p>Sources and destinations are <strong>plugins</strong>: Python packages that follow the
+contract defined in the <a href="../../architecture/#plugins-sources-and-destinations">architecture</a>
+and are found through entry points. The built-in BACnet/IP and TimescaleDB follow the same contract as a plugin written anywhere else; there
+is no privileged code path. This page is for two readers: the <strong>operator</strong>,
+who installs, upgrades and removes a plugin, and the <strong>author</strong>, who writes
+one. The contract itself is defined in the architecture and not repeated
+here; this page says how it is used.</p>
+<h2 id="what-a-plugin-is">What a plugin is</h2>
+<p>A plugin is an ordinary Python distribution, installed in the same environment
+as Bricklogger, that registers one entry point per type it provides in one of
+two groups:</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>What the entry point loads to</th>
+<th>Written in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bricklogger.sources</code></td>
+<td>A <code>SourceDeclaration</code></td>
+<td><code>sources.yaml</code></td>
+</tr>
+<tr>
+<td><code>bricklogger.destinations</code></td>
+<td>A <code>DestinationDeclaration</code></td>
+<td><code>destinations.yaml</code></td>
+</tr>
+</tbody>
+</table>
+<p>The entry point's <strong>name is the type name</strong>: what <code>type:</code> says in the
+configuration and what <code>bricklogger plugins &lt;type&gt;</code> describes. The
+declaration is static and is read without starting anything, which is what
+lets the CLI list a plugin, <code>init</code> ask about its settings, the web interface
+build its forms and the assistant read its schema before an instance exists.
+The daemon reads the entry points <strong>when it starts</strong>.</p>
+<h2 id="installing-a-plugin">Installing a plugin</h2>
+<p>A plugin is installed <strong>into the uv tool environment Bricklogger was
+installed into</strong>, beside Bricklogger, and the daemon finds it through its
+entry points without any configuration. Three ways lead there, and they are
+the same operation:</p>
+<ul>
+<li><strong>From the CLI</strong>, <code>bricklogger plugins add PACKAGE</code>, which takes one or more
+  packages. The command runs uv against the environment it runs from itself,
+  and when it is done prints the catalogue as it now is.</li>
+<li><strong>From the web interface</strong>, on the <a href="../web/#screens">Plugins screen</a>, which
+  runs the same operation in the process <code>serve</code> runs in, against the
+  environment it runs from.</li>
+<li><strong>By hand</strong>, with uv itself, naming every plugin:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>bricklogger<span class="w"> </span>--with<span class="w"> </span>bricklogger-ibos<span class="w"> </span>--with<span class="w"> </span>PACKAGE
+</code></pre></div>
+<p>uv keeps a record of what the tool environment was installed with —
+Bricklogger and one <code>--with</code> per plugin — and <code>uv tool install</code> <strong>replaces</strong>
+that record with its command line: a plugin left off it is uninstalled.
+<code>uv tool list --show-with</code> shows the record as it stands. <code>add</code> and <code>remove</code>
+keep it themselves, so <code>uv tool upgrade bricklogger</code> and a later
+<a href="../cli/#update"><code>update</code></a> keep the plugins too, and they leave Bricklogger and
+the plugins in it without versions, so nothing is pinned that
+<code>uv tool upgrade</code> could not move.</p>
+<p><code>PACKAGE</code> is anything uv installs: a name from PyPI or another index
+(<code>bricklogger-httpjson</code>), a name with a version
+(<code>bricklogger-httpjson==0.2.1</code>), a wheel on disk
+(<code>./bricklogger_httpjson-0.2.1-py3-none-any.whl</code>) or a git URL. <code>add</code>
+upgrades a package that is already installed, and installs a wheel even when
+its version is already present; two builds of a development wheel carry the
+same version, and the second must win.</p>
+<p><code>add</code> also <strong>holds the other plugins where they are.</strong> Every plugin shares
+one environment, and a process imports one version of a library, so two
+plugins that need incompatible versions of the same library cannot both work.
+<code>add</code> therefore resolves what it was asked for <strong>together with the plugins
+already installed</strong>, each held at its installed version, and refuses a
+package that cannot live with them before anything has changed; uv's message
+names the two that disagree. Only what was asked for moves: the other plugins,
+and the libraries they share, keep their versions unless the new package needs
+otherwise and the rest can live with it. The way out of a refusal is a
+release of one plugin that widens its requirement, or <code>remove</code> of the other.
+A package given as a bare URL or a path to a directory names no distribution,
+so <code>add</code> cannot tell which installed plugin it replaces and holds that one
+too; write <code>name @ url</code> for a plugin that is already installed. The command
+run by hand checks nothing of the kind: it is the same uv, given only what is
+on its command line.</p>
+<p><code>add</code> and <code>remove</code> work on an installation made with <code>uv tool install</code>. They
+find uv on the path, and in <code>~/.local/bin</code> where its installer puts it, since
+a service's path is short. Anywhere else, such as a checkout run with
+<code>uv run</code>, they print the command to run instead of guessing at the
+environment. Neither needs rights beyond the login's own.</p>
+<h3 id="in-a-container">In a container</h3>
+<p>An image cannot grow a package, so a container keeps its plugins in a volume
+of its own, and <code>add</code> installs into that volume instead of into the image's
+environment. What was asked for is written down beside them, so a new image
+lays the same set down again; the image's own packages take precedence over
+the volume's, and an installation is constrained to their versions. The
+<a href="../../docker/#plugins">Docker page</a> describes the volume, the manifest and what
+happens on an upgrade.</p>
+<h3 id="restart-afterwards">Restart afterwards</h3>
+<p>The daemon reads its plugins when it starts, so a plugin added or removed
+while it runs is not seen until the next start:</p>
+<div class="highlight"><pre><span></span><code>systemctl<span class="w"> </span>--user<span class="w"> </span>restart<span class="w"> </span>bricklogger<span class="w">      </span><span class="c1"># a service</span>
+bricklogger<span class="w"> </span>daemon<span class="w"> </span>restart<span class="w">                </span><span class="c1"># a daemon started by hand</span>
+</code></pre></div>
+<p>The MCP server reads them the same way when it runs as a service over HTTP,
+so it is restarted too; the web interface asks the daemon and needs nothing.
+<code>add</code>, <code>remove</code> and the web interface's Plugins screen say this when they are
+done and restart nothing themselves: a restart interrupts collection, and when
+that happens is the operator's call.</p>
+<h3 id="removing-a-plugin">Removing a plugin</h3>
+<div class="highlight"><pre><span></span><code>bricklogger<span class="w"> </span>plugins<span class="w"> </span>remove<span class="w"> </span>TYPE
+</code></pre></div>
+<p><code>remove</code> uninstalls the distribution that provides the type, and with it
+every other type the same distribution provides, which it names. It
+<strong>refuses while an instance of the type is configured</strong> in <code>sources.yaml</code> or
+<code>destinations.yaml</code>, naming the instances: after the next start they would
+be <a href="#a-type-that-is-not-installed">failed</a> and raise an alarm. Remove the
+instances first, with <a href="../cli/#sources-and-destinations"><code>sources remove</code></a> or
+<code>destinations remove</code>. <code>--force</code> uninstalls anyway; from the next start the
+instances are failed, and the rest runs, until they are removed or the plugin
+is added again. The built-in types cannot be removed: their
+distribution is Bricklogger itself, and <code>remove</code> says so.</p>
+<p><code>remove</code> also <strong>takes with it what only that plugin needed.</strong> The plugin
+leaves uv's record, and uv resolves the environment again without it: what no
+remaining plugin and not Bricklogger itself requires is uninstalled in the
+same command, and <code>remove</code> names it. A library another plugin still needs
+stays. The environment holds what the record requires and nothing else, so a
+library installed into it by other means — <code>uv pip install</code>, say — goes at
+the next <code>add</code>, <code>remove</code>, <code>update</code> or <code>uv tool upgrade</code>; a library wanted
+beside the plugins is added with <code>plugins add</code> like a plugin.</p>
+<h3 id="upgrading">Upgrading</h3>
+<p><a href="../cli/#update"><code>bricklogger update</code></a> upgrades Bricklogger and its plugins
+from PyPI, validates the result before anything is restarted, and puts the
+previous versions back when it does not hold. <code>update all</code> moves the plugins
+with Bricklogger; <code>update core</code> holds them, and since a plugin is built for a
+<a href="#compatibility">minor version</a> of Bricklogger, it goes no further than the
+plugins allow and names the one that holds it back; <code>update &lt;type&gt;</code> upgrades
+one plugin. <code>update status</code> shows what there is to upgrade.</p>
+<p><code>uv tool upgrade bricklogger</code> also upgrades Bricklogger, and the plugins in
+uv's record with it, unchecked; a container that pulls a new image lays its
+plugin volume down again against it. After either, look at
+<code>bricklogger plugins</code>: a plugin that no longer loads shows as
+<a href="#when-a-plugin-cannot-load">failed</a> with the reason, and the author's
+release for the new version is installed with <code>update &lt;type&gt;</code>.</p>
+<h2 id="when-a-plugin-cannot-load">When a plugin cannot load</h2>
+<p>A plugin whose entry point raises when it is loaded, typically for a missing
+dependency or because it was built against another version of the contract,
+or whose declaration does not match its entry point, <strong>stops nothing</strong>:</p>
+<ul>
+<li><strong>The catalogue lists it</strong> with its type, its role from the entry point
+  group and its version from the distribution, and <code>failed: &lt;error&gt;</code> where its
+  description would be. <code>plugins &lt;type&gt;</code> prints the whole error, and the rows
+  of <a href="../api/#plugins"><code>GET /v1/plugins</code></a> carry it.</li>
+<li><strong>Its configured instances are <code>failed</code></strong> in status with the same error and
+  raise the warning <code>instance_failed</code>, which the
+  <a href="../notifications/">notifications</a> mail like any other alarm.</li>
+<li><strong>Validation warns</strong> about each such instance, with the error, instead of
+  checking its settings; the configuration is still valid, so the daemon
+  starts.</li>
+<li><strong>Everything else runs.</strong> Fix the cause and restart the daemon.</li>
+</ul>
+<h3 id="a-type-that-is-not-installed">A type that is not installed</h3>
+<p>A configured instance whose type no installed plugin provides is treated as
+one whose plugin cannot load. This is the case after an upgrade that moved a
+type out into a plugin of its own, when a container could not lay a plugin
+down, and when <code>type:</code> is misspelt in a file edited by hand. The daemon
+starts, and the instance is <code>failed</code> with the error that the type is not
+installed and that <code>bricklogger plugins add</code> installs it, raising
+<code>instance_failed</code>; validation warns with the same message. The catalogue lists
+only what is installed, so the type does not appear in <code>bricklogger plugins</code>.</p>
+<p>A change written through the <a href="../cli/#sources-and-destinations">CLI</a>, the web
+interface, the API or the MCP server is held to more: it is refused when an
+instance it adds or changes names a type that is not installed, so a
+misspelling is caught where it is typed. Instances the change leaves as they
+were are only warned about, so the rest of a file can still be edited while a
+plugin is missing.</p>
+<p>The checks at load are four: the entry point must load to a
+<code>SourceDeclaration</code> in <code>bricklogger.sources</code> and a <code>DestinationDeclaration</code> in
+<code>bricklogger.destinations</code>, the declaration's <code>type_name</code> must equal the entry
+point's name, the name must not be one of <code>all</code>, <code>core</code> and <code>status</code>, which
+<a href="../cli/#update"><code>update</code></a> takes as words of its own, and importing the module
+must succeed.</p>
+<h2 id="writing-a-plugin">Writing a plugin</h2>
+<h3 id="naming-and-layout">Naming and layout</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Convention</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Distribution</td>
+<td><code>bricklogger-&lt;type&gt;</code></td>
+<td><code>bricklogger-httpjson</code></td>
+</tr>
+<tr>
+<td>Importable module</td>
+<td><code>bricklogger_&lt;type&gt;</code></td>
+<td><code>bricklogger_httpjson</code></td>
+</tr>
+<tr>
+<td>Entry point name</td>
+<td>the type name</td>
+<td><code>httpjson</code></td>
+</tr>
+</tbody>
+</table>
+<p>The type name is written in YAML and typed on the command line, so it is
+lowercase letters, digits and hyphens; the module replaces the hyphen with an
+underscore. <code>all</code>, <code>core</code> and <code>status</code> are taken by
+<a href="../cli/#update"><code>bricklogger update</code></a> and cannot name a type. A plugin that
+provides several types registers several entry
+points in one distribution. A small plugin fits in one module:</p>
+<div class="highlight"><pre><span></span><code>bricklogger-httpjson/
+├── pyproject.toml
+├── README.md
+├── src/bricklogger_httpjson/
+│   └── __init__.py        # configuration, source, declaration
+└── tests/
+    └── test_source.py
+</code></pre></div>
+<h3 id="the-project-file">The project file</h3>
+<div class="highlight"><pre><span></span><code><span class="k">[project]</span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;bricklogger-httpjson&quot;</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Bricklogger source: points read from a JSON endpoint&quot;</span>
+<span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.11&quot;</span>
+<span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;bricklogger&gt;=0.2,&lt;0.3&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;httpx&gt;=0.27&quot;</span><span class="p">]</span>
+
+<span class="k">[project.entry-points.</span><span class="s2">&quot;bricklogger.sources&quot;</span><span class="k">]</span>
+<span class="n">httpjson</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;bricklogger_httpjson:SOURCE&quot;</span>
+
+<span class="k">[dependency-groups]</span>
+<span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;pytest&gt;=8.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;pytest-httpserver&gt;=1.0&quot;</span><span class="p">]</span>
+
+<span class="k">[tool.uv.sources]</span>
+<span class="n">bricklogger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">path</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;../bricklogger&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">editable</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<p>The plugin <strong>depends on <code>bricklogger</code></strong>, the whole distribution, and that is
+where the SDK comes from; there is no separate SDK package. Its own
+dependencies are listed as usual and land in the same environment as
+Bricklogger's and every other plugin's, so a version conflict with either is
+found at install, not at run time. Keep the bounds as wide as the plugin can
+honestly take, a lower bound and no upper one without a reason: every plugin
+on a machine shares one copy of each library, and the tightest bound among
+them decides whether two plugins can be
+<a href="#installing-a-plugin">installed together</a>. The <code>tool.uv.sources</code> entry is
+for development, where the dependency is satisfied from a checkout of
+Bricklogger; it stays out of the built wheel, so the released plugin resolves
+<code>bricklogger</code> from PyPI like any other dependency. On a machine the install
+script set up, Bricklogger is already in the environment and the constraint is
+checked against it, and in a container
+<a href="../../docker/#plugins">the image stands in for it</a>.</p>
+<h3 id="the-sdk">The SDK</h3>
+<p><strong><code>bricklogger.sdk</code> is the public surface.</strong> Everything a plugin needs is
+importable from that package, and nothing else in Bricklogger is: the other
+modules may change between releases without notice, and a plugin that
+reaches into them is on its own.</p>
+<table>
+<thead>
+<tr>
+<th>From <code>bricklogger.sdk</code></th>
+<th>Names</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The contract</td>
+<td><code>Source</code>, <code>Destination</code>, <code>Observation</code>, <code>PointMetadata</code>, <code>Outcome</code>, <code>AssignedPoint</code>, <code>Sink</code>, <code>StatusChannel</code>, <code>GraphReader</code>, and the closed vocabularies <code>ValueType</code>, <code>NullReason</code>, <code>OutcomeState</code> and <code>InstanceState</code> as types, with <code>VALUE_TYPES</code> and <code>NULL_REASONS</code> as sets</td>
+</tr>
+<tr>
+<td>The declaration</td>
+<td><code>SourceDeclaration</code>, <code>DestinationDeclaration</code>, <code>CollectionMethod</code>, <code>ToolDeclaration</code>, <code>ToolOffer</code>, <code>Vocabulary</code></td>
+</tr>
+<tr>
+<td>Configuration values</td>
+<td><code>Duration</code>, the type a setting such as a timeout is declared with: it takes <code>30s</code>, <code>5m</code>, <code>1h</code> or <code>7d</code> in YAML and is a <code>timedelta</code> in the plugin; <code>DURATION_HELP</code>, the one-line description of that form, and <code>parse_duration</code> and <code>format_duration</code> for code that handles the text itself, such as a tool parameter</td>
+</tr>
+<tr>
+<td>Prefixes</td>
+<td><code>expand</code>, which turns a prefixed name such as <code>brick:Point</code> into its URI with the prefixes the graph declares (<code>GraphReader.prefixes</code>), and <code>UnknownPrefix</code>, which it raises for a prefix none declares</td>
+</tr>
+<tr>
+<td><code>bricklogger.sdk.bacnet</code></td>
+<td>For a source whose system exposes BACnet objects, on site or through a cloud API: the object types grouped by the value type their present value maps to (<code>ANALOG_TYPES</code>, <code>BINARY_TYPES</code>, <code>MULTISTATE_TYPES</code>, <code>INTEGER_TYPES</code>, <code>STRING_TYPES</code>, <code>DATETIME_TYPES</code>), the reason <code>UNSUPPORTED</code> for one with no counterpart, and the map from BACnet engineering units to QUDT (<code>UNIT_MAP</code> under the namespace <code>QUDT</code>) with <code>protocol_unit</code>, which gives the protocol's own designation where the map has none. The BACnet/IP source uses the same tables</td>
+</tr>
+<tr>
+<td><code>bricklogger.sdk.testing</code></td>
+<td><code>graph_from_turtle</code>, <code>Collector</code>, <code>run_source</code>, <code>assigned</code>; see <a href="#testing-a-plugin">testing a plugin</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="compatibility">Compatibility</h3>
+<p>The contract is stable within a <strong>minor version</strong> of Bricklogger: a change
+that breaks plugins raises the minor version, and a patch release at most adds
+to it — something new that plugins built before it do not need. A plugin
+therefore pins the minor version it was built for, <code>bricklogger&gt;=0.2,&lt;0.3</code>,
+and works with every patch release of it; a plugin that uses an addition
+raises the lower bound to the release that brought it, <code>bricklogger&gt;=0.2.4,&lt;0.3</code>. The author releases the plugin
+again for a new minor version after checking it against the changes the release notes of that version list. The version <code>bricklogger plugins</code>
+shows for a plugin is the plugin's own distribution version.</p>
+<h3 id="the-declaration">The declaration</h3>
+<p>The declaration is what the <a href="../../architecture/#declaration">architecture</a>
+defines: for a source the type name, a description, the configuration schema,
+the reference types it understands, a vocabulary when Brick's reference
+schema has no type for its system, the collection methods beyond <code>poll</code>, the
+tools, and the factory that makes an instance; for a destination the type
+name, the description, the configuration schema, whether it stores metadata,
+and the factory. Three things matter in practice:</p>
+<ul>
+<li><strong>Schemas are pydantic models</strong>, and every setting carries a <strong>one-line
+  <code>description</code></strong>. That text is all the CLI's <code>plugins &lt;type&gt;</code>, <code>init</code>, the
+  web interface's forms and the assistant behind the MCP server know about the
+  setting, so it is written for the operator who fills it in. Reject unknown
+  keys with <code>extra="forbid"</code>, so a misspelt key is an error naming it rather
+  than a setting silently ignored.</li>
+<li><strong>A secret is marked</strong> with the JSON Schema format <code>password</code>, as in the
+  example below; the CLI then asks for it without echo, keeps its value in
+  the <a href="../configuration/#the-env-file"><code>env</code> file</a> and refuses to write it into
+  a configuration file, and the assistant takes it only as <code>${VARIABLE}</code>.</li>
+<li><strong>The factory is the class itself</strong> when its constructor takes <code>name</code>,
+  <code>config</code> and, for a source, <code>graph</code>. The <code>config</code> it receives is the
+  validated instance of the plugin's own schema, never YAML.</li>
+</ul>
+<p>A source whose system has no reference type in Brick's reference schema
+declares a <a href="../../architecture/#declaration">vocabulary</a>: the prefix and
+namespace of its own reference type and a Turtle document shipped in the
+package, which the daemon loads with Brick's ontology at every activation. The vocabulary of the <a href="https://github.com/CX1-ApS/bricklogger-ibos">iBOS source</a> shows the shape.</p>
+<h3 id="a-source-phase-by-phase">A source, phase by phase</h3>
+<p>The <a href="../../architecture/#the-phases-of-the-contract">six phases</a> of the
+contract, seen from the author's side:</p>
+<ol>
+<li><strong>Declaration.</strong> As above.</li>
+<li><strong>Configuration binding.</strong> The daemon validates the instance and calls the
+   factory; the plugin never reads YAML. Keep the constructor cheap and free
+   of network access: it runs at every plan computation, and again in the CLI
+   when a tool runs without a daemon.</li>
+<li><strong>Binding to the model.</strong> <code>resources()</code> returns the exclusive resources the
+   instance claims as opaque strings, such as <code>udp:0.0.0.0:47808</code>, or nothing.
+   <code>claim()</code> finds the references of the declared types in the graph through
+   <code>self.graph.query</code>, decides from the configuration which the instance
+   serves, and returns their <strong>point URIs</strong>. Both run without touching the
+   network, at every reload and activation. The query is plain SPARQL over the
+   union of the model, the ontology, the inferred graph and the value overlay;
+   declare the prefixes you use with <code>PREFIX</code> lines, or build them from
+   <code>self.graph.prefixes</code>, and read the result as pyoxigraph returns it.</li>
+<li><strong>Operation.</strong> <code>assign(points)</code> hands over <strong>full desired state</strong> and may be
+   called before <code>start</code>, and from another thread at any time; the plugin
+   works out what changed. Each <code>AssignedPoint</code> carries the URI, the method
+   name, its parameters, which for <code>poll</code> is <code>interval</code> as a <code>timedelta</code>, and
+   <code>last_observation</code>, where a source with history resumes. <code>start(sink,
+   status)</code> runs in a thread of its own and <strong>returns only after <code>stop</code> has
+   been called</strong>; a loop that returns on its own is treated as a crash, and
+   the daemon restarts the instance with backoff. In the loop the source
+   reports an <code>Outcome</code> per point on the status channel first and again when
+   it changes, pushes <code>Observation</code>s into the sink with <strong>timezone-aware UTC
+   timestamps</strong> from the closed
+   <a href="../../architecture/#the-observation">value-type vocabulary</a>, a <code>null</code> with
+   its reason when there is no valid value, delivers <code>PointMetadata</code> when it
+   knows units and state texts, and raises and clears warnings with codes of
+   its own. A new model gives a new <code>claim</code> and a new <code>assign</code>, so references
+   are resolved again from the graph, not remembered from the first round.</li>
+<li><strong>Protocol tools.</strong> <code>run_tool(name, parameters)</code> receives the parameters
+   already validated against the tool's schema, as a plain dictionary, and
+   returns a JSON-serialisable result. The daemon calls it only while the
+   instance is running; without a daemon the CLI constructs the source and
+   calls it in-process, so a tool must work on a source that was never
+   started.</li>
+<li><strong>Stop.</strong> <code>stop()</code> is called from another thread and only asks; <code>start</code>
+   then finishes within <code>stop_timeout</code> from <code>daemon.yaml</code>, default 10 seconds,
+   flushing what it holds into the sink. A source that misses the deadline is
+   abandoned and reported.</li>
+</ol>
+<h3 id="the-example">The example</h3>
+<p>A complete source, <code>bricklogger-httpjson</code>: every point carries a
+<code>ref:TimeseriesReference</code>, and its <code>ref:hasTimeseriesId</code> is the key under which
+an HTTP endpoint answers <code>{"value": 21.5, "time": "2026-09-19T10:00:00+00:00"}</code>.
+The instance claims every such reference, polls each point at its rule's
+interval and reads one point per request. It is short because the contract
+asks for little; what a real protocol adds is its own.</p>
+<div class="highlight"><pre><span></span><code><span class="sd">&quot;&quot;&quot;bricklogger_httpjson: points read one by one from a JSON endpoint.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">UTC</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">bricklogger.sdk</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AssignedPoint</span><span class="p">,</span>
+    <span class="n">Duration</span><span class="p">,</span>
+    <span class="n">GraphReader</span><span class="p">,</span>
+    <span class="n">Observation</span><span class="p">,</span>
+    <span class="n">Outcome</span><span class="p">,</span>
+    <span class="n">Sink</span><span class="p">,</span>
+    <span class="n">Source</span><span class="p">,</span>
+    <span class="n">SourceDeclaration</span><span class="p">,</span>
+    <span class="n">StatusChannel</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">QUERY</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">PREFIX ref: &lt;https://brickschema.org/schema/Brick/ref#&gt;</span>
+<span class="s2">SELECT ?point ?id WHERE {</span>
+<span class="s2">  ?point ref:hasExternalReference ?reference .</span>
+<span class="s2">  ?reference a ref:TimeseriesReference ; ref:hasTimeseriesId ?id .</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">HttpJsonConfig</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;One ``httpjson`` instance in ``sources.yaml``.&quot;&quot;&quot;</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">extra</span><span class="o">=</span><span class="s2">&quot;forbid&quot;</span><span class="p">)</span>
+
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The endpoint; a point is read at &lt;url&gt;/&lt;timeseries id&gt;&quot;</span>
+    <span class="p">)</span>
+    <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">json_schema_extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;password&quot;</span><span class="p">},</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;A bearer token, given as $</span><span class="si">{VARIABLE}</span><span class="s2"> with the value in &quot;</span>
+        <span class="s2">&quot;the env file&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">timeout</span><span class="p">:</span> <span class="n">Duration</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;How long one read may take&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">HttpJsonSource</span><span class="p">(</span><span class="n">Source</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">HttpJsonConfig</span><span class="p">,</span> <span class="n">graph</span><span class="p">:</span> <span class="n">GraphReader</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stop</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssignedPoint</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_changed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># --- binding to the model ------------------------------------------------</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">resources</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[]</span>  <span class="c1"># nothing exclusive: two instances may read the same endpoint</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">claim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ids</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Point URI to timeseries id, for every reference of our type.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;point&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">):</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">QUERY</span><span class="p">)</span>
+        <span class="p">}</span>
+
+    <span class="c1"># --- operation -----------------------------------------------------------</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">assign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AssignedPoint</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="o">=</span> <span class="p">{</span><span class="n">point</span><span class="o">.</span><span class="n">uri</span><span class="p">:</span> <span class="n">point</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">points</span><span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_changed</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sink</span><span class="p">:</span> <span class="n">Sink</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="n">StatusChannel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span>
+            <span class="n">base_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">token</span> <span class="k">else</span> <span class="p">{},</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="n">ids</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">due</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">with</span> <span class="n">client</span><span class="p">:</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_changed</span><span class="p">:</span>  <span class="c1"># a new assignment: resolve again, report</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_changed</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="n">ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ids</span><span class="p">()</span>
+                        <span class="n">status</span><span class="o">.</span><span class="n">outcomes</span><span class="p">(</span>
+                            <span class="n">Outcome</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="s2">&quot;active&quot;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">uri</span> <span class="ow">in</span> <span class="n">ids</span>
+                            <span class="k">else</span> <span class="n">Outcome</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="s2">&quot;rejected&quot;</span><span class="p">,</span> <span class="s2">&quot;no reference in the graph&quot;</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">uri</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span>
+                        <span class="p">)</span>
+                        <span class="n">due</span> <span class="o">=</span> <span class="p">{</span><span class="n">uri</span><span class="p">:</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">uri</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="k">if</span> <span class="n">uri</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">}</span>
+                    <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic</span><span class="p">()</span>
+                    <span class="n">ready</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="p">[</span><span class="n">uri</span><span class="p">]</span> <span class="k">for</span> <span class="n">uri</span><span class="p">,</span> <span class="n">at</span> <span class="ow">in</span> <span class="n">due</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">at</span> <span class="o">&lt;=</span> <span class="n">now</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">ready</span><span class="p">:</span>
+                        <span class="n">interval</span><span class="p">:</span> <span class="n">timedelta</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;interval&quot;</span><span class="p">]</span>
+                        <span class="n">due</span><span class="p">[</span><span class="n">point</span><span class="o">.</span><span class="n">uri</span><span class="p">]</span> <span class="o">=</span> <span class="n">now</span> <span class="o">+</span> <span class="n">interval</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">ready</span><span class="p">:</span>
+                    <span class="n">sink</span><span class="o">.</span><span class="n">observations</span><span class="p">(</span>
+                        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">point</span><span class="p">,</span> <span class="n">ids</span><span class="p">)</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">ready</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_stop</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Client</span><span class="p">,</span> <span class="n">point</span><span class="p">:</span> <span class="n">AssignedPoint</span><span class="p">,</span> <span class="n">ids</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Observation</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">answer</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">ids</span><span class="p">[</span><span class="n">point</span><span class="o">.</span><span class="n">uri</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">Observation</span><span class="p">(</span>
+                <span class="n">point</span><span class="o">.</span><span class="n">uri</span><span class="p">,</span>
+                <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">answer</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]),</span>
+                <span class="s2">&quot;number&quot;</span><span class="p">,</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">answer</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]),</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Observation</span><span class="p">(</span>
+                <span class="n">point</span><span class="o">.</span><span class="n">uri</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">),</span> <span class="s2">&quot;null&quot;</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;read_error&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stop</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+
+
+<span class="n">SOURCE</span> <span class="o">=</span> <span class="n">SourceDeclaration</span><span class="p">(</span>
+    <span class="n">type_name</span><span class="o">=</span><span class="s2">&quot;httpjson&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Points read one by one from a JSON endpoint, by timeseries id.&quot;</span><span class="p">,</span>
+    <span class="n">config_schema</span><span class="o">=</span><span class="n">HttpJsonConfig</span><span class="p">,</span>
+    <span class="n">reference_types</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;ref:TimeseriesReference&quot;</span><span class="p">,),</span>
+    <span class="n">factory</span><span class="o">=</span><span class="n">HttpJsonSource</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Three things the example does that every source must: it resolves its
+references from the graph <strong>again on every assignment</strong>, since a new model
+may have changed them; it reports an outcome for every assigned point before
+the first read; and its loop <strong>blocks until <code>stop</code></strong>, returning nothing on its
+own. What it leaves out, a real source adds: metadata with the unit and the
+value type once it has read them, a <code>device</code> report per system it talks to,
+warnings with codes of its own, and tools such as a <code>read</code> of one point for
+the CLI.</p>
+<h3 id="a-destination">A destination</h3>
+<p>A destination is the same declaration and binding, and a simpler contract:
+<code>start()</code> connects and prepares storage and raises if it cannot, <code>write(batch)</code>
+writes one batch and raises on failure, <code>write_metadata(entries)</code> stores point
+metadata when the declaration says the destination does, and <code>stop()</code> flushes
+and closes. The one rule to design around is that <strong>delivery is at least
+once</strong>: a batch that was written but not acknowledged arrives again, so the
+write is idempotent, keyed on point and time as
+<a href="../destinations/#timescaledb">TimescaleDB</a> does. Every destination instance
+runs in its own thread, its writes come from a spool the daemon owns, and a
+destination that is down never slows collection; the
+<a href="../../architecture/#the-destination-contract">architecture</a> has the details.</p>
+<div class="highlight"><pre><span></span><code><span class="n">DESTINATION</span> <span class="o">=</span> <span class="n">DestinationDeclaration</span><span class="p">(</span>
+    <span class="n">type_name</span><span class="o">=</span><span class="s2">&quot;csvfiles&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;One CSV file per day, appended in batches.&quot;</span><span class="p">,</span>
+    <span class="n">config_schema</span><span class="o">=</span><span class="n">CsvFilesConfig</span><span class="p">,</span>
+    <span class="n">stores_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">factory</span><span class="o">=</span><span class="n">CsvFilesDestination</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>A destination that cannot store metadata declares <code>stores_metadata=False</code> and
+receives measurements only; status shows which destinations store it.</p>
+<p>A destination that stores <a href="../destinations/#the-model-beside-the-data">the model</a>
+declares <code>stores_model=True</code> — the default is <code>False</code> — and implements two
+methods more: <code>timeseries_ids()</code> returns its key per point URI for every point
+it holds data for, and <code>write_model(model)</code> stores one version, a
+<code>ModelDocument</code> with <code>version</code>, <code>uploaded_at</code>, <code>activations</code> and <code>turtle</code>,
+replacing it if it is there. The daemon adds the references to the Turtle
+before the call, so the destination stores text and needs no RDF. A plugin
+that uses them requires <code>bricklogger&gt;=0.2.4</code>.</p>
+<h2 id="testing-a-plugin">Testing a plugin</h2>
+<p>A plugin lives outside Bricklogger's repository, so the SDK carries what its
+tests need, in <code>bricklogger.sdk.testing</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>graph_from_turtle(text, directory=None, *, vocabularies=None)</code></td>
+<td>Stores and activates the model exactly as the daemon does, with validation, inference, Brick's ontology and the vocabularies of the installed sources, or the ones given, and returns a <code>GraphReader</code> with the model's prefixes. The graph lives in <code>directory</code>, or in a temporary one. A model that does not conform raises, as an upload would be rejected</td>
+</tr>
+<tr>
+<td><code>Collector()</code></td>
+<td>A sink and a status channel in one object that remembers everything, thread-safe: <code>observations_for(point)</code>, <code>metadata_for(point)</code>, <code>outcome_of(point)</code>, <code>warnings</code> by code, <code>devices</code>, <code>states</code>, and <code>wait_until(predicate, timeout=5.0)</code>, which polls until the predicate returns something true and returns it, or raises</td>
+</tr>
+<tr>
+<td><code>run_source(source, points, *, timeout=5.0)</code></td>
+<td>A context manager: assigns <code>points</code>, starts the source in a thread with a fresh <code>Collector</code> and yields the collector; on exit calls <code>stop</code> and waits <code>timeout</code> seconds. It raises when the source did not stop in time or when its loop raised</td>
+</tr>
+<tr>
+<td><code>assigned(uri, method="poll", **parameters)</code></td>
+<td>An <code>AssignedPoint</code>; a string <code>interval</code> such as <code>"1s"</code> is parsed as a duration</td>
+</tr>
+</tbody>
+</table>
+<p>The example's test, against a local HTTP server from <code>pytest-httpserver</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">bricklogger.sdk.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">assigned</span><span class="p">,</span> <span class="n">graph_from_turtle</span><span class="p">,</span> <span class="n">run_source</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bricklogger_httpjson</span><span class="w"> </span><span class="kn">import</span> <span class="n">SOURCE</span><span class="p">,</span> <span class="n">HttpJsonConfig</span>
+
+<span class="n">MODEL</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@prefix brick: &lt;https://brickschema.org/schema/Brick#&gt; .</span>
+<span class="s2">@prefix ref: &lt;https://brickschema.org/schema/Brick/ref#&gt; .</span>
+<span class="s2">@prefix ex: &lt;https://example.com/bldg#&gt; .</span>
+
+<span class="s2">ex:Room a brick:Room .</span>
+<span class="s2">ex:ZAT a brick:Zone_Air_Temperature_Sensor ; brick:isPointOf ex:Room ;</span>
+<span class="s2">    ref:hasExternalReference [ a ref:TimeseriesReference ; ref:hasTimeseriesId &quot;zat&quot; ] .</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">POINT</span> <span class="o">=</span> <span class="s2">&quot;https://example.com/bldg#ZAT&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_claims_and_reads</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">,</span> <span class="n">httpserver</span><span class="p">):</span>
+    <span class="n">httpserver</span><span class="o">.</span><span class="n">expect_request</span><span class="p">(</span><span class="s2">&quot;/zat&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">respond_with_json</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mf">21.5</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="s2">&quot;2026-09-19T10:00:00+00:00&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">graph_from_turtle</span><span class="p">(</span><span class="n">MODEL</span><span class="p">,</span> <span class="n">tmp_path</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">HttpJsonConfig</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">httpserver</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">))</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">SOURCE</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s2">&quot;demo&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">source</span><span class="o">.</span><span class="n">claim</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span><span class="n">POINT</span><span class="p">}</span>
+
+    <span class="k">with</span> <span class="n">run_source</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="p">[</span><span class="n">assigned</span><span class="p">(</span><span class="n">POINT</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="s2">&quot;1s&quot;</span><span class="p">)])</span> <span class="k">as</span> <span class="n">collected</span><span class="p">:</span>
+        <span class="n">observation</span> <span class="o">=</span> <span class="n">collected</span><span class="o">.</span><span class="n">wait_until</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">collected</span><span class="o">.</span><span class="n">observations_for</span><span class="p">(</span><span class="n">POINT</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">observation</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;number&quot;</span>
+    <span class="k">assert</span> <span class="n">observation</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="mf">21.5</span>
+    <span class="k">assert</span> <span class="n">collected</span><span class="o">.</span><span class="n">outcome_of</span><span class="p">(</span><span class="n">POINT</span><span class="p">)</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s2">&quot;active&quot;</span>
+</code></pre></div>
+<p>Test the declaration too: that <code>SOURCE.type_name</code> is the entry point's name,
+that the schema rejects an unknown key, and that every setting has a
+description. Those are the three things the catalogue, <code>init</code> and the
+assistant rely on. A destination needs no harness: construct it with a
+validated configuration, call <code>start</code>, <code>write</code> and <code>stop</code>, and write the same
+batch twice to prove the idempotency.</p>
+<h2 id="distributing-a-plugin">Distributing a plugin</h2>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>build
+</code></pre></div>
+<p>builds the wheel into <code>dist/</code>. It is installed on a machine as described under
+<a href="#installing-a-plugin">installing a plugin</a>: with
+<code>bricklogger plugins add ./dist/&lt;wheel&gt;</code> while it is tried, and by name once
+it is published: <code>uv publish</code> uploads what <code>uv build</code> built to PyPI, which is
+how the <a href="https://github.com/CX1-ApS/bricklogger-ibos">iBOS source</a> is
+released. The plugin's version is its
+own and is what <code>bricklogger plugins</code> shows.</p>
+<p>The plugin documents itself: its README says what its reference looks like,
+what its settings mean and which tools it offers, since this documentation
+covers the built-in plugins only. The one-line descriptions in its schemas
+travel further than the README does, because they are what the CLI, the web
+interface and the assistant show at the moment a setting is filled in.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
