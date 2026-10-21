@@ -35,6 +35,7 @@ from bricklogger.daemon.codes import (
     NOTIFY_FAILED,
     notifiable,
 )
+from bricklogger.daemon.health import told
 from bricklogger.daemon.rules import BRICK, REC
 from bricklogger.daemon.state import RuntimeState
 from bricklogger.model.working_graph import MODEL_GRAPH, WorkingGraph
@@ -677,13 +678,15 @@ def _digest_sections(
                 "Instances",
                 [],
                 [
-                    ("Name", "Role", "Type", "State"),
+                    ("Name", "Role", "Type", "State", "Health", "Reason"),
                     *(
                         (
                             str(item.get("name", "")),
                             str(item.get("role", "")),
                             str(item.get("type", "")),
                             str(item.get("state", "")),
+                            str(item.get("health", "")),
+                            told(item),
                         )
                         for item in instances
                     ),

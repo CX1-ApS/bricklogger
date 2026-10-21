@@ -10,6 +10,7 @@ from bricklogger.config.schema import (
     BatchSettings,
     DaemonSettings,
     Rule,
+    SourceInstance,
     SpoolSettings,
 )
 from bricklogger.daemon.plugins import describe_plugin
@@ -112,6 +113,10 @@ def file_schema(ops: Operations, client: DaemonApi | None, name: str) -> dict[st
             "type": {"const": row["type"], "description": "The plugin type"},
             **(schema.get("properties") or {}),
         }
+        if role == "source":
+            properties["stale_after"] = SourceInstance.model_json_schema()[
+                "properties"
+            ]["stale_after"]
         if role == "destination":
             for key, model in (("spool", SpoolSettings), ("batch", BatchSettings)):
                 reserved = model.model_json_schema()

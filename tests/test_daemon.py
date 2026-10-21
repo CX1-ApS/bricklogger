@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 
 from bricklogger.daemon.api import create_app
 from bricklogger.daemon.core import Daemon, DaemonError
+from bricklogger.daemon.instances import backoff
 from bricklogger.model.timeseries import REF
 from bricklogger.sdk.contract import Observation
 from tests.fakes import FakeDestination, FakeSource
@@ -191,6 +192,67 @@ def test_a_crashed_source_is_restarted_with_its_assignment(
             is False
         )
         wait_for(lambda: len(FakeDestination.received.get("sink_a", [])) >= 3)
+    finally:
+        daemon.stop()
+
+
+def test_the_restart_delay_doubles_and_stays_capped() -> None:
+    """An instance that fails every minute for days must still be restarted."""
+    assert [backoff(n) for n in range(1, 9)] == [1, 2, 4, 8, 16, 32, 60, 60]
+    assert backoff(1025) == 60.0, "the 1025th restart once overflowed a float"
+    assert backoff(1_000_000) == 60.0
+
+
+def test_health_follows_the_warnings_through_status_and_the_api(
+    tmp_path: Path, template: Path
+) -> None:
+    config_dir = make_config(
+        tmp_path, template, sources=SOURCES, destinations=DESTINATIONS
+    )
+    daemon = Daemon(config_dir, registry=REGISTRY, env={}, watch_period=3600)
+    daemon.start()
+    try:
+        client = TestClient(create_app(daemon))
+        wait_for(lambda: len(FakeDestination.received.get("sink_a", [])) >= 3)
+        assert daemon.watch is not None
+        daemon.watch.check()
+        status = daemon.status()
+        assert status["health"] == "ok"
+        assert {i["name"]: i["health"] for i in status["instances"]} == {
+            "fake_a": "ok",
+            "sink_a": "ok",
+        }
+        assert client.get("/health").status_code == 200
+
+        # an hour without anything new: every point of the source is stale
+        daemon.watch.stale(datetime.now(UTC) + timedelta(hours=1))
+        source = next(i for i in daemon.status()["instances"] if i["name"] == "fake_a")
+        assert source["health"] == "degraded"
+        assert source["reason"].endswith("points stale")
+        [row] = daemon.status_sources()
+        assert row["points"]["stale"] == row["points"]["active"] > 0
+        assert row["last_observation"] is not None
+        answer = client.get("/health")
+        assert (answer.status_code, answer.json()["health"]) == (200, "degraded"), (
+            "degraded is not a reason for a container to be restarted"
+        )
+        listed = client.get("/v1/status/warnings").json()
+        stale = [w for w in listed if w["code"] == "stale"]
+        assert stale and {w["severity"] for w in stale} == {"degraded"}
+        assert {w["severity"] for w in listed if w["kind"] == "model"} <= {None}
+
+        daemon.watch.stale(datetime.now(UTC))
+        assert daemon.status()["health"] == "ok"
+
+        # a failed instance is what /health answers 503 for
+        assert daemon.state is not None
+        daemon.state.warn("spool_drop", "sink_a", "the spool dropped 3 observations")
+        sink = next(i for i in daemon.status()["instances"] if i["name"] == "sink_a")
+        assert (sink["health"], sink["reason"]) == (
+            "failed",
+            "the spool dropped 3 observations",
+        )
+        assert client.get("/health").status_code == 503
     finally:
         daemon.stop()
 

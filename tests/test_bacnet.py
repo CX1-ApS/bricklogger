@@ -581,6 +581,7 @@ def test_a_device_that_does_not_answer_is_searched_for_less_and_less() -> None:
         300.0,
         300.0,
     ]
+    assert search_delay(100_000) == 300.0, "a device silent for a year stays capped"
 
 
 def test_the_backoff_holds_the_next_search_back() -> None:

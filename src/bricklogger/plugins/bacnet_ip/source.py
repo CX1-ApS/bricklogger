@@ -91,8 +91,12 @@ def spread_offset(key: str, seconds: float) -> float:
 
 
 def search_delay(failures: int) -> float:
-    """How long a device is left alone after this many failed searches."""
-    return min(SEARCH_BACKOFF_START * 2.0 ** (failures - 1), SEARCH_BACKOFF_MAX)
+    """How long a device is left alone after this many failed searches.
+
+    The exponent stops growing long before the cap, so a device that stays
+    silent for days never reaches a power of two too large for a float.
+    """
+    return min(SEARCH_BACKOFF_START * 2.0 ** min(failures - 1, 32), SEARCH_BACKOFF_MAX)
 
 
 @dataclass(frozen=True)
@@ -443,10 +447,12 @@ class DevicePoller:
         return False
 
     def _report_device(self, *, reachable: bool, error: str | None = None) -> None:
+        """Report the device on the status channel: every answer, so its last
+        success follows the rounds, and every change, skip or error."""
         status = self.source.status
         changed = reachable != self.reachable
         self.reachable = reachable
-        if status is not None and (changed or self.skipped or error):
+        if status is not None and (changed or reachable or self.skipped or error):
             status.device(
                 str(self.instance),
                 reachable=reachable,

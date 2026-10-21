@@ -26,7 +26,7 @@ from bricklogger.cli.client import ApiClient, reachable_client
 from bricklogger.cli.config import config_view, failure
 from bricklogger.cli.context import CliContext, cli_context, operations_of
 from bricklogger.cli.guided import ask_settings, write_env
-from bricklogger.cli.output import fail, print_json, stdout
+from bricklogger.cli.output import fail, health_line, print_json, stdout
 from bricklogger.cli.plugins import (
     coerce_setting,
     declaration_of,
@@ -378,7 +378,7 @@ def _echo_table(role: str, rows: Sequence[Mapping[str, Any]]) -> None:
             table.add_row(
                 row["name"],
                 row["type"],
-                row["state"]
+                _state_cell(row)
                 + (" (operator)" if row.get("stopped_by_operator") else ""),
                 _count(counts.get("active", 0), counted),
                 _count(counts.get("unsupported", 0), counted),
@@ -390,13 +390,20 @@ def _echo_table(role: str, rows: Sequence[Mapping[str, Any]]) -> None:
             table.add_row(
                 row["name"],
                 row["type"],
-                row["state"],
+                _state_cell(row),
                 _count(row.get("written", 0), counted),
                 _count(spool.get("observations", 0), counted),
                 _count(spool.get("dropped", 0), counted),
                 row.get("last_error") or "",
             )
     stdout.print(table)
+
+
+def _state_cell(row: Mapping[str, Any]) -> str:
+    """The state with the health beside it, ``running, degraded``; the reason
+    follows in the detail below the table."""
+    health = row.get("health")
+    return f"{row['state']}, {health}" if health else str(row["state"])
 
 
 def _count(value: Any, counted: bool) -> str:
@@ -410,7 +417,14 @@ def _echo_detail(role: str, row: Mapping[str, Any]) -> None:
     if role == "source":
         resources = ", ".join(row.get("resources") or [])
         line = f"{row['name']}: restarts {row.get('restart_count', 0)}"
+        if row.get("next_retry"):
+            line += f", next retry {row['next_retry']}"
         typer.echo(f"{line}, resources {resources}" if resources else line)
+        stale = (row.get("points") or {}).get("stale", 0)
+        typer.echo(
+            f"  health: {health_line(row, state=False)}; newest observation "
+            f"{row.get('last_observation') or 'none'}; {stale} points stale"
+        )
         devices = row.get("devices") or []
         if not devices:
             typer.echo("  no device seen yet")
@@ -438,8 +452,9 @@ def _echo_detail(role: str, row: Mapping[str, Any]) -> None:
         return
     spool = row.get("spool") or {}
     age = spool.get("oldest_age_seconds")
+    typer.echo(f"{row['name']}: health {health_line(row, state=False)}")
     typer.echo(
-        f"{row['name']}: last write {row.get('last_write') or 'never'}, "
+        f"  last write {row.get('last_write') or 'never'}, "
         f"stores metadata {'yes' if row.get('stores_metadata') else 'no'}, "
         f"stores the model {_model_note(row)}"
     )

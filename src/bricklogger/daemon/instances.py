@@ -1,6 +1,7 @@
 """Running plugin instances: one thread each, a graceful stop with a deadline,
-and a restart with capped exponential backoff after a crash. See
-``docs/architecture.md``, "Isolation and resources" and "Stop"."""
+and a restart with capped exponential backoff after a crash, which starts over
+once an instance has run for as long as the cap. See ``docs/architecture.md``,
+"Isolation and resources" and "Stop"."""
 
 from __future__ import annotations
 
@@ -9,8 +10,9 @@ import threading
 import time
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import replace
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
+from bricklogger.daemon.codes import DEVICE_UNREACHABLE
 from bricklogger.daemon.spool import Entry, Spool
 from bricklogger.daemon.state import RuntimeState
 from bricklogger.model.timeseries import with_references
@@ -30,8 +32,12 @@ BACKOFF_CAP = 60.0
 
 
 def backoff(attempt: int) -> float:
-    """Seconds to wait before restart number ``attempt`` (1-based): 1, 2, 4 … capped."""
-    return float(min(BACKOFF_START * (2 ** (attempt - 1)), BACKOFF_CAP))
+    """Seconds to wait before restart number ``attempt`` (1-based): 1, 2, 4 … capped.
+
+    The exponent stops growing long before the cap, so an instance that fails
+    for days never reaches a power of two too large for a float.
+    """
+    return min(BACKOFF_START * 2.0 ** min(attempt - 1, 32), BACKOFF_CAP)
 
 
 class InstanceStatus:
@@ -49,6 +55,7 @@ class InstanceStatus:
         self.state = state
         self._on_outcomes = on_outcomes
         self._skipped: dict[str, int] = {}
+        self._reachable: dict[str, bool] = {}
 
     def instance_state(self, state: InstanceState, error: str | None = None) -> None:
         self.state.set_instance(
@@ -70,6 +77,7 @@ class InstanceStatus:
             error=error,
             skipped_rounds=skipped_rounds,
         )
+        self._reachability(device, reachable, error)
         previous = self._skipped.get(device)
         self._skipped[device] = skipped_rounds or 0
         if skipped_rounds and skipped_rounds != previous:
@@ -83,6 +91,18 @@ class InstanceStatus:
             self.state.clear_warnings(
                 code="poll_overrun", subject=f"{self.name}/{device}"
             )
+
+    def _reachability(self, device: str, reachable: bool, error: str | None) -> None:
+        """Raise ``device_unreachable`` when a device stops answering, and
+        withdraw it when it answers again; repeated reports change nothing."""
+        previous = self._reachable.get(device)
+        self._reachable[device] = reachable
+        subject = f"{self.name}/{device}"
+        if reachable:
+            if previous is not True:
+                self.state.clear_warnings(code=DEVICE_UNREACHABLE, subject=subject)
+        elif previous is not False:
+            self.state.warn(DEVICE_UNREACHABLE, subject, error or "does not answer")
 
     def outcomes(self, outcomes: Iterable[Outcome]) -> None:
         items = list(outcomes)
@@ -132,21 +152,47 @@ class SourceRunner:
         self._thread: threading.Thread | None = None
         self._stopping = threading.Event()
         self._restarts = 0
+        self._attempt = 0
         self._lock = threading.Lock()
         self._assignment: list[AssignedPoint] = []
         self.current_state: InstanceState = "stopped"
+        self.running_since: datetime | None = None
+        self.next_retry: datetime | None = None
 
-    def start(self) -> None:
-        """Start the supervising thread; an operator-stopped instance stays stopped."""
+    def start(self, delay: float = 0.0) -> None:
+        """Start the supervising thread; an operator-stopped instance stays stopped.
+
+        ``delay`` holds the first run back, for a restart the watchdog makes.
+        """
         with self._lock:
             if self._thread is not None and self._thread.is_alive():
                 return
             self._stopping.clear()
             self._thread = threading.Thread(
-                target=self._supervise, name=f"source:{self.name}", daemon=True
+                target=self._supervise,
+                args=(delay,),
+                name=f"source:{self.name}",
+                daemon=True,
             )
-            self._set_state("starting")
+            if not delay:
+                self._set_state("starting")
             self._thread.start()
+
+    def ended_unseen(self) -> bool:
+        """Whether the supervising thread has ended although nobody stopped it."""
+        thread = self._thread
+        return (
+            thread is not None
+            and not thread.is_alive()
+            and not self._stopping.is_set()
+            and self.current_state != "stopped"
+        )
+
+    def revive(self) -> None:
+        """Restart a supervisor that ended unseen: failed, warned and restarted
+        with the backoff, as a crash would be."""
+        delay = self._fail("the supervisor ended without a failure being seen")
+        self.start(delay)
 
     def assign(self, points: Sequence[AssignedPoint]) -> None:
         """Hand over full desired state; repeated after a restart."""
@@ -196,31 +242,58 @@ class SourceRunner:
         self._set_state("stopped")
         return True
 
-    def _supervise(self) -> None:
-        while not self._stopping.is_set():
-            try:
-                self._set_state("running")
-                self.state.clear_warnings(code="instance_failed", subject=self.name)
-                self.source.start(self.sink, self.status)
-                if not self._stopping.is_set():
-                    raise RuntimeError("the loop returned without a stop")
+    def _supervise(self, delay: float = 0.0) -> None:
+        try:
+            if delay and not self._wait_to_retry(delay):
                 return
-            except Exception as exc:
-                if self._stopping.is_set():
-                    return
-                self._restarts += 1
-                delay = backoff(self._restarts)
-                log.exception("source %s failed; restart in %.0fs", self.name, delay)
-                self._set_state("failed", str(exc), restarts=self._restarts)
-                self.state.warn("instance_failed", self.name, f"failed: {exc}")
-                if self._stopping.wait(delay):
-                    return
-                with self._lock:
-                    assignment = list(self._assignment)
+            while not self._stopping.is_set():
+                started = time.monotonic()
                 try:
-                    self.source.assign(self._with_history(assignment))
-                except Exception:
-                    log.exception("source %s failed to take its assignment", self.name)
+                    self.next_retry = None
+                    self.running_since = datetime.now(UTC)
+                    self._set_state("running")
+                    self.state.clear_warnings(code="instance_failed", subject=self.name)
+                    self.source.start(self.sink, self.status)
+                    if not self._stopping.is_set():
+                        raise RuntimeError("the loop returned without a stop")
+                    return
+                except Exception as exc:
+                    if self._stopping.is_set():
+                        return
+                    if time.monotonic() - started >= BACKOFF_CAP:
+                        self._attempt = 0  # it ran cleanly for the cap: start over
+                    log.exception("source %s failed", self.name)
+                    if not self._wait_to_retry(self._fail(f"failed: {exc}", str(exc))):
+                        return
+        except Exception as exc:
+            # Nothing above should raise; if it does, the instance is failed in
+            # status at once and the daemon's watchdog restarts it.
+            log.exception("the supervisor of source %s ended", self.name)
+            self._fail(f"the supervisor ended: {exc}", str(exc))
+
+    def _fail(self, message: str, error: str | None = None) -> float:
+        """Mark the instance failed with a warning; the delay before its restart."""
+        self._restarts += 1
+        self._attempt += 1
+        delay = backoff(self._attempt)
+        self.next_retry = datetime.now(UTC) + timedelta(seconds=delay)
+        self.running_since = None
+        log.error("source %s %s; restart in %.0fs", self.name, message, delay)
+        self._set_state("failed", error or message, restarts=self._restarts)
+        self.state.warn("instance_failed", self.name, message)
+        return delay
+
+    def _wait_to_retry(self, delay: float) -> bool:
+        """Wait out the backoff and hand the assignment over again; False on a stop."""
+        if self._stopping.wait(delay):
+            return False
+        with self._lock:
+            assignment = list(self._assignment)
+        try:
+            self.source.assign(self._with_history(assignment))
+        except Exception:
+            log.exception("source %s failed to take its assignment", self.name)
+        return True
 
     def _set_state(
         self,
@@ -293,6 +366,25 @@ class DestinationRunner:
         self._set_state("starting")
         self._thread.start()
 
+    def ended_unseen(self) -> bool:
+        """Whether the writing thread has ended although nobody stopped it."""
+        thread = self._thread
+        return (
+            thread is not None
+            and not thread.is_alive()
+            and not self._stopping.is_set()
+            and self.current_state != "stopped"
+        )
+
+    def revive(self) -> None:
+        """Restart a writing thread that ended unseen, failed and warned."""
+        message = "the writing thread ended without a failure being seen"
+        self._restarts += 1
+        log.error("destination %s: %s; restarting", self.name, message)
+        self._set_state("failed", message, restarts=self._restarts)
+        self.state.warn("instance_failed", self.name, message)
+        self.start()
+
     def stop(self) -> bool:
         self._stopping.set()
         self.spool.wakeup.set()
@@ -361,15 +453,17 @@ class DestinationRunner:
             self.destination.stop()
         except Exception:
             log.exception("destination %s raised while stopping to restart", self.name)
+        attempt = 0
         while not self._stopping.is_set():
             self._restarts += 1
+            attempt += 1
             try:
                 self.destination.start()
             except Exception as exc:
                 self._set_state("failed", str(exc), restarts=self._restarts)
                 self.state.warn("instance_failed", self.name, f"could not start: {exc}")
                 log.exception("destination %s could not start again", self.name)
-                if self._stopping.wait(backoff(self._restarts)):
+                if self._stopping.wait(backoff(attempt)):
                     break
                 continue
             log.info("destination %s started again after a failed write", self.name)

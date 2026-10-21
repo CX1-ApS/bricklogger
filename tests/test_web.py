@@ -49,6 +49,10 @@ def test_overview_shows_health_summary_and_warnings(
     assert partial.status_code == 200 and "Observations received" in partial.text
     assert "Last seen" in html and ">Clear all<" in html and ">Clear<" in html
     assert "Kind" in html, "the warning table names each code kind"
+    assert "Severity" in html, "and each code's severity"
+    assert "Newest observation" in html and ">ok</span>" in html, (
+        "the instances with their health, a model warning leaving it ok"
+    )
     assert served.daemon.state is not None
     served.daemon.state.warn("stop_timeout", "ghost", "left over")
     cleared = web.post(

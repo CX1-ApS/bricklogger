@@ -39,10 +39,12 @@ from bricklogger.sdk.contract import (
 from bricklogger.sdk.declaration import (
     CollectionMethod,
     DestinationDeclaration,
+    Severity,
     SourceDeclaration,
     ToolDeclaration,
     ToolOffer,
     Vocabulary,
+    WarningCode,
 )
 
 __all__ = [
@@ -62,6 +64,7 @@ __all__ = [
     "Outcome",
     "OutcomeState",
     "PointMetadata",
+    "Severity",
     "Sink",
     "Source",
     "SourceDeclaration",
@@ -71,6 +74,7 @@ __all__ = [
     "UnknownPrefix",
     "ValueType",
     "Vocabulary",
+    "WarningCode",
     "expand",
     "format_duration",
     "parse_duration",

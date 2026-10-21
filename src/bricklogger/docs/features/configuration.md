@@ -207,6 +207,20 @@ tsdb:
 Accepted points are written to **all** configured destinations; there is no
 routing per rule.
 
+One key in a source instance is **reserved for the daemon** and never reaches
+the plugin: `stale_after`, the [staleness limit](daemon.md#stale-points) of
+the instance's points, as a duration such as `30m` or `2h`. Without it a
+point is stale after three times its rule's `interval`, or after the default
+the plugin declares.
+
+```yaml
+# sources.yaml
+ibos:
+  type: ibos
+  stale_after: 2h   # default: 3 × the rule's interval, or the plugin's own
+  # … the type's own settings
+```
+
 Two keys in a destination instance are **reserved for the daemon** and never
 reach the plugin: `spool` and `batch`.
 

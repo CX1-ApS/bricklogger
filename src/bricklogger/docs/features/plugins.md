@@ -269,7 +269,7 @@ reaches into them is on its own.
 | From `bricklogger.sdk` | Names |
 |------------------------|-------|
 | The contract | `Source`, `Destination`, `Observation`, `PointMetadata`, `Outcome`, `AssignedPoint`, `Sink`, `StatusChannel`, `GraphReader`, and the closed vocabularies `ValueType`, `NullReason`, `OutcomeState` and `InstanceState` as types, with `VALUE_TYPES` and `NULL_REASONS` as sets |
-| The declaration | `SourceDeclaration`, `DestinationDeclaration`, `CollectionMethod`, `ToolDeclaration`, `ToolOffer`, `Vocabulary` |
+| The declaration | `SourceDeclaration`, `DestinationDeclaration`, `CollectionMethod`, `ToolDeclaration`, `ToolOffer`, `Vocabulary`, and `WarningCode` with its `Severity` |
 | Configuration values | `Duration`, the type a setting such as a timeout is declared with: it takes `30s`, `5m`, `1h` or `7d` in YAML and is a `timedelta` in the plugin; `DURATION_HELP`, the one-line description of that form, and `parse_duration` and `format_duration` for code that handles the text itself, such as a tool parameter |
 | Prefixes | `expand`, which turns a prefixed name such as `brick:Point` into its URI with the prefixes the graph declares (`GraphReader.prefixes`), and `UnknownPrefix`, which it raises for a prefix none declares |
 | `bricklogger.sdk.bacnet` | For a source whose system exposes BACnet objects, on site or through a cloud API: the object types grouped by the value type their present value maps to (`ANALOG_TYPES`, `BINARY_TYPES`, `MULTISTATE_TYPES`, `INTEGER_TYPES`, `STRING_TYPES`, `DATETIME_TYPES`), the reason `UNSUPPORTED` for one with no counterpart, and the map from BACnet engineering units to QUDT (`UNIT_MAP` under the namespace `QUDT`) with `protocol_unit`, which gives the protocol's own designation where the map has none. The BACnet/IP source uses the same tables |
@@ -292,9 +292,11 @@ The declaration is what the [architecture](../architecture.md#declaration)
 defines: for a source the type name, a description, the configuration schema,
 the reference types it understands, a vocabulary when Brick's reference
 schema has no type for its system, the collection methods beyond `poll`, the
-tools, and the factory that makes an instance; for a destination the type
-name, the description, the configuration schema, whether it stores metadata,
-and the factory. Three things matter in practice:
+tools, the warning codes it raises with their severity, a default staleness
+limit when its points arrive in bursts, and the factory that makes an
+instance; for a destination the type name, the description, the configuration
+schema, whether it stores metadata, its warning codes, and the factory. Three
+things matter in practice:
 
 - **Schemas are pydantic models**, and every setting carries a **one-line
   `description`**. That text is all the CLI's `plugins <type>`, `init`, the
@@ -314,6 +316,15 @@ A source whose system has no reference type in Brick's reference schema
 declares a [vocabulary](../architecture.md#declaration): the prefix and
 namespace of its own reference type and a Turtle document shipped in the
 package, which the daemon loads with Brick's ontology at every activation. The vocabulary of the [iBOS source](https://github.com/CX1-ApS/bricklogger-ibos) shows the shape.
+
+**Warning codes are declared** with a one-line meaning and a severity,
+`degraded` or `failed`: what the warning does to the instance's
+[health](daemon.md#health). Raising a code the declaration does not list
+still works, and counts as `degraded`. A source whose system records samples
+on a rhythm of its own and is copied in bursts — a history source — declares
+a **default staleness limit**, so its points are not reported
+[stale](daemon.md#stale-points) between bursts; the operator can still set
+`stale_after` per instance.
 
 ### A source, phase by phase
 
@@ -347,8 +358,10 @@ contract, seen from the author's side:
    timestamps** from the closed
    [value-type vocabulary](../architecture.md#the-observation), a `null` with
    its reason when there is no valid value, delivers `PointMetadata` when it
-   knows units and state texts, and raises and clears warnings with codes of
-   its own. A new model gives a new `claim` and a new `assign`, so references
+   knows units and state texts, reports each device it talks to with
+   `device` — reachable or not — after every round, from which the daemon
+   raises `device_unreachable` and shows the last success, and raises and
+   clears warnings with the codes it declared. A new model gives a new `claim` and a new `assign`, so references
    are resolved again from the graph, not remembered from the first round.
 5. **Protocol tools.** `run_tool(name, parameters)` receives the parameters
    already validated against the tool's schema, as a plain dictionary, and

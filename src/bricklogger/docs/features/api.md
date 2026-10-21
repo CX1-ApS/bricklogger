@@ -59,7 +59,7 @@ the responses unchanged. The API binds to localhost by default, as set in
 | Method | Path | Purpose | CLI |
 |--------|------|---------|-----|
 | GET | `/health/live` | Alive: 200 while the daemon runs, with its `pid` and `started_at` | `status` |
-| GET | `/health` | Doing its job: 200 for `ok` and `idle`, 503 for `degraded` | — |
+| GET | `/health` | Doing its job: 200 for `ok`, `idle` and `degraded`, 503 while an instance is `failed` | — |
 | POST | `/v1/daemon/reload` | Reload the configuration from disk, validated as a whole | `daemon reload` |
 | POST | `/v1/daemon/stop` | Graceful stop within `stop_timeout` | `daemon stop` |
 
@@ -68,9 +68,9 @@ the responses unchanged. The API binds to localhost by default, as set in
 | Method | Path | Purpose | CLI |
 |--------|------|---------|-----|
 | GET | `/v1/status` | The daemon summary | `status` |
-| GET | `/v1/status/sources` | Sources per instance, with devices and outcomes | `sources status` |
-| GET | `/v1/status/destinations` | Destinations per instance, with spool and writes | `destinations status` |
-| GET | `/v1/status/warnings` | The flat warning list: code, kind, subject, message, first seen, last seen, count | `status warnings` |
+| GET | `/v1/status/sources` | Sources per instance, with health, devices and outcomes | `sources status` |
+| GET | `/v1/status/destinations` | Destinations per instance, with health, spool and writes | `destinations status` |
+| GET | `/v1/status/warnings` | The flat warning list: code, kind, severity, subject, message, first seen, last seen, count | `status warnings` |
 | DELETE | `/v1/status/warnings` | Clears warnings by hand: all of them, those with `?code=`, or the one with `?code=` and `?subject=`; answers with the number cleared | `status warnings clear` |
 | GET | `/v1/points` | The paged points view; filters `instance` and `outcome` on the whole value, `warning` and `class` on part of it | `points` |
 
@@ -148,6 +148,8 @@ time**; a second one is queued behind the first. A job carries its `id`, the
 `step` — `validating`, `inferring` or `activating` — the times it `started`
 and `finished`, and on completion either a `result` or a `problem` in the
 error format above. Finished jobs stay readable until the daemon restarts.
+Validation and inference run in a child process, so the API answers as
+usual while a job runs, however large the model.
 The `202` answer carries the job and a `Location` header pointing at it.
 
 A `result` carries the stored `version`, the validation `report` with its

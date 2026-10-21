@@ -13,6 +13,7 @@ from typing import Any
 
 from bricklogger import __version__
 from bricklogger.config import Configuration, validate_configuration
+from bricklogger.config.values import format_duration
 from bricklogger.model.prefixes import WELL_KNOWN, declared_prefixes
 from bricklogger.model.versions import ModelStore
 from bricklogger.sdk.declaration import (
@@ -98,8 +99,21 @@ def describe_plugin(
         "config_schema": declaration.config_schema.model_json_schema(),
         "instances": instances,
         "error": None,
+        "warning_codes": [
+            {
+                "code": warning.code,
+                "description": warning.description,
+                "severity": warning.severity,
+            }
+            for warning in declaration.warning_codes
+        ],
     }
     if source is not None:
+        data["stale_after"] = (
+            format_duration(source.stale_after)
+            if source.stale_after is not None
+            else None
+        )
         data["reference_types"] = list(source.reference_types)
         data["vocabulary"] = (
             {

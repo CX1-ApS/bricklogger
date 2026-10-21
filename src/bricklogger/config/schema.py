@@ -264,15 +264,21 @@ class BatchSettings(_Strict):
 
 
 class SourceInstance(BaseModel):
-    """An entry in ``sources.yaml``: ``type`` picks the plugin, the rest is its own."""
+    """An entry in ``sources.yaml``: ``type`` picks the plugin, ``stale_after`` is
+    the daemon's, and the rest is the plugin's own."""
 
     model_config = ConfigDict(extra="allow")
 
     type: str = Field(description="The plugin type, e.g. bacnet-ip")
+    stale_after: Duration | None = Field(
+        default=None,
+        description="How long a point may deliver nothing before it is stale, "
+        "e.g. 2h; by default three times its rule's interval, or the plugin's own",
+    )
 
     @property
     def settings(self) -> dict[str, Any]:
-        """The instance's own keys, validated later against the plugin's schema."""
+        """The instance's own keys, without the reserved ``stale_after``."""
         return dict(self.model_extra or {})
 
 

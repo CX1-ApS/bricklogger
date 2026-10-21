@@ -3,7 +3,8 @@
 The declaration is static: the type name, the reference types a source
 understands, the vocabulary that defines a reference type of its own, its
 collection methods, the configuration schema of an instance, the protocol
-tools, and the factory that makes an instance. The daemon validates the
+tools, the warning codes with their severity, a source's default staleness
+limit, and the factory that makes an instance. The daemon validates the
 configuration against it and the CLI lists it, without starting anything. See
 ``docs/architecture.md``, "Declaration".
 """
@@ -13,13 +14,37 @@ from __future__ import annotations
 import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from datetime import timedelta
 from importlib.resources import files
+from typing import Literal
 
 from pydantic import BaseModel
 
 from bricklogger.sdk.contract import Destination, GraphReader, Source
 
 RESERVED_TOOL_NAMES = frozenset({"start", "stop", "restart"})
+
+Severity = Literal["degraded", "failed"]
+"""What a warning does to its instance's health; see ``docs/features/daemon.md``."""
+
+
+@dataclass(frozen=True)
+class WarningCode:
+    """A warning code a plugin raises: its name, what it means in one line,
+    and its severity. A code raised without being declared counts as
+    ``degraded``."""
+
+    code: str
+    description: str
+    severity: Severity = "degraded"
+
+    def __post_init__(self) -> None:
+        if self.severity not in ("degraded", "failed"):
+            raise ValueError(
+                f"{self.code!r}: the severity is degraded or failed, "
+                f"not {self.severity!r}"
+            )
+
 
 SourceFactory = Callable[[str, BaseModel, GraphReader], Source]
 DestinationFactory = Callable[[str, BaseModel], Destination]
@@ -124,6 +149,10 @@ class SourceDeclaration:
     supports_poll: bool = True
     tools: tuple[ToolDeclaration, ...] = ()
     factory: SourceFactory | None = None
+    warning_codes: tuple[WarningCode, ...] = ()
+    stale_after: timedelta | None = None
+    """The default staleness limit, for a source whose points arrive in bursts;
+    without it a point is stale after three times its rule's interval."""
 
     role = "source"
 
@@ -159,6 +188,7 @@ class DestinationDeclaration:
     stores_metadata: bool = True
     factory: DestinationFactory | None = None
     stores_model: bool = False
+    warning_codes: tuple[WarningCode, ...] = ()
 
     role = "destination"
 

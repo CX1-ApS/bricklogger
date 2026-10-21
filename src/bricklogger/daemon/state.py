@@ -352,6 +352,16 @@ class RuntimeState:
             ).fetchall()
         return {str(row["outcome"]): int(row["n"]) for row in rows}
 
+    def newest_observations(self) -> dict[str, str]:
+        """Each instance's newest observation time among its planned points."""
+        with self._lock:
+            rows = self._db.execute(
+                "SELECT instance, MAX(last_observation) AS newest FROM points "
+                "WHERE instance IS NOT NULL AND last_observation IS NOT NULL "
+                "GROUP BY instance"
+            ).fetchall()
+        return {str(row["instance"]): str(row["newest"]) for row in rows}
+
     @staticmethod
     def _point_row(row: sqlite3.Row) -> dict[str, Any]:
         value = row["last_valid_value"]

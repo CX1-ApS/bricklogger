@@ -18,6 +18,7 @@ from typing import TypeVar
 
 from bricklogger.sdk.declaration import (
     DestinationDeclaration,
+    Severity,
     SourceDeclaration,
     Vocabulary,
 )
@@ -107,6 +108,20 @@ class PluginRegistry:
     def prefixes(self) -> dict[str, str]:
         """The prefixes of the installed sources' vocabularies."""
         return {v.prefix: v.namespace for v in self.vocabularies()}
+
+    def severities(self) -> dict[str, Severity]:
+        """The warning codes the installed plugins declare, with their severity;
+        a code two plugins declare differently counts at the worse of the two."""
+        found: dict[str, Severity] = {}
+        declarations: list[SourceDeclaration | DestinationDeclaration] = [
+            *self.sources.values(),
+            *self.destinations.values(),
+        ]
+        for declaration in declarations:
+            for warning in declaration.warning_codes:
+                if found.get(warning.code) != "failed":
+                    found[warning.code] = warning.severity
+        return found
 
     @classmethod
     def of(

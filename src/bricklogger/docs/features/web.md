@@ -58,9 +58,9 @@ job, as for the API. The settings live in
 
 | Screen | Content | CLI |
 |--------|---------|-----|
-| Overview | Health, the daemon summary and the warning list with first and last seen, a Clear per warning and one for all | `status`, `status warnings`, `status warnings clear` |
+| Overview | Health, the daemon summary, a table of the instances with role, type, state, health and reason, newest observation and the time the reason began, and the warning list with first and last seen, a Clear per warning and one for all | `status`, `status warnings`, `status warnings clear` |
 | Points | The paged points view with its filters and the last valid value per point | `points` |
-| Sources and destinations | Instances with state, devices and outcomes; start, stop and restart; the plugin's tools as forms with their results; a tool whose result is a document as a download — `<instance>-<tool>[-<values>]-<date>.json` — either from a form of its own or, when the plugin offers it on another tool's rows, as a button on each row of that result and one for the whole document above the rows | `sources`, `destinations` |
+| Sources and destinations | Instances with state, health and reason, devices and outcomes; start, stop and restart; the plugin's tools as forms with their results; a tool whose result is a document as a download — `<instance>-<tool>[-<values>]-<date>.json` — either from a form of its own or, when the plugin offers it on another tool's rows, as a button on each row of that result and one for the whole document above the rows | `sources`, `destinations` |
 | Model | Versions with activation history; upload with the job's progress and the resulting diff; activate, diff and export | `model` |
 | Explorer | The active model as a hierarchy of building, floor, room or zone, equipment and points, with sorting, filtering and search; a graph of the selected element's neighbourhood; a detail panel; findings and the runtime state per point in the signal colour | `model tree` |
 | Configuration | The four files in a YAML editor, validation before saving with errors shown at their keys, and `init` on an empty directory | `daemon config`, `sources config`, `destinations config`, `rules config` (`show` and `edit`), `init` |

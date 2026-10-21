@@ -34,6 +34,7 @@ from bricklogger.config import (
     validate_configuration,
     write_text,
 )
+from bricklogger.daemon.codes import STALE, severity_of
 from bricklogger.daemon.explorer import (
     attach_runtime,
     empty_document,
@@ -41,6 +42,7 @@ from bricklogger.daemon.explorer import (
     narrow,
     project_entities,
 )
+from bricklogger.daemon.health import InstanceHealth, assess, overall
 from bricklogger.daemon.instances import DestinationRunner, InstanceStatus, SourceRunner
 from bricklogger.daemon.jobs import Job, JobFailed, JobRunner
 from bricklogger.daemon.metadata import graph_metadata
@@ -53,6 +55,7 @@ from bricklogger.daemon.sparql import run_query
 from bricklogger.daemon.spool import SPOOL_DIR, Spool
 from bricklogger.daemon.state import STATE_FILE, RuntimeState
 from bricklogger.daemon.updates import Lookup, UpdateWatch
+from bricklogger.daemon.watch import WATCH_PERIOD, Watch, Watched
 from bricklogger.model import (
     INFERRED_GRAPH,
     MODEL_GRAPH,
@@ -69,8 +72,10 @@ from bricklogger.model import (
     activate_version,
     diff_versions,
     parse_model,
-    validate_and_infer,
-    validate_model,
+)
+from bricklogger.model.child import (
+    validate_and_infer_in_child,
+    validate_model_in_child,
 )
 from bricklogger.model.prefixes import (
     WELL_KNOWN,
@@ -207,6 +212,7 @@ class Daemon:
         registry: PluginRegistry | None = None,
         env: Mapping[str, str] | None = None,
         update_lookup: Lookup | None = None,
+        watch_period: float = WATCH_PERIOD,
     ) -> None:
         self.config_dir = config_dir
         if registry is None:
@@ -226,6 +232,8 @@ class Daemon:
         self.spools: dict[str, Spool] = {}
         self.notifier: Notifier | None = None
         self.updates: UpdateWatch | None = None
+        self.watch: Watch | None = None
+        self._watch_period = watch_period
         self._update_lookup = update_lookup
         self.plan: Plan | None = None
         self.active_version: int | None = None
@@ -273,10 +281,16 @@ class Daemon:
         self.notifier.start()
         self.updates = UpdateWatch(config.daemon.updates.check, self._update_lookup)
         self.updates.start()
+        self.watch = Watch(
+            self.state, self._revive_ended, self._watched, self._watch_period
+        )
+        self.watch.start()
         log.info("daemon started with config %s", self.config_dir)
 
     def stop(self) -> None:
         self.jobs.stop()
+        if self.watch is not None:
+            self.watch.stop()
         if self.updates is not None:
             self.updates.stop()
         if self.notifier is not None:
@@ -353,17 +367,18 @@ class Daemon:
     ) -> Activation:
         """Activate a stored version: validate, infer, swap, re-plan.
 
-        Validation and inference run without the lock; only the swap holds it,
-        so the daemon keeps collecting on the running model meanwhile.
+        Validation and inference run in a child process and without the lock;
+        only the swap holds it, so the daemon keeps answering and collecting on
+        the running model meanwhile.
         """
         assert self.model_store is not None
         stored = self.model_store.get(version)
         started = time.monotonic()
-        inference = validate_and_infer(
+        inference = validate_and_infer_in_child(
             self.model_store.read(version),
             stored.format,
             on_step,
-            vocabularies=self.registry.vocabularies(),
+            self.registry.vocabularies(),
         )
         return self._swap(inference, version, started, on_step)
 
@@ -427,7 +442,9 @@ class Daemon:
             try:
                 if not activate:
                     step("validating")
-                    report = validate_model(data, fmt, self.registry.vocabularies())
+                    report = validate_model_in_child(
+                        data, fmt, self.registry.vocabularies()
+                    )
                     if not report.valid:
                         raise JobFailed(model_problem(report))
                     version = store.store(data, fmt)
@@ -439,8 +456,8 @@ class Daemon:
                         "diff": None,
                         "activation": None,
                     }
-                inference = validate_and_infer(
-                    data, fmt, step, vocabularies=self.registry.vocabularies()
+                inference = validate_and_infer_in_child(
+                    data, fmt, step, self.registry.vocabularies()
                 )
             except ModelInvalid as exc:
                 raise JobFailed(model_problem(exc.report)) from exc
@@ -1029,21 +1046,62 @@ class Daemon:
 
     # --- status --------------------------------------------------------------
 
-    def health(self) -> str:
-        """``ok``, ``idle`` or ``degraded``, as the health endpoint reports it."""
+    def health(self, healths: Mapping[str, InstanceHealth] | None = None) -> str:
+        """``ok``, ``idle`` or ``degraded``: the overall health, which is
+        ``degraded`` while any instance is not ``ok``."""
         assert self.state is not None
         if self.active_version is None:
             return "idle"
         if self.sources and all(self.state.stop_intent(name) for name in self.sources):
             return "idle"
-        failed = any(
-            source.current_state == "failed" for source in self.sources.values()
-        ) or any(
-            destination.current_state == "failed"
-            for destination in self.destinations.values()
-        )
-        dropped = self.state.has_warning("spool_drop")
-        return "degraded" if failed or dropped or self.unloadable else "ok"
+        if healths is None:
+            healths = self.instance_health()
+        return "ok" if overall(healths.values()) == "ok" else "degraded"
+
+    def failing(self) -> bool:
+        """Whether an instance is ``failed``, which ``/health`` answers 503 for."""
+        return overall(self.instance_health().values()) == "failed"
+
+    def instance_health(self) -> dict[str, InstanceHealth]:
+        """Every configured instance's health, read off the warnings."""
+        assert self.state is not None
+        names = [*self.sources, *self.destinations, *self.unloadable]
+        owners = {
+            uri: row["instance"] for uri, row in self.state.point_states().items()
+        }
+        return assess(names, self.state.warnings(), owners, self.registry.severities())
+
+    def _revive_ended(self) -> None:
+        """The watch's first task: restart an instance whose thread ended unseen."""
+        with self._lock:
+            runners: list[SourceRunner | DestinationRunner] = [
+                *self.sources.values(),
+                *self.destinations.values(),
+            ]
+            for runner in runners:
+                if runner.ended_unseen():
+                    runner.revive()
+
+    def _watched(self) -> dict[str, Watched]:
+        """What the watch judges staleness by, per source instance."""
+        assert self.configuration is not None
+        with self._lock:
+            plan = self.plan
+            watched: dict[str, Watched] = {}
+            for name, runner in self.sources.items():
+                instance = self.configuration.sources.get(name)
+                declaration = self.registry.sources.get(runner.type_name)
+                watched[name] = Watched(
+                    points=list(plan.assignments.get(name, [])) if plan else [],
+                    running_since=(
+                        runner.running_since
+                        if runner.current_state == "running"
+                        else None
+                    ),
+                    stale_after=instance.stale_after if instance else None,
+                    default=declaration.stale_after if declaration else None,
+                )
+            return watched
 
     def status(self) -> dict[str, Any]:
         assert self.state is not None and self.configuration is not None
@@ -1055,9 +1113,24 @@ class Daemon:
         )
         activation = self.state.last_activation()
         counts = self.state.point_counts()
+        healths = self.instance_health()
+        newest = self.state.newest_observations()
+
+        def instance(
+            name: str, role: str, type_name: str, state: str
+        ) -> dict[str, Any]:
+            return {
+                "name": name,
+                "role": role,
+                "type": type_name,
+                "state": state,
+                **healths[name].as_dict(),
+                "last_observation": newest.get(name) if role == "source" else None,
+            }
+
         return {
             "version": __version__,
-            "health": self.health(),
+            "health": self.health(healths),
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "uptime_seconds": (
                 (datetime.now(UTC) - self.started_at).total_seconds()
@@ -1083,30 +1156,15 @@ class Daemon:
                 "skipped": len(self.plan.rule_issues) if self.plan else 0,
             },
             "instances": [
-                {
-                    "name": name,
-                    "role": "source",
-                    "type": runner.type_name,
-                    "state": runner.current_state,
-                }
+                instance(name, "source", runner.type_name, runner.current_state)
                 for name, runner in self.sources.items()
             ]
             + [
-                {
-                    "name": name,
-                    "role": "destination",
-                    "type": destination.type_name,
-                    "state": destination.current_state,
-                }
-                for name, destination in self.destinations.items()
+                instance(name, "destination", runner.type_name, runner.current_state)
+                for name, runner in self.destinations.items()
             ]
             + [
-                {
-                    "name": name,
-                    "role": entry.role,
-                    "type": entry.type_name,
-                    "state": "failed",
-                }
+                instance(name, entry.role, entry.type_name, "failed")
                 for name, entry in self.unloadable.items()
             ],
             "warnings": len(self.state.warnings()),
@@ -1121,19 +1179,29 @@ class Daemon:
             for row in self.state.instances()
             if row["role"] == "source"
         }
+        healths = self.instance_health()
+        newest = self.state.newest_observations()
+        stale = self._stale_counts()
         result: list[dict[str, Any]] = []
         for name, runner in self.sources.items():
             row = rows.get(name, {})
+            retry = runner.next_retry if runner.current_state == "failed" else None
             result.append(
                 {
                     "name": name,
                     "type": runner.type_name,
                     "state": runner.current_state,
+                    **healths[name].as_dict(),
                     "last_error": row.get("last_error"),
                     "restart_count": row.get("restart_count", 0),
+                    "next_retry": retry.isoformat(timespec="seconds")
+                    if retry
+                    else None,
                     "stopped_by_operator": bool(row.get("stop_intent", False)),
                     "resources": sorted(runner.source.resources()),
-                    "points": self.state.point_counts(instance=name),
+                    "last_observation": newest.get(name),
+                    "points": self.state.point_counts(instance=name)
+                    | {"stale": stale.get(name, 0)},
                     "devices": self.state.devices(name),
                 }
             )
@@ -1145,15 +1213,32 @@ class Daemon:
                     "name": name,
                     "type": entry.type_name,
                     "state": "failed",
+                    **healths[name].as_dict(),
                     "last_error": entry.error,
                     "restart_count": 0,
+                    "next_retry": None,
                     "stopped_by_operator": False,
                     "resources": [],
-                    "points": self.state.point_counts(instance=name),
+                    "last_observation": newest.get(name),
+                    "points": self.state.point_counts(instance=name)
+                    | {"stale": stale.get(name, 0)},
                     "devices": [],
                 }
             )
         return result
+
+    def _stale_counts(self) -> dict[str, int]:
+        """How many of each instance's points are stale."""
+        assert self.state is not None
+        owners = {
+            uri: row["instance"] for uri, row in self.state.point_states().items()
+        }
+        counts: dict[str, int] = {}
+        for warning in self.state.warnings():
+            owner = owners.get(warning["subject"]) if warning["code"] == STALE else None
+            if owner is not None:
+                counts[owner] = counts.get(owner, 0) + 1
+        return counts
 
     def status_destinations(self) -> list[dict[str, Any]]:
         assert self.state is not None
@@ -1162,6 +1247,7 @@ class Daemon:
             for row in self.state.instances()
             if row["role"] == "destination"
         }
+        healths = self.instance_health()
         result: list[dict[str, Any]] = []
         for name, runner in self.destinations.items():
             row = rows.get(name, {})
@@ -1171,6 +1257,7 @@ class Daemon:
                     "name": name,
                     "type": runner.type_name,
                     "state": runner.current_state,
+                    **healths[name].as_dict(),
                     "stores_metadata": runner.stores_metadata,
                     "stores_model": runner.stores_model,
                     "model_version": runner.model_version,
@@ -1193,6 +1280,7 @@ class Daemon:
                     "name": name,
                     "type": entry.type_name,
                     "state": "failed",
+                    **healths[name].as_dict(),
                     "stores_metadata": None,
                     "stores_model": None,
                     "model_version": None,
@@ -1210,8 +1298,13 @@ class Daemon:
         return result
 
     def status_warnings(self) -> list[dict[str, Any]]:
+        """The flat warning list, each entry with its code's kind and severity."""
         assert self.state is not None
-        return self.state.warnings()
+        declared = self.registry.severities()
+        return [
+            {**warning, "severity": severity_of(warning["code"], declared)}
+            for warning in self.state.warnings()
+        ]
 
     def clear_warnings(
         self, code: str | None = None, subject: str | None = None

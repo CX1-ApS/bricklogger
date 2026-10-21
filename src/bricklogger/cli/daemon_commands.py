@@ -18,7 +18,7 @@ from rich.table import Table
 from bricklogger.cli.client import ApiClient
 from bricklogger.cli.config import config_view
 from bricklogger.cli.context import CliContext, cli_context, operations_of
-from bricklogger.cli.output import fail, print_json, stdout
+from bricklogger.cli.output import fail, health_line, print_json, stdout
 from bricklogger.config.daemon import load_daemon_settings
 from bricklogger.config.issues import ConfigError
 from bricklogger.config.schema import DaemonSettings
@@ -363,7 +363,9 @@ def _echo_summary(data: dict[str, Any]) -> None:
         f"observations received: {data['observations_received']}",
     ]
     for row in data.get("instances", []):
-        lines.append(f"  {row['role']} {row['name']} ({row['type']}): {row['state']}")
+        lines.append(
+            f"  {row['role']} {row['name']} ({row['type']}): {health_line(row)}"
+        )
     newer = available_line(data.get("updates"))
     if newer is not None:
         lines.append(newer)

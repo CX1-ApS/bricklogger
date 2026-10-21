@@ -129,38 +129,88 @@ its parity. The endpoints are listed in the
 
 ### Health
 
+**Every instance has a health**, source and destination alike: `ok`,
+`degraded` or `failed`. It is not a record of its own beside the warnings but
+read off them: every warning code has a **severity** — `degraded`, `failed` or
+none — given in the [warning table](#the-status-tree), and an instance's health
+is the worst severity among the warnings that stand on the instance, on its
+devices and on the points assigned to it; with none standing it is `ok`. Its
+**reason** is the message of that warning, the oldest among equals, with the
+number of others beside it. The state says whether an instance runs, the
+health whether it does its job, so a source can be `running` and `degraded`
+at once: a cloud that refuses its token, a controller that has gone silent,
+points that have stopped arriving.
+
+The daemon sees much of this for itself, whatever the plugin reports: an
+instance that is failed, or whose thread has ended while its state says
+running; a device the source reports unreachable; a device that skips poll
+rounds; a point that has gone [stale](#stale-points). A plugin adds what only
+it can see by raising warnings with codes of its own, declared with their
+severity in its [declaration](../architecture.md#declaration). The worse of
+the two always wins, so a plugin can never report away what the daemon has
+seen.
+
+The daemon's own health, the **overall health**, is one of three:
+
+- `ok`: collecting, and every instance is `ok`.
+- `idle`: no model, or every source instance stopped by the operator — a
+  healthy daemon that is deliberately not collecting.
+- `degraded`: collecting, but at least one instance is `degraded` or
+  `failed`.
+
 Two endpoints, for two kinds of monitor:
 
 | Endpoint | Purpose | Result |
 |----------|---------|--------|
 | `/health/live` | Is the process alive | Always 200 while the daemon runs, with its `pid` and `started_at` |
-| `/health` | Is the logger doing its job | 200 for `ok` and `idle`, 503 for `degraded` |
-
-- `ok`: collecting, nothing failed.
-- `idle`: no model, or every source instance stopped by the operator — a
-  healthy daemon that is deliberately not collecting.
-- `degraded`: collecting, but a source or destination instance is failed, or a
-  destination's spool has dropped data and has not been drained since.
+| `/health` | Is the logger doing its job | 200 for `ok`, `idle` and `degraded`; 503 while an instance is `failed` |
 
 The split exists so that a restart-on-failure probe uses `/health/live` and an
 alerting probe uses `/health`; a dead database never causes a daemon restart.
+`/health` answers 503 only for `failed`, so a container is not marked
+unhealthy over one silent controller, while the summary, the overview and the
+daily mail still say `degraded`. A spool that drops observations makes its
+destination `failed`, because data is being lost.
+
+### Stale points
+
+A point is **stale** when its newest observation — a value or a `null`, by
+the observation's own timestamp — is older than its **staleness limit**:
+three times its rule's `interval`, unless the source instance sets
+`stale_after` or its plugin declares a default. The time is counted from the
+later of the newest observation and the instance's start, so a fresh start is
+not stale at once. A stale point raises the warning `stale`, and its source
+is `degraded` while any of its points is; the reason then says how many, such
+as `12 of 57 points stale`.
+
+A `null` counts, because a source that delivers `null` is still delivering:
+an unreachable device, a read answered with an error and a point out of
+service each have a warning or a reason of their own. Staleness catches what
+nothing else does — a source that has stopped delivering for some of its
+points or all of them, or a cloud that keeps answering but has stopped
+recording. A source that delivers in bursts, such as a history source copying
+a cloud's samples, is given a longer limit with
+[`stale_after`](configuration.md#sourcesyaml-and-destinationsyaml).
 
 ### The status tree
 
 - **Daemon:** version, uptime, state, config and data directories, the active
   model version with upload and activation times, counts of points accepted,
-  assigned and active, and every configured instance with its role, type and
-  state, so the summary alone says whether they are all running. When the
+  assigned and active, and every configured instance with its role, type,
+  state, health and reason and the time the reason began, so the summary
+  alone says whether they are all running and doing their job. When the
   daily [update check](cli.md#update) has found newer releases of Bricklogger
   or its plugins, they stand here too, with the time of the check.
 - **Sources**, per instance: state (`starting`, `running`, `failed`,
-  `stopped`), type, resources, last error, restart count and next retry. Per
-  device: reachable or not, last success, error counters and skipped poll
-  rounds. Per outcome: how many points are `active`, `unsupported` and
-  `rejected`. An instance whose plugin could not be loaded, or whose type no
+  `stopped`), health with its reason, type, resources, last error, restart
+  count, next retry and the time of its newest observation. Per device:
+  reachable or not, last success, error counters and skipped poll rounds. Per
+  outcome: how many points are `active`, `unsupported` and `rejected`, and how
+  many of them are stale. An instance whose plugin could not be loaded, or whose type no
   installed plugin provides, source or destination, is `failed` with the error
   and has no next retry: it runs when the plugin loads at a later start.
-- **Destinations**, per instance: state, whether it stores metadata, whether
+- **Destinations**, per instance: state, health with its reason, whether it
+  stores metadata, whether
   it stores the model and which version it last wrote, spool depth as
   observations, bytes and age of the oldest entry, dropped count, last
   successful write, last error.
@@ -177,25 +227,27 @@ as an acknowledgement; a cleared warning returns the next time its condition
 is asserted. Counts and the two times survive a restart with the rest of the
 runtime state, except where the end is the restart itself.
 
-| Code | Kind | Meaning | Withdrawn when |
-|------|------|---------|----------------|
-| `unclaimed` | `model` | An accepted point that no source instance claims | The next plan no longer finds it |
-| `unknown_reference` | `model` | None of the point's references is understood by an installed source | The next plan no longer finds it |
-| `no_reference` | `model` | An accepted point without an external reference | The next plan no longer finds it |
-| `no_fallback` | `model` | A device cannot do the requested method, and the rule has no `fallback` | The next plan, or the point's outcome is no longer `unsupported` |
-| `rejected` | `model` | A source rejected an assigned point; the message carries its reason | The point gets an outcome other than `rejected` |
-| `rule_skipped` | `model` | A rule could not be evaluated as written and was skipped | The next plan no longer finds it |
-| `unit_conflict` | `model` | The graph's unit and the protocol's unit disagree | The next plan, or metadata in which the two agree |
-| `read_error` | `operation` | The device answers a read with an error | The point delivers a value |
-| `poll_overrun` | `operation` | A device keeps missing its poll interval, and rounds are skipped | The device reports a round without a skip |
-| `rate_limited` | `operation` | A source's request budget makes its rounds outlast their interval; the message carries the cadence it can keep | The source's rounds keep their interval again |
-| `future_timestamp` | `operation` | Observations rejected for a timestamp in the future | The point delivers an observation with an acceptable timestamp |
-| `spool_drop` | `operation` | A destination's spool has dropped observations | The spool has been drained again; the dropped total stays in the destination's status |
-| `instance_failed` | `operation` | A source or destination instance is failed, including one whose plugin could not be loaded or is not installed | The instance runs again |
-| `instance_stopped` | `operation` | An instance stopped by the operator | The instance is started |
-| `stop_timeout` | `operation` | An instance did not stop within `stop_timeout` and was abandoned | The daemon starts anew — the abandoned instance died with the old process — or the instance stops cleanly |
-| `notify_failed` | `operation` | A notification mail could not be sent; the message carries the server's answer | A mail goes through again |
-| `notifications_dormant` | `operation` | Notifications are switched on, but no model is active, so nothing can be sent | A model is active again |
+| Code | Kind | Severity | Meaning | Withdrawn when |
+|------|------|----------|---------|----------------|
+| `unclaimed` | `model` | — | An accepted point that no source instance claims | The next plan no longer finds it |
+| `unknown_reference` | `model` | — | None of the point's references is understood by an installed source | The next plan no longer finds it |
+| `no_reference` | `model` | — | An accepted point without an external reference | The next plan no longer finds it |
+| `no_fallback` | `model` | — | A device cannot do the requested method, and the rule has no `fallback` | The next plan, or the point's outcome is no longer `unsupported` |
+| `rejected` | `model` | — | A source rejected an assigned point; the message carries its reason | The point gets an outcome other than `rejected` |
+| `rule_skipped` | `model` | — | A rule could not be evaluated as written and was skipped | The next plan no longer finds it |
+| `unit_conflict` | `model` | — | The graph's unit and the protocol's unit disagree | The next plan, or metadata in which the two agree |
+| `read_error` | `operation` | `degraded` | The device answers a read of the point with an error | The point delivers a value |
+| `device_unreachable` | `operation` | `degraded` | A device the source talks to does not answer; the subject is the instance and the device | The source reports the device reachable again |
+| `poll_overrun` | `operation` | `degraded` | A device keeps missing its poll interval, and rounds are skipped | The device reports a round without a skip |
+| `rate_limited` | `operation` | `degraded` | A source's request budget makes its rounds outlast their interval; the message carries the cadence it can keep | The source's rounds keep their interval again |
+| `future_timestamp` | `operation` | `degraded` | Observations rejected for a timestamp in the future | The point delivers an observation with an acceptable timestamp |
+| `stale` | `operation` | `degraded` | The point has delivered nothing for longer than its [staleness limit](#stale-points) | The point delivers an observation, or leaves the plan |
+| `spool_drop` | `operation` | `failed` | A destination's spool has dropped observations | The spool has been drained again; the dropped total stays in the destination's status |
+| `instance_failed` | `operation` | `failed` | A source or destination instance is failed, including one whose plugin could not be loaded or is not installed | The instance runs again |
+| `instance_stopped` | `operation` | — | An instance stopped by the operator | The instance is started |
+| `stop_timeout` | `operation` | `failed` | An instance did not stop within `stop_timeout` and was abandoned | The daemon starts anew — the abandoned instance died with the old process — or the instance stops cleanly |
+| `notify_failed` | `operation` | — | A notification mail could not be sent; the message carries the server's answer | A mail goes through again |
+| `notifications_dormant` | `operation` | — | Notifications are switched on, but no model is active, so nothing can be sent | A model is active again |
 
 **The kind** says what a warning is about. `operation` means the logger is not
 doing its job right now; `model` means the model or the rule set leaves
@@ -204,6 +256,14 @@ points view and the manual clear treat the two alike. The difference decides
 which of them [notifications](notifications.md#which-warnings-raise-an-alarm)
 mail at once and which wait for the daily summary — and the last two codes,
 being about the mail itself, never mail at all.
+
+**The severity** says what a warning does to its subject's
+[health](#health): `degraded`, `failed`, or none — shown as — for a warning
+about the model, the mail or the operator's own stop rather than about
+collection. Kind and severity are separate questions: `instance_stopped` is
+`operation`, worth a record and a mail, but leaves health alone. A plugin
+declares its own codes with their severity; a code it raises without
+declaring it counts as `degraded`.
 
 ### Points
 

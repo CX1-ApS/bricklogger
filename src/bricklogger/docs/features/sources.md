@@ -257,6 +257,13 @@ device has been found on the network. If it answers with an error — unknown
 object, unknown property, access denied — the attempt yields `null` with
 reason `read_error`.
 
+A device that does not answer is reported unreachable on the status channel,
+which raises `device_unreachable` on the instance and the device until it
+answers again; a read answered with an error raises `read_error` on the point
+until the point delivers a value. Either makes the instance `degraded`. A
+device's last success in status is the time of its latest round that got an
+answer, refreshed with every such round.
+
 A device that has been lost is looked for again with a Who-Is, but **not on
 every round**. The search backs off: the first retry after 30 seconds, then
 doubling to at most 5 minutes, and the count resets the moment the device
@@ -399,6 +406,12 @@ add its own types or fields, but must map its protocol's values into the set.
 For every assigned point the source reports an outcome on the status channel —
 `active`, `unsupported` or `rejected` with a reason — initially and whenever
 it changes. The daemon applies the rule's `fallback` on `unsupported`.
+
+A source that stops delivering is noticed whatever it reports: a point whose
+newest observation is older than its
+[staleness limit](daemon.md#stale-points) is stale, and its source
+`degraded`. A source whose points arrive in bursts is given a longer limit
+with `stale_after`.
 
 The source never talks to the destinations. It knows neither their number nor
 their kind.

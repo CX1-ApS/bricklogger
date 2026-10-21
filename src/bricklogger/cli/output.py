@@ -4,7 +4,7 @@ errors on stderr."""
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 import typer
@@ -12,6 +12,7 @@ from rich.console import Console
 from rich.table import Table
 
 from bricklogger.config.issues import ConfigIssue
+from bricklogger.daemon.health import told
 
 stdout = Console()
 stderr = Console(stderr=True)
@@ -33,6 +34,21 @@ def issues_table(title: str, issues: Iterable[ConfigIssue]) -> Table:
             f"{issue.file}.yaml", issue.subject or "", issue.key or "", issue.message
         )
     return table
+
+
+def health_line(row: Mapping[str, Any], *, state: bool = True) -> str:
+    """An instance's state and health on one line:
+    ``running, degraded since T — reason, and 1 more``."""
+    health = row.get("health")
+    text = str(row.get("state", "")) if state else ""
+    if not health:
+        return text
+    text = f"{text}, {health}" if text else str(health)
+    if health == "ok":
+        return text
+    since = f" since {row['since']}" if row.get("since") else ""
+    reason = told(row)
+    return f"{text}{since} — {reason}" if reason else f"{text}{since}"
 
 
 def fail(message: str, code: int = 1) -> typer.Exit:

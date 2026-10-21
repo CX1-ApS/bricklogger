@@ -223,7 +223,14 @@ the daemon's classification of
 references relies on it. All of this
 takes from seconds to minutes depending on the size of the model and happens
 once per activation; the running model is unaffected until the new one is
-ready. Raw SPARQL can therefore write `?p a brick:Temperature_Sensor` and hit
+ready. An upload or activation through the API is validated and inferred in
+a child process of the daemon, which loads the ontology and the source
+plugins' vocabularies itself and hands back only the result, so the API keeps
+answering and the sources and destinations keep collecting while a large
+model is worked on; the memory the work needs is freed when the child ends.
+Rebuilding the active version at start-up happens before the API and the
+sources start, in the daemon itself. A child that ends without a result — killed,
+or out of memory — fails the job, and the running model stays. Raw SPARQL can therefore write `?p a brick:Temperature_Sensor` and hit
 all subclasses, and relations can be followed in both directions. Transitive
 part hierarchies — "everything on floor 1" — are Bricklogger's own selector
 semantics, not something Brick declares, and are expressed at query time with
@@ -432,10 +439,19 @@ it runs is seen at its next start. A source declares:
   source itself. The daemon validates `rules.yaml` against the schemas without
   knowing the methods,
 - **the configuration schema** for the instance's own settings,
-- **the protocol tools** it offers.
+- **the protocol tools** it offers,
+- **its warning codes**, each with a one-line meaning and a severity,
+  `degraded` or `failed`, which is what the warning does to the instance's
+  [health](features/daemon.md#health); a code raised without being declared
+  counts as `degraded`,
+- **a default staleness limit**, for a source whose points arrive in bursts
+  rather than at their interval, so they are not reported
+  [stale](features/daemon.md#stale-points) between bursts; an instance's
+  `stale_after` overrides it.
 
 A destination correspondingly declares its type name, its configuration
-schema, whether it stores metadata and whether it stores the model.
+schema, whether it stores metadata, whether it stores the model, and its
+warning codes.
 
 Schemas are written as **pydantic models**. The plugin gets typed objects,
 errors become precise, and JSON Schema can be derived automatically, so the
@@ -524,8 +540,11 @@ Operation is the plugin's own life in its own thread:
   and again on change.
 - **The status channel** carries state per instance, device and point, and
   warnings a source raises with a code of its own, such as `rate_limited`, and
-  withdraws again. What status shows is a separate topic; the contract only
-  fixes that the channel exists and what it carries.
+  withdraws again. A device the source reports unreachable raises
+  `device_unreachable` in the daemon until the source reports it reachable,
+  so the source says what it sees and the daemon keeps the warning. What
+  status shows is a separate topic; the contract only fixes that the channel
+  exists and what it carries.
 
 Rule semantics stay in the daemon: the plugin never sees a fallback, only the
 method it is asked to run. What a protocol plugin needs to know about a point
@@ -586,8 +605,13 @@ reason process isolation can come later without changing the contract.
   possibly with a new assignment.
 - **Crash.** An uncaught exception in the plugin's loop marks the instance as
   **failed** in status with the error, and the daemon restarts it with
-  exponential backoff, capped. The daemon emits no observations on behalf of
-  a dead plugin — it never stamps anything itself.
+  exponential backoff, capped at a minute; the backoff starts over once the
+  instance has run for a minute without failing, while the restart count in
+  status keeps the total since the daemon started. A thread that ends without
+  the daemon having seen a failure — its state still `running` — is found by
+  the daemon's watchdog, marked **failed** with `instance_failed`, and
+  restarted the same way. The daemon emits no observations on behalf of a
+  dead plugin — it never stamps anything itself.
 - **Daemon shutdown** stops all instances with the same deadline and then
   flushes the destinations.
 - **Operator stop.** An instance can be stopped and started from the CLI. A

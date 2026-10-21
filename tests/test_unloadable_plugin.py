@@ -77,6 +77,11 @@ def test_the_daemon_runs_on_and_shows_the_instance_failed(
             "role": "source",
             "type": "broken",
             "state": "failed",
+            "health": "failed",
+            "reason": f"failed: {ERROR}",
+            "since": summary["home"]["since"],
+            "more": 0,
+            "last_observation": None,
         }
 
         client = TestClient(create_app(daemon))

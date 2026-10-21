@@ -13,6 +13,7 @@ Dockerfile text eol=lf
 # Development-only files stay out of the archive scripts/publish.sh publishes
 # to GitHub; the development history and these stay on Gitea.
 CLAUDE.md export-ignore
+CONTEXT.md export-ignore
 notes/ export-ignore
 scripts/publish.sh export-ignore
 .claude/ export-ignore

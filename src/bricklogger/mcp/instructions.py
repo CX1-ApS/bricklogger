@@ -14,7 +14,8 @@ exist is read as empty:
 - daemon.yaml: the daemon's own settings (api, data_dir, stop_timeout, log,
   web, mcp, notifications).
 - sources.yaml: source instances, a map of name to instance; `type` picks the
-  plugin and the other keys are the plugin's own settings.
+  plugin, `stale_after` is the daemon's key, and the other keys are the
+  plugin's own settings.
 - destinations.yaml: destination instances, the same shape; `spool` and
   `batch` are the daemon's keys, not the plugin's.
 - rules.yaml: an ordered list of rules. Rules are evaluated top down, the

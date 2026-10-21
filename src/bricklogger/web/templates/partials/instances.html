@@ -10,6 +10,7 @@
     <div class="page-head">
       <h3 class="mono">{{ s.name }} <span class="dim">{{ s.type }}</span>
         <span class="tag{% if s.state == 'failed' %} signal{% endif %}">{{ s.state }}</span>
+        {% if s.health %}<span class="tag{% if s.health != 'ok' %} signal{% endif %}">{{ s.health }}</span>{% endif %}
         {% if s.stopped_by_operator %}<span class="tag">{{ t('instances.by_operator') }}</span>{% endif %}
       </h3>
       <span class="button-row">
@@ -19,9 +20,11 @@
       </span>
     </div>
     <dl class="kv">
+      {% if s.reason %}<dt>{{ t('instances.health') }}</dt><dd class="signal">{{ s.reason }}{% if s.more %}{{ t('overview.more', count=s.more) }}{% endif %}{% if s.since %} · {{ s.since | when }}{% endif %}</dd>{% endif %}
       <dt>{{ t('instances.resources') }}</dt><dd>{{ s.resources | join(', ') or t('common.none') }}</dd>
       <dt>{{ t('instances.points') }}</dt><dd>{{ s.points.get('active', 0) }} active · {{ s.points.get('unsupported', 0) }} unsupported · {{ s.points.get('rejected', 0) }} rejected · {{ s.points.get('pending', 0) }} pending</dd>
-      <dt>{{ t('instances.restarts') }}</dt><dd>{{ s.restart_count }}</dd>
+      <dt>{{ t('instances.newest') }}</dt><dd>{% if s.last_observation %}{{ s.last_observation | when }}{% else %}{{ t('common.none') }}{% endif %}{% if s.points.get('stale') %} · <span class="signal">{{ s.points.get('stale') }} stale</span>{% endif %}</dd>
+      <dt>{{ t('instances.restarts') }}</dt><dd>{{ s.restart_count }}{% if s.next_retry %} · {{ t('instances.next_retry') }} {{ s.next_retry | when }}{% endif %}</dd>
       {% if s.last_error %}<dt>{{ t('instances.last_error') }}</dt><dd class="signal">{{ s.last_error }}</dd>{% endif %}
     </dl>
     {% if s.devices %}
@@ -50,6 +53,7 @@
     <div class="page-head">
       <h3 class="mono">{{ d.name }} <span class="dim">{{ d.type }}</span>
         <span class="tag{% if d.state == 'failed' %} signal{% endif %}">{{ d.state }}</span>
+        {% if d.health %}<span class="tag{% if d.health != 'ok' %} signal{% endif %}">{{ d.health }}</span>{% endif %}
       </h3>
       <span class="button-row">
         {% for action in ('start', 'stop', 'restart') %}
@@ -58,6 +62,7 @@
       </span>
     </div>
     <dl class="kv">
+      {% if d.reason %}<dt>{{ t('instances.health') }}</dt><dd class="signal">{{ d.reason }}{% if d.more %}{{ t('overview.more', count=d.more) }}{% endif %}{% if d.since %} · {{ d.since | when }}{% endif %}</dd>{% endif %}
       <dt>{{ t('instances.metadata') }}</dt><dd>{{ t('common.yes') if d.stores_metadata else t('common.no') }}</dd>
       <dt>{{ t('instances.model') }}</dt><dd>{% if d.stores_model %}{{ t('common.yes') }}{% if d.model_version is not none %} · {{ t('instances.model_version') }} {{ d.model_version }}{% endif %}{% else %}{{ t('common.no') }}{% endif %}</dd>
       <dt>{{ t('instances.written') }}</dt><dd>{{ d.written }}{% if d.last_write %} · {{ d.last_write | when }}{% endif %}</dd>

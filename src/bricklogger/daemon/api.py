@@ -141,10 +141,11 @@ def create_app(
 
     @app.get("/health")
     def health() -> JSONResponse:
+        # degraded answers 200: a container is not marked unhealthy over one
+        # silent controller; a failed instance, dropped data among them, is 503
         state = daemon.health()
-        return JSONResponse(
-            {"health": state}, status_code=503 if state == "degraded" else 200
-        )
+        failing = state == "degraded" and daemon.failing()
+        return JSONResponse({"health": state}, status_code=503 if failing else 200)
 
     @app.post("/v1/daemon/reload")
     def reload() -> JSONResponse:

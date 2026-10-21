@@ -210,8 +210,17 @@ running is an answer, not an error.
 When the daemon answers, the daemon summary of the
 [status tree](daemon.md#status) follows — version, health, the directories,
 the active model and the point counts — with one line per configured instance
-of either role beneath it, so a single command answers whether the logger is
-doing its job. `status warnings` is the flat warning list, and
+of either role beneath it, giving its state and its
+[health](daemon.md#health) with the reason and the time the reason began, so a
+single command answers whether the logger is doing its job:
+
+```
+source ibos (ibos): running, degraded since 2026-10-10T08:01:08Z — the token is not accepted (401)
+source bacnet_main (bacnet-ip): running, degraded since 2026-10-21T06:14:02Z — 12 of 340 points stale, and 1 more
+destination tsdb (timescaledb): running, ok
+```
+
+`status warnings` is the flat warning list, and
 `status warnings clear` clears it by hand — all of it, the warnings with a
 `CODE`, or the one with a `CODE` and a `SUBJECT` — as an acknowledgement; a
 cleared warning returns when its condition is asserted again, as the
@@ -239,7 +248,7 @@ written in `type`, e.g. `bacnet-ip`.
 
 | Command | Effect |
 |---------|--------|
-| `sources status [--state STATE]` | The configured instances with their state and the detail of the [status tree](daemon.md#status) — devices and outcomes for a source, spool and writes for a destination — narrowed to one state |
+| `sources status [--state STATE]` | The configured instances with their state, their health with its reason, and the detail of the [status tree](daemon.md#status) — devices and outcomes for a source, spool and writes for a destination — narrowed to one state |
 | `sources add NAME --type TYPE [settings]` | Writes a new instance into the file; refuses a name that already exists. Without settings it asks for them, as `init` does |
 | `sources edit NAME [settings]` | Changes the settings given and leaves the rest as they are. Without settings it walks through them all, each with its current value to keep |
 | `sources remove NAME` | Removes the instance from the file |

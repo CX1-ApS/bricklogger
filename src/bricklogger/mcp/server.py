@@ -177,13 +177,14 @@ def create_mcp_server(ops: Operations) -> MCPServer:
     def get_status() -> dict[str, Any]:
         """Whether the daemon, the web interface and the MCP server run, and the
         daemon summary when it answers: health, the active model, the point
-        counts and every instance with its state."""
+        counts and every instance with its state, and its health with the
+        reason and since when."""
         return attempt(lambda: status_ops.probe(ops))
 
     @server.tool(title="List the warnings", annotations=READS)
     def list_warnings() -> list[dict[str, Any]]:
-        """The warning list: code, kind, subject, message, first and last seen
-        and count. Needs the running daemon."""
+        """The warning list: code, kind, severity, subject, message, first and
+        last seen and count. Needs the running daemon."""
 
         def run() -> list[dict[str, Any]]:
             with ops.session() as client:
