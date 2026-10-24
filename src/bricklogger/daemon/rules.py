@@ -26,28 +26,30 @@ REC = "https://w3id.org/rec#"
 PART_OF = f"<{BRICK}isPartOf>|<{REC}isPartOf>"
 HAS_PART = f"<{BRICK}hasPart>|<{REC}hasPart>"
 LOCATED_IN = f"<{BRICK}hasLocation>|<{REC}locatedIn>"
+REACH_CHUNK = 500
 
 
-def location_anchors(location: str) -> str:
-    """The SPARQL group pattern for the locations a point ``?p`` has of its
-    own, bound to ``location``: the Brick Location or RealEstateCore space it
-    is a point of, the location of its equipment or of anything that
-    equipment is part of, and a location the point is located in itself.
+def location_anchors(location: str) -> tuple[str, ...]:
+    """The SPARQL patterns for the locations a point ``?p`` has of its own,
+    bound to ``location``, one per kind of anchor: the Brick Location or
+    RealEstateCore space it is a point of, the location of its equipment or of
+    anything that equipment is part of, and a location the point is located in
+    itself.
 
     These are the point's nearest locations, which its metadata carries; the
     closure upward over the part hierarchy is ``collect_points``' business.
+    Each pattern is queried on its own and the answers merged: joined in one
+    UNION, the engine evaluates the union before ``?p`` is bound, and the
+    part-of path then walks the whole graph — minutes on a model of a few
+    thousand entities.
     """
     return (
-        "{ "
         f"?p <{BRICK}isPointOf> {location} . "
         f"{{ {location} a <{BRICK}Location> }} UNION "
-        f"{{ {location} a <{REC}Space> }} "
-        "} UNION { "
+        f"{{ {location} a <{REC}Space> }}",
         f"?p <{BRICK}isPointOf> ?e . ?e a <{BRICK}Equipment> . "
-        f"?e ({PART_OF})* ?a . ?a ({LOCATED_IN}) {location} "
-        "} UNION { "
-        f"?p ({LOCATED_IN}) {location} "
-        "} "
+        f"?e ({PART_OF})* ?a . ?a ({LOCATED_IN}) {location}",
+        f"?p ({LOCATED_IN}) {location}",
     )
 
 
@@ -127,19 +129,14 @@ def collect_points(graph: WorkingGraph) -> dict[str, PointFacts]:
         f"?d <{BRICK}isPartOf>* ?x",
     ):
         equipment[point].add(value)
-    upward = f"({PART_OF}|{LOCATED_IN})*"
-    for point, value in _pairs(
-        graph,
-        location_anchors("?d") + "{ "
-        f"?d {upward} ?x "
-        "} UNION { "
-        f"{{ ?d a <{REC}Zone> }} UNION {{ ?d a <{BRICK}Zone> }} "
-        f"?d ({HAS_PART}) ?r . "
-        f"{{ ?r a <{REC}Space> }} UNION {{ ?r a <{BRICK}Location> }} "
-        f"?r {upward} ?x "
-        "}",
-    ):
-        locations[point].add(value)
+    anchors: dict[str, set[str]] = defaultdict(set)
+    for pattern in location_anchors("?x"):
+        for point, anchor in _pairs(graph, pattern):
+            anchors[point].add(anchor)
+    reach = _reach(graph, {anchor for found in anchors.values() for anchor in found})
+    for point, found in anchors.items():
+        for anchor in found:
+            locations[point].update(reach.get(anchor, ()))
     return {
         point: PointFacts(
             uri=point,
@@ -150,6 +147,34 @@ def collect_points(graph: WorkingGraph) -> dict[str, PointFacts]:
         )
         for point in types
     }
+
+
+def _reach(graph: WorkingGraph, anchors: set[str]) -> dict[str, set[str]]:
+    """Each anchor with the locations reached from it: itself and everything
+    it is part of or located in, and for a zone, the rooms it has as parts and
+    everything above them."""
+    upward = f"({PART_OF}|{LOCATED_IN})*"
+    reach: dict[str, set[str]] = defaultdict(set)
+    ordered = sorted(anchors)
+    for start in range(0, len(ordered), REACH_CHUNK):
+        values = " ".join(f"<{uri}>" for uri in ordered[start : start + REACH_CHUNK])
+        for pattern in (
+            f"?d {upward} ?x",
+            f"{{ ?d a <{REC}Zone> }} UNION {{ ?d a <{BRICK}Zone> }} "
+            f"?d ({HAS_PART}) ?r . "
+            f"{{ ?r a <{REC}Space> }} UNION {{ ?r a <{BRICK}Location> }} "
+            f"?r {upward} ?x",
+        ):
+            result = graph.query(
+                f"SELECT ?d ?x WHERE {{ VALUES ?d {{ {values} }} {pattern} }}"
+            )
+            if not isinstance(result, QuerySolutions):
+                continue
+            for solution in result:
+                anchor, value = solution["d"], solution["x"]
+                if isinstance(anchor, NamedNode) and isinstance(value, NamedNode):
+                    reach[anchor.value].add(value.value)
+    return reach
 
 
 def _pairs(graph: WorkingGraph, pattern: str) -> Iterable[tuple[str, str]]:

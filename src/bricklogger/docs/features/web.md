@@ -63,16 +63,33 @@ job, as for the API. The settings live in
 | Sources and destinations | Instances with state, health and reason, devices and outcomes; start, stop and restart; the plugin's tools as forms with their results; a tool whose result is a document as a download — `<instance>-<tool>[-<values>]-<date>.json` — either from a form of its own or, when the plugin offers it on another tool's rows, as a button on each row of that result and one for the whole document above the rows | `sources`, `destinations` |
 | Model | Versions with activation history; upload with the job's progress and the resulting diff; activate, diff and export | `model` |
 | Explorer | The active model as a hierarchy of building, floor, room or zone, equipment and points, with sorting, filtering and search; a graph of the selected element's neighbourhood; a detail panel; findings and the runtime state per point in the signal colour | `model tree` |
-| Configuration | The four files in a YAML editor, validation before saving with errors shown at their keys, and `init` on an empty directory | `daemon config`, `sources config`, `destinations config`, `rules config` (`show` and `edit`), `init` |
-| Plugins | The installed plugins with type, role, version, description and instances, and the error of one that could not load; the newest release beside Bricklogger and each plugin, with an Update per plugin row; a package to install, a Remove per row, and the note that the daemon must be restarted | `plugins`, `plugins add`, `plugins remove`, `update status`, `update <type>` |
+| Configuration | The four files in a YAML editor, validation before saving with errors shown at their keys, Save and apply as a job with its steps, and `init` on an empty directory | `daemon config`, `sources config`, `destinations config`, `rules config` (`show` and `edit`), `init` |
+| Plugins | The installed plugins with type, role, version, origin, description and instances, and the error of one that could not load; the newest release beside Bricklogger and each plugin, with an Update per plugin row; the catalogue with an Install per entry not yet installed; a package to install, a Remove per row, and the note that the daemon must be restarted | `plugins`, `plugins catalogue`, `plugins add`, `plugins remove`, `update status`, `update <type>` |
 | Notifications | Whether they are on, the recipients and the server, the last mail and the last error, when the next summary is due, and what waits in the open window; a Send test mail that reports what the mail server answered | `notify status`, `notify test` |
 | Query | SPARQL against the working graph with Yasgui: editor, results table and downloads. `?query=` fills the editor, which is how the explorer hands a query over | `query` |
-| Daemon | Reload and stop, with the daemon's version, uptime and directories | `daemon reload`, `daemon stop` |
+| Daemon | Reload as a job with its steps, and stop, with the daemon's version, uptime and directories | `daemon reload`, `daemon stop` |
 
-A job — upload or activation — shows its steps as they happen and ends with
-the diff or the error. An instance stopped from the web shows as stopped in
-the CLI and the other way round, because both change the same state through
-the same API.
+A [job](api.md#jobs) — an upload, an activation, a configuration save or a
+reload — shows its steps as they happen, with the time since it started, and
+ends with the diff, the warnings or the error; the errors of a save are
+marked at their keys in the editor. A screen that starts jobs shows one that
+is queued or running when it opens, found through `GET /v1/jobs`: the Model
+screen an upload or an activation, the Configuration and Daemon screens a
+save or a reload, so leaving the page loses nothing. While a save or a
+reload is queued or running, Save and apply and Reload are disabled; the
+editor stays editable and Validate still works. When the job ends, an editor
+that has not been changed is filled again from the file on disk, and one
+that has been changed keeps its text, with a note that the file changed on
+disk.
+
+**Every action that waits says so.** While a button waits for its answer —
+Validate, Stop, an instance's start, stop or restart, a tool, a test mail, a
+plugin install, removal or update — it and the buttons beside it are
+disabled, and its result area shows `working…` with the seconds counting up,
+in the terminal style of the results, until the answer replaces it.
+
+An instance stopped from the web shows as stopped in the CLI and the other
+way round, because both change the same state through the same API.
 
 **Notifications** have a screen of their own: whether they are on, the
 recipients and the server, the last mail and the last error, when the next
@@ -86,8 +103,14 @@ list there like any other warning. The settings themselves are edited in
 `daemon.yaml` on the configuration screen, as every other setting is; what the
 mails contain is described on the [notifications page](notifications.md).
 
-**Plugins** has a screen of its own: the catalogue as the daemon sees it, a
-field for the packages to install and a Remove on every row. Installing and
+**Plugins** has a screen of its own, in two parts. **Installed** is the
+installed plugins as the daemon sees them, each with its
+[origin](plugins.md#origin), so a `custom` plugin is marked as one, and a
+Remove on every row. **Catalogue** is the [catalogue](plugins.md#the-catalogue):
+per entry the package, its types, the description and the publisher, with a
+link to the plugin's own page, and either the version installed or an
+**Install**. Below both is a field for a package that is not in the
+catalogue, which installs it as a custom plugin. Installing and
 removing here is [the same operation as `plugins add` and `plugins remove`](plugins.md#installing-a-plugin),
 run by `serve` in **its own process**: the package goes into the environment
 `serve` runs from — in a container, the plugin volume it shares with the
@@ -108,7 +131,7 @@ Bricklogger itself is upgraded from the CLI, with the command the screen
 names: `serve` would be replacing the code it runs.
 
 No action here restarts the daemon: the result says that the daemon reads its
-plugins when it starts and names the command to restart it, and the catalogue
+plugins when it starts and names the command to restart it, and Installed
 shows the daemon's set until then. The MCP server has
 [no tool for this](mcp.md#tools), on purpose.
 

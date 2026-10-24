@@ -41,14 +41,19 @@ def backoff(attempt: int) -> float:
 
 
 class InstanceStatus:
-    """The status channel of one source instance: it writes into the runtime state."""
+    """The status channel of one source instance: it writes into the runtime state.
+
+    ``on_outcomes`` hears every outcome report with the channel it came on; it
+    must return at once, because a source reports from its own loop and must
+    never wait for the daemon.
+    """
 
     def __init__(
         self,
         name: str,
         type_name: str,
         state: RuntimeState,
-        on_outcomes: Callable[[str, Sequence[Outcome]], None] | None = None,
+        on_outcomes: Callable[[InstanceStatus, Sequence[Outcome]], None] | None = None,
     ) -> None:
         self.name = name
         self.type_name = type_name
@@ -117,7 +122,7 @@ class InstanceStatus:
             else:
                 self.state.clear_warnings(code="rejected", subject=outcome.point)
         if self._on_outcomes is not None:
-            self._on_outcomes(self.name, items)
+            self._on_outcomes(self, items)
 
     def warn(self, code: str, message: str, subject: str | None = None) -> None:
         self.state.warn(code, self._subject(subject), message)
@@ -150,6 +155,7 @@ class SourceRunner:
         self.state = state
         self.stop_timeout = stop_timeout
         self._thread: threading.Thread | None = None
+        self.abandoned: threading.Thread | None = None
         self._stopping = threading.Event()
         self._restarts = 0
         self._attempt = 0
@@ -232,6 +238,7 @@ class SourceRunner:
         seconds = self.stop_timeout.total_seconds()
         thread.join(seconds)
         if thread.is_alive():
+            self.abandoned = thread
             self.state.warn(
                 "stop_timeout",
                 self.name,
@@ -240,6 +247,15 @@ class SourceRunner:
             return False
         self.state.clear_warnings(code="stop_timeout", subject=self.name)
         self._set_state("stopped")
+        return True
+
+    def abandoned_ended(self) -> bool:
+        """Whether a thread abandoned at a stop has ended since; true once,
+        after which the runner no longer holds it."""
+        thread = self.abandoned
+        if thread is None or thread.is_alive():
+            return False
+        self.abandoned = None
         return True
 
     def _supervise(self, delay: float = 0.0) -> None:
@@ -349,6 +365,7 @@ class DestinationRunner:
         self.on_model_written = on_model_written
         self.model_version: int | None = None
         self._thread: threading.Thread | None = None
+        self.abandoned: threading.Thread | None = None
         self._stopping = threading.Event()
         self._failures = 0
         self._restarts = 0
@@ -393,6 +410,7 @@ class DestinationRunner:
             seconds = self.stop_timeout.total_seconds()
             thread.join(seconds)
             if thread.is_alive():
+                self.abandoned = thread
                 self.state.warn(
                     "stop_timeout",
                     self.name,
@@ -401,6 +419,15 @@ class DestinationRunner:
                 return False
         self.state.clear_warnings(code="stop_timeout", subject=self.name)
         self._set_state("stopped")
+        return True
+
+    def abandoned_ended(self) -> bool:
+        """Whether a thread abandoned at a stop has ended since; true once,
+        after which the runner no longer holds it."""
+        thread = self.abandoned
+        if thread is None or thread.is_alive():
+            return False
+        self.abandoned = None
         return True
 
     def _run(self) -> None:

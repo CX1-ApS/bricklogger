@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from urllib.parse import parse_qs
 
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -21,7 +21,6 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from bricklogger.config import CONFIG_FILES, FilesExist, parse_text, write_examples
 from bricklogger.config.schema import is_loopback
-from bricklogger.config.validation import ValidationResult
 from bricklogger.daemon.core import (
     Daemon,
     ExportUnavailable,
@@ -62,16 +61,6 @@ def problem(
         body["detail"] = detail
     body.update(extra)
     return JSONResponse(body, status_code=status, media_type=PROBLEM)
-
-
-def validation_problem(result: ValidationResult) -> JSONResponse:
-    count = len(result.errors)
-    return problem(
-        422,
-        "Configuration is invalid",
-        f"{count} error{'' if count == 1 else 's'}",
-        errors=[issue.as_dict() for issue in result.errors],
-    )
 
 
 def job_response(job: Job) -> JSONResponse:
@@ -147,12 +136,9 @@ def create_app(
         failing = state == "degraded" and daemon.failing()
         return JSONResponse({"health": state}, status_code=503 if failing else 200)
 
-    @app.post("/v1/daemon/reload")
+    @app.post("/v1/daemon/reload", status_code=202)
     def reload() -> JSONResponse:
-        result = daemon.reload()
-        if not result.valid:
-            return validation_problem(result)
-        return JSONResponse(result.as_dict())
+        return job_response(daemon.submit_reload())
 
     @app.post("/v1/daemon/stop")
     def stop() -> dict[str, str]:
@@ -299,18 +285,16 @@ def create_app(
             return JSONResponse(parsed)
         return Response(text or "", media_type=YAML)
 
-    @app.put("/v1/config/{file}")
+    @app.put("/v1/config/{file}", status_code=202)
     async def config_replace(file: str, request: Request) -> JSONResponse:
-        """Replace one file with the text in the body; validated first, then applied."""
+        """Replace one file with the text in the body, as a job that validates
+        first and then writes and applies."""
         name = config_file_name(file)
         try:
             text = (await request.body()).decode("utf-8")
         except UnicodeDecodeError:
             return problem(400, "Body is not UTF-8")
-        result = await run_in_threadpool(daemon.replace_config_file, name, text)
-        if not result.valid:
-            return validation_problem(result)
-        return JSONResponse(result.as_dict())
+        return job_response(daemon.submit_config(name, text))
 
     @app.post("/v1/config/validate")
     async def config_validate(request: Request) -> JSONResponse:
@@ -385,6 +369,11 @@ def create_app(
     @app.get("/v1/plugins")
     def plugins() -> list[dict[str, Any]]:
         return daemon.plugins()
+
+    # Before /v1/plugins/{type_name}: `catalogue` is a word no type may be named.
+    @app.get("/v1/plugins/catalogue")
+    def plugins_catalogue() -> list[dict[str, Any]]:
+        return daemon.catalogue()
 
     @app.get("/v1/plugins/{type_name}")
     def plugin(type_name: str) -> JSONResponse:
@@ -503,6 +492,13 @@ def create_app(
         return Response(
             data, media_type=MEDIA_TYPE_OF.get(fmt, "application/octet-stream")
         )
+
+    @app.get("/v1/jobs")
+    def jobs(
+        state: Annotated[list[str] | None, Query()] = None,
+    ) -> list[dict[str, Any]]:
+        """The jobs kept, newest first; ``?state=`` narrows them, repeatable."""
+        return [job.as_dict() for job in daemon.jobs.jobs(state)]
 
     @app.get("/v1/jobs/{job_id}")
     def job(job_id: str) -> JSONResponse:

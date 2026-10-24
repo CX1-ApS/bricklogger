@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from bricklogger import __version__
+from bricklogger.catalogue import origin_of
 from bricklogger.config import Configuration, validate_configuration
 from bricklogger.config.values import format_duration
 from bricklogger.model.prefixes import WELL_KNOWN, declared_prefixes
@@ -27,7 +28,8 @@ from bricklogger.sdk.registry import PluginRegistry
 def summarize_plugins(
     registry: PluginRegistry, configuration: Configuration | None
 ) -> list[dict[str, Any]]:
-    """Every installed plugin: type, role, version, description and instances."""
+    """Every installed plugin: type, role, version, origin, description and
+    instances."""
     rows: list[dict[str, Any]] = []
     declarations: list[tuple[str, SourceDeclaration | DestinationDeclaration]] = sorted(
         [*registry.sources.items(), *registry.destinations.items()],
@@ -39,6 +41,7 @@ def summarize_plugins(
                 "type": name,
                 "role": declaration.role,
                 "version": registry.version_of(name) or __version__,
+                "origin": origin_of(registry.distribution_of(name)),
                 "description": declaration.description,
                 "instances": instances_of(configuration, name),
                 "error": None,
@@ -50,6 +53,7 @@ def summarize_plugins(
                 "type": name,
                 "role": failure.role,
                 "version": failure.version or None,
+                "origin": origin_of(failure.distribution),
                 "description": None,
                 "instances": instances_of(configuration, name),
                 "error": failure.error,

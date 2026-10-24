@@ -27,10 +27,10 @@ from bricklogger.config import (
     write_examples,
     write_text,
 )
-from bricklogger.ops.catalogue import describe
 from bricklogger.ops.client import DaemonApi
 from bricklogger.ops.context import Operations
 from bricklogger.ops.errors import OperationError
+from bricklogger.ops.installed import describe
 
 YAML = "application/yaml"
 ROLES = ("source", "destination")
@@ -87,14 +87,13 @@ def write_file(
 ) -> dict[str, Any]:
     """Write one file validated as a whole, and return what the validation said.
 
-    Through the API the daemon validates and applies; without one the directory
-    is validated with the change in place of the file, and nothing is written
-    when it does not hold.
+    Through the API the daemon validates and applies as a job, which is
+    followed to its end; without one the directory is validated with the
+    change in place of the file, and nothing is written when it does not hold.
     """
     name = file_name(name)
     if client is not None:
-        answer: dict[str, Any] = client.put(f"/v1/config/{name}", text, YAML)
-        return answer
+        return client.finish(client.put(f"/v1/config/{name}", text, YAML))
     result = validate_configuration(
         ops.config_dir, ops.plugins(), ops.env, texts={name: text}
     )
@@ -190,7 +189,8 @@ def write_instance(
     chosen = type_name or str(data.get("type") or "")
     if not chosen:
         raise OperationError(
-            "a new instance needs a type; the catalogue lists the installed types"
+            "a new instance needs a type; `bricklogger plugins` lists the "
+            "installed types"
         )
     declaration = describe(ops, client, chosen)
     if declaration["role"] != role:

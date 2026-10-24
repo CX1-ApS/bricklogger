@@ -3,7 +3,9 @@
 Sources and destinations are **plugins**: Python packages that follow the
 contract defined in the [architecture](../architecture.md#plugins-sources-and-destinations)
 and are found through entry points. The built-in BACnet/IP and TimescaleDB follow the same contract as a plugin written anywhere else; there
-is no privileged code path. This page is for two readers: the **operator**,
+is no privileged code path. The one place outside the contract where a type is
+known by name is [`init`](cli.md#init), which can install and prepare a
+database for TimescaleDB. This page is for two readers: the **operator**,
 who installs, upgrades and removes a plugin, and the **author**, who writes
 one. The contract itself is defined in the architecture and not repeated
 here; this page says how it is used.
@@ -26,6 +28,53 @@ lets the CLI list a plugin, `init` ask about its settings, the web interface
 build its forms and the assistant read its schema before an instance exists.
 The daemon reads the entry points **when it starts**.
 
+## The catalogue
+
+The **catalogue** is the list of approved plugins: the ones that have been
+reviewed and that Bricklogger offers to install by name. It **ships inside
+Bricklogger**, so it is there on a machine with no network, and it is what
+[`plugins catalogue`](cli.md#plugins), the web interface's
+[Plugins screen](web.md#screens), [`init`](cli.md#init) and the
+[assistant](mcp.md#resources) show. An entry says:
+
+| Field | Example |
+|-------|---------|
+| Package | `bricklogger-ibos` |
+| Types, with their role | `ibos`, source |
+| Description, one line | Points read from the iBOS Data API |
+| Publisher | CX1 ApS |
+| Link | `https://github.com/CX1-ApS/bricklogger-ibos` |
+
+The catalogue names a plugin, not a release. `plugins add` installs the newest
+release that fits the installed Bricklogger and refuses when none does, as it
+does for any package, so an entry carries no version. The catalogue is the
+one of the installed Bricklogger: it changes with a release of Bricklogger, a
+patch release is enough, and [`update core`](cli.md#update) brings the newest.
+The built-in types are not in it; they come with Bricklogger and are not
+installed. How a plugin gets into it is described under
+[into the catalogue](#into-the-catalogue).
+
+### Origin
+
+Every installed plugin has an **origin**, which `bricklogger plugins`, the
+Plugins screen and [`GET /v1/plugins`](api.md#plugins) show beside it:
+
+| Origin | The plugin |
+|--------|------------|
+| `built-in` | Comes with Bricklogger itself: BACnet/IP and TimescaleDB |
+| `catalogue` | Its package is in the catalogue |
+| `custom` | Its package is not |
+
+The origin is decided by the **package name alone**. A wheel on disk or a
+git URL of `bricklogger-ibos` is a catalogue plugin like the one from PyPI,
+since nothing records reliably where an installed package came from.
+
+A **custom plugin** is installed exactly as a catalogue plugin is, with
+[`plugins add`](#installing-a-plugin) or the web interface, with no flag and
+no question: the catalogue says what has been reviewed, not what is allowed.
+The mark is there so that a plugin nobody reviewed is never mistaken for one
+that was.
+
 ## Installing a plugin
 
 A plugin is installed **into the uv tool environment Bricklogger was
@@ -34,11 +83,14 @@ entry points without any configuration. Three ways lead there, and they are
 the same operation:
 
 - **From the CLI**, `bricklogger plugins add PACKAGE`, which takes one or more
-  packages. The command runs uv against the environment it runs from itself,
-  and when it is done prints the catalogue as it now is.
-- **From the web interface**, on the [Plugins screen](web.md#screens), which
-  runs the same operation in the process `serve` runs in, against the
-  environment it runs from.
+  packages, from the catalogue or not. The command runs uv against the
+  environment it runs from itself, and when it is done prints the installed
+  plugins as they now are. The plugin step of [`init`](cli.md#init) is the
+  same command.
+- **From the web interface**, on the [Plugins screen](web.md#screens), with
+  the Install of a catalogue entry or a package typed in. It runs the same
+  operation in the process `serve` runs in, against the environment it runs
+  from.
 - **By hand**, with uv itself, naming every plugin:
 
 ```bash
@@ -159,9 +211,9 @@ A plugin whose entry point raises when it is loaded, typically for a missing
 dependency or because it was built against another version of the contract,
 or whose declaration does not match its entry point, **stops nothing**:
 
-- **The catalogue lists it** with its type, its role from the entry point
-  group and its version from the distribution, and `failed: <error>` where its
-  description would be. `plugins <type>` prints the whole error, and the rows
+- **`bricklogger plugins` lists it** with its type, its role from the entry
+  point group, its version from the distribution and its origin, and
+  `failed: <error>` where its description would be. `plugins <type>` prints the whole error, and the rows
   of [`GET /v1/plugins`](api.md#plugins) carry it.
 - **Its configured instances are `failed`** in status with the same error and
   raise the warning `instance_failed`, which the
@@ -179,8 +231,10 @@ type out into a plugin of its own, when a container could not lay a plugin
 down, and when `type:` is misspelt in a file edited by hand. The daemon
 starts, and the instance is `failed` with the error that the type is not
 installed and that `bricklogger plugins add` installs it, raising
-`instance_failed`; validation warns with the same message. The catalogue lists
-only what is installed, so the type does not appear in `bricklogger plugins`.
+`instance_failed`; validation warns with the same message. `bricklogger
+plugins` lists only what is installed, so the type does not appear there;
+`plugins catalogue` names the package that provides it, when that is a
+catalogue plugin.
 
 A change written through the [CLI](cli.md#sources-and-destinations), the web
 interface, the API or the MCP server is held to more: it is refused when an
@@ -193,8 +247,8 @@ The checks at load are four: the entry point must load to a
 `SourceDeclaration` in `bricklogger.sources` and a `DestinationDeclaration` in
 `bricklogger.destinations`, the declaration's `type_name` must equal the entry
 point's name, the name must not be one of `all`, `core` and `status`, which
-[`update`](cli.md#update) takes as words of its own, and importing the module
-must succeed.
+[`update`](cli.md#update) takes as words of its own, nor `catalogue`, which
+[`plugins`](cli.md#plugins) takes, and importing the module must succeed.
 
 ## Writing a plugin
 
@@ -209,7 +263,8 @@ must succeed.
 The type name is written in YAML and typed on the command line, so it is
 lowercase letters, digits and hyphens; the module replaces the hyphen with an
 underscore. `all`, `core` and `status` are taken by
-[`bricklogger update`](cli.md#update) and cannot name a type. A plugin that
+[`bricklogger update`](cli.md#update) and `catalogue` by
+[`bricklogger plugins`](cli.md#plugins), and none of them can name a type. A plugin that
 provides several types registers several entry
 points in one distribution. A small plugin fits in one module:
 
@@ -231,7 +286,7 @@ name = "bricklogger-httpjson"
 version = "0.1.0"
 description = "Bricklogger source: points read from a JSON endpoint"
 requires-python = ">=3.11"
-dependencies = ["bricklogger>=0.2,<0.3", "httpx>=0.27"]
+dependencies = ["bricklogger>=0.3,<0.4", "httpx>=0.27"]
 
 [project.entry-points."bricklogger.sources"]
 httpjson = "bricklogger_httpjson:SOURCE"
@@ -280,9 +335,9 @@ reaches into them is on its own.
 The contract is stable within a **minor version** of Bricklogger: a change
 that breaks plugins raises the minor version, and a patch release at most adds
 to it — something new that plugins built before it do not need. A plugin
-therefore pins the minor version it was built for, `bricklogger>=0.2,<0.3`,
+therefore pins the minor version it was built for, `bricklogger>=0.3,<0.4`,
 and works with every patch release of it; a plugin that uses an addition
-raises the lower bound to the release that brought it, `bricklogger>=0.2.4,<0.3`. The author releases the plugin
+raises the lower bound to the release that brought it, `bricklogger>=0.3.1,<0.4`. The author releases the plugin
 again for a new minor version after checking it against the changes the release notes of that version list. The version `bricklogger plugins`
 shows for a plugin is the plugin's own distribution version.
 
@@ -361,8 +416,11 @@ contract, seen from the author's side:
    knows units and state texts, reports each device it talks to with
    `device` — reachable or not — after every round, from which the daemon
    raises `device_unreachable` and shows the last success, and raises and
-   clears warnings with the codes it declared. A new model gives a new `claim` and a new `assign`, so references
-   are resolved again from the graph, not remembered from the first round.
+   clears warnings with the codes it declared. The status channel never waits
+   for the daemon's own work, so it is safe to call from the plugin's event
+   loop at any time. A new model gives a new `claim` and a new `assign`, so
+   references are resolved again from the graph, not remembered from the
+   first round.
 5. **Protocol tools.** `run_tool(name, parameters)` receives the parameters
    already validated against the tool's schema, as a plain dictionary, and
    returns a JSON-serialisable result. The daemon calls it only while the
@@ -372,7 +430,7 @@ contract, seen from the author's side:
 6. **Stop.** `stop()` is called from another thread and only asks; `start`
    then finishes within `stop_timeout` from `daemon.yaml`, default 10 seconds,
    flushing what it holds into the sink. A source that misses the deadline is
-   abandoned and reported.
+   abandoned and reported until its thread has ended.
 
 ### The example
 
@@ -623,8 +681,8 @@ def test_claims_and_reads(tmp_path, httpserver):
 
 Test the declaration too: that `SOURCE.type_name` is the entry point's name,
 that the schema rejects an unknown key, and that every setting has a
-description. Those are the three things the catalogue, `init` and the
-assistant rely on. A destination needs no harness: construct it with a
+description. Those are the three things `bricklogger plugins`, `init` and
+the assistant rely on. A destination needs no harness: construct it with a
 validated configuration, call `start`, `write` and `stop`, and write the same
 batch twice to prove the idempotency.
 
@@ -647,3 +705,15 @@ what its settings mean and which tools it offers, since this documentation
 covers the built-in plugins only. The one-line descriptions in its schemas
 travel further than the README does, because they are what the CLI, the web
 interface and the assistant show at the moment a setting is filled in.
+
+### Into the catalogue
+
+The catalogue is kept in a public repository of its own,
+[`CX1-ApS/bricklogger-marketplace`](https://github.com/CX1-ApS/bricklogger-marketplace),
+as one file with an entry per plugin. A plugin is proposed with a pull
+request that adds its entry, and it is **approved when the pull request is
+merged**. The file is copied into Bricklogger at every release, so an approved
+plugin reaches an installation with the next release of Bricklogger, and
+until then it is installed by name as a custom plugin, which works the same.
+A plugin needs no entry to be published or installed; the entry is what puts
+it in the list an operator chooses from.

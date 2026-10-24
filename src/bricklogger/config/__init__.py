@@ -10,8 +10,12 @@ files of ``config init``.
 from bricklogger.config.examples import (
     EXAMPLES,
     FilesExist,
+    commented,
+    destination_text,
     examples_for,
+    untouched,
     write_examples,
+    write_missing,
 )
 from bricklogger.config.instances import (
     InstanceNotFound,
@@ -77,8 +81,10 @@ __all__ = [
     "SmtpSettings",
     "SourceInstance",
     "ValidationResult",
+    "commented",
     "config_file",
     "default_data_dir",
+    "destination_text",
     "examples_for",
     "instances_in",
     "load_configuration",
@@ -89,9 +95,11 @@ __all__ = [
     "remove_instance",
     "resolve_config_dir",
     "set_instance",
+    "untouched",
     "user_config_dir",
     "user_data_dir",
     "validate_configuration",
     "write_examples",
+    "write_missing",
     "write_text",
 ]

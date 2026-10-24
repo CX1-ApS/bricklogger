@@ -25,7 +25,8 @@ page is the short version.
   for BACnet/IP, on the same subnet as the devices or with a route to them.
 - A Brick model of the building as Turtle (`.ttl`), with the points' external
   references (BACnet device and object, for instance).
-- A TimescaleDB database Bricklogger may create tables in.
+- A TimescaleDB database Bricklogger may create tables in — or let `init`
+  install one on the machine (Debian and Ubuntu, with `sudo`).
 
 ## Install
 
@@ -39,29 +40,31 @@ uv tool install bricklogger
 uv brings a Python that fits, so the machine needs nothing else. Everything
 stays in that login's home directory: the program in uv's tool directory, the
 command in `~/.local/bin`, the configuration in `~/.config/bricklogger` and the
-data in `~/.local/share/bricklogger`. `uv tool install bricklogger==0.2.5`
+data in `~/.local/share/bricklogger`. `uv tool install bricklogger==0.3.0`
 installs a given version.
 
 **As a container** the same program is `ghcr.io/cx1-aps/bricklogger`, with a
-compose file for the daemon, the web interface and the MCP server; see
+compose file for the database, the daemon, the web interface and the MCP
+server: two passwords in `.env` and `docker compose up -d`; see
 [Docker](https://cx1-aps.github.io/bricklogger/docker/).
 
 ## Prepare the database
 
+`init` does this on the machine itself. A database someone else looks after
+needs:
+
 ```sql
-CREATE DATABASE brick;
-\c brick
-CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE ROLE bricklogger LOGIN PASSWORD '...';
-GRANT ALL ON SCHEMA public TO bricklogger;
+CREATE DATABASE bricklogger OWNER bricklogger;
 ```
 
-Bricklogger creates and migrates its own tables at the first start.
+on a server with TimescaleDB loaded. Bricklogger creates the extension, and
+its own tables, at the first start, and keeps the extension up to date.
 
 ## First setup
 
 ```bash
-bricklogger init                        # guided: sources, destinations, secrets, services
+bricklogger init                        # guided: plugins, sources, destinations, database, services
 bricklogger validate                    # after any edit by hand
 bricklogger services install --web      # if init did not: the daemon and the web interface
 bricklogger model upload building.ttl   # validate, infer, activate
@@ -69,8 +72,11 @@ bricklogger status
 bricklogger points --outcome active     # the last value of every point
 ```
 
-`init` asks for the settings of each source and destination and writes four
-files: `sources.yaml`, `destinations.yaml`, `rules.yaml` and `daemon.yaml`.
+`init` installs the plugins you choose from the
+[catalogue](https://cx1-aps.github.io/bricklogger/features/plugins/), asks for
+the settings of each source and destination, prepares the TimescaleDB
+database and writes four files: `sources.yaml`, `destinations.yaml`,
+`rules.yaml` and `daemon.yaml`.
 Secrets, such as the database password, go into an `env` file beside them and
 are referred to as `${NAME}`. Last, `init` offers to run the daemon — and the
 web interface and the MCP server, if you want them — as `systemd --user`

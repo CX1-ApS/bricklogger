@@ -45,4 +45,8 @@ How to work:
    file by hand, reload_daemon applies it. get_status, list_warnings,
    list_points and model_tree show what a change did, and run_tool runs a
    plugin's protocol tools, such as discovering the devices on a network.
+7. You install no plugins. list_plugins shows what is installed; when a
+   system needs a plugin that is not, list_catalogue names the approved ones,
+   and the operator installs one with `bricklogger plugins add PACKAGE` or on
+   the web interface's Plugins screen, then restarts the daemon.
 """

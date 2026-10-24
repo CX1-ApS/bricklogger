@@ -21,9 +21,10 @@ uv tool install bricklogger
 ```
 
 The environment lands in uv's tool directory and the `bricklogger` command in
-`~/.local/bin`; nothing outside the home directory is touched. When
+`~/.local/bin`; nothing outside the home directory is touched, unless `init`
+is asked to [install the database](#create-the-configuration). When
 `~/.local/bin` is not on the path, `uv tool update-shell` puts it there. A
-given version is `uv tool install bricklogger==0.2.5`, and a wheel on disk is
+given version is `uv tool install bricklogger==0.3.0`, and a wheel on disk is
 installed by its path instead of the name.
 
 Bricklogger runs **as the login that installed it**, with its configuration
@@ -36,7 +37,8 @@ that owns the port, `dialout` on most distributions:
 
 `bricklogger --version` confirms the installation, and `bricklogger plugins`
 lists the built-in plugins. A plugin is an ordinary Python package that the
-daemon finds through its entry points; it is added afterwards with
+daemon finds through its entry points; `bricklogger plugins catalogue` lists
+the [approved ones](features/plugins.md#the-catalogue), and one is added with
 `bricklogger plugins add`, as the [plugins page](features/plugins.md)
 describes. The iBOS source, for one, is `bricklogger plugins add
 bricklogger-ibos`.
@@ -47,44 +49,46 @@ image: `ghcr.io/cx1-aps/bricklogger`, with a compose file and the rest on the
 same four configuration files and the same directories; the rest of this page
 applies to both, with every command run in the container.
 
-## Prepare the database
-
-TimescaleDB needs a database with the `timescaledb` extension and a role that
-may create tables in it. The destination creates and migrates its own schema
-on its first start, so nothing else is prepared by hand.
-
-```sql
-CREATE DATABASE brick;
-\c brick
-CREATE EXTENSION IF NOT EXISTS timescaledb;
-CREATE ROLE bricklogger LOGIN PASSWORD '...';
-GRANT ALL ON SCHEMA public TO bricklogger;
-```
-
 ## Create the configuration
 
 The configuration lives in `~/.config/bricklogger` and the data in
 `~/.local/share/bricklogger`, as the
 [configuration document](features/configuration.md#location) describes.
-`init` creates both and fills the first in a guided setup, and refuses to
-overwrite a file that exists:
+`init` creates both and sets the machine up in one guided run — plugins,
+configuration, database and services:
 
 ```bash
 bricklogger init
 ```
 
-It names the directories it uses, then asks which sources and destinations to
-configure among the installed types, and for each instance a name and its
-settings — the required ones first, the optional ones with their default
-offered, so Enter keeps it. For a BACnet/IP source that is this machine's
-address on the BACnet network and a device instance for the logger itself,
-unique on that network; for a TimescaleDB destination the DSN and the password,
-which is asked for without echo and written to the
-[`env` file](features/configuration.md#the-env-file) as `TSDB_PASSWORD`, with
-`${TSDB_PASSWORD}` in the YAML. `rules.yaml` gets the one rule that accepts
-every point in the model every five minutes — a good first run, since
-`brick:Point` matches all of them — and the result is validated. Last, `init`
-offers to set up the services, as the next section describes.
+It names the directories it uses, then shows the
+[catalogue](features/plugins.md#the-catalogue) and installs the plugins you
+choose, the iBOS source for one, and any other package you name. Next it asks
+which sources and destinations to configure among the installed types, and
+for each instance a name and its settings — the required ones first, the
+optional ones with their default offered, so Enter keeps it. For a BACnet/IP
+source that is this machine's address on the BACnet network and a device
+instance for the logger itself, unique on that network.
+
+For a TimescaleDB destination it asks where the database is. On this machine
+it offers to **install PostgreSQL with TimescaleDB** — `sudo` asks for your
+password while it runs — and then creates the database `bricklogger`, the
+extension and a role of the same name. The role's password is generated and
+written to the [`env` file](features/configuration.md#the-env-file) as
+`TSDB_PASSWORD`, with `${TSDB_PASSWORD}` in the YAML, so you never type it. A
+database on another host is prepared with an admin login that `init` asks for
+and does not keep; the
+[destinations page](features/destinations.md#preparing-the-database) has the
+details.
+
+`rules.yaml` gets the one rule that accepts every point in the model every
+five minutes — a good first run, since `brick:Point` matches all of them — and
+the result is validated. Last, `init` offers to set up the services, as the
+section after next describes.
+
+`init` can be run again later: it asks before it replaces a file that exists,
+and keeps a copy of what it replaced. `init --db` runs the database step
+alone.
 
 What it wrote can be read and changed at any time: `bricklogger sources
 config show`, `destinations config show`, `rules config show` and `daemon
@@ -116,7 +120,7 @@ bacnet_main:
 # destinations.yaml
 tsdb:
   type: timescaledb
-  dsn: "postgres://bricklogger@db.example.com:5432/brick"
+  dsn: "postgres://bricklogger@localhost:5432/bricklogger"
   password: ${TSDB_PASSWORD}
 ```
 
@@ -136,6 +140,29 @@ into the `env` file yourself, and the whole is checked with:
 
 ```bash
 bricklogger validate
+```
+
+## Prepare the database
+
+A database looked after by someone else is prepared by them rather than by
+`init`: a PostgreSQL server with TimescaleDB loaded, and a role that owns a
+database of its own. The destination creates the extension in it as that role
+on its first start, so the role owns the extension and the destination can
+[keep it up to date](features/destinations.md#timescaledb), and it creates
+and migrates its own schema, so nothing else is prepared by hand.
+
+```sql
+CREATE ROLE bricklogger LOGIN PASSWORD '...';
+CREATE DATABASE bricklogger OWNER bricklogger;
+```
+
+The instance is then written with the password they give, put into the `env`
+file first:
+
+```bash
+echo 'TSDB_PASSWORD=...' >> ~/.config/bricklogger/env
+bricklogger destinations add tsdb --type timescaledb \
+  --dsn "postgres://bricklogger@db.example.com:5432/bricklogger" --password-env TSDB_PASSWORD
 ```
 
 ## Start the services
@@ -278,7 +305,9 @@ uv tool uninstall bricklogger
 The services go first, while the command that knows them is still there. The
 configuration in `~/.config/bricklogger` and the data in
 `~/.local/share/bricklogger` are kept; remove them by hand when they are no
-longer wanted.
+longer wanted. So is a database `init` installed, with its data: PostgreSQL
+and TimescaleDB are packages of the distribution, removed with its package
+manager, and the data lies under `/var/lib/postgresql`.
 
 The destination migrates its schema at start. An incompatible configuration
 is rejected at start with a message naming the file and the key.

@@ -10,6 +10,19 @@ TEXTS: dict[str, str] = {
     "plugins.type": "Type",
     "plugins.role": "Role",
     "plugins.version": "Version",
+    "plugins.origin": "Origin",
+    "plugins.installed.title": "Installed",
+    "plugins.catalogue.title": "Catalogue",
+    "plugins.catalogue.help": (
+        "The approved plugins this release of Bricklogger knows. A package that "
+        "is not here can still be installed below, as a custom plugin."
+    ),
+    "plugins.catalogue.none": "the catalogue is empty",
+    "plugins.catalogue.installed": "installed {version}",
+    "plugins.catalogue.confirm": "Install {package}?",
+    "plugins.package": "Package",
+    "plugins.types": "Types",
+    "plugins.publisher": "Publisher",
     "plugins.description": "Description",
     "plugins.instances": "Instances",
     "plugins.error": "could not load: {error}",
@@ -22,12 +35,13 @@ TEXTS: dict[str, str] = {
         "start until the instances of {type} are gone."
     ),
     "plugins.add": "Install",
-    "plugins.add.label": "Packages",
+    "plugins.add.label": "Other packages",
     "plugins.add.placeholder": "bricklogger-httpjson==0.2.1 ./plugin.whl",
     "plugins.add.help": (
         "Anything uv installs, separated by spaces: a name, name==version, a "
-        "wheel on disk or a git URL. The package goes into the environment the "
-        "web interface runs from, with its own uv; the page waits while it runs."
+        "wheel on disk or a git URL; one outside the catalogue is a custom "
+        "plugin. The package goes into the environment the web interface runs "
+        "from, with its own uv; the page waits while it runs."
     ),
     "plugins.installed": "installed {packages}",
     "plugins.removed": "removed {distribution}{version}, which provided {type}",
@@ -202,7 +216,6 @@ TEXTS: dict[str, str] = {
     "daemon.reloaded": "reloaded",
     "daemon.stopping": "stopping",
     "daemon.rejected": "rejected: {detail}",
-    "daemon.warning": "warning: {message}",
     # sources and destinations
     "instances.title": "Sources and destinations",
     "instances.sources": "Sources",
@@ -285,6 +298,11 @@ TEXTS: dict[str, str] = {
     "config.valid": "valid",
     "config.applied": "written and applied",
     "config.invalid": "{count} error(s); nothing written",
+    "config.rejected": "{count} error(s); nothing changed",
+    "config.changed": (
+        "The file changed on disk while you edited it; your text is kept, "
+        "and saving it replaces what is there."
+    ),
     "config.initialised": "the example files were written",
     # explorer
     "explorer.title": "Explorer",
@@ -388,6 +406,7 @@ TEXTS: dict[str, str] = {
     "common.yes": "yes",
     "common.no": "no",
     "common.error": "error {status}: {detail}",
+    "common.working": "working…",
     "common.updated": "updated {time}",
     "common.cross_site": "cross-site requests are refused",
 }

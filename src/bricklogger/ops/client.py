@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+import time
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Self
 
@@ -14,6 +15,9 @@ if TYPE_CHECKING:
     import httpx
 
 WHERE_KEYS = ("file", "instance", "rule", "point", "subject", "focus", "key")
+POLL_FIRST = 0.05
+POLL_MAX = 0.5
+UNFINISHED = ("queued", "running")
 
 
 class DaemonApi:
@@ -27,6 +31,8 @@ class DaemonApi:
         self._client = httpx.Client(
             base_url=self.base_url, headers=headers, timeout=timeout
         )
+        # hears each step of a job this client follows
+        self.on_step: Callable[[str], None] | None = None
 
     @classmethod
     def from_directory(
@@ -128,6 +134,24 @@ class DaemonApi:
             )
         )
 
+    def finish(self, job: Mapping[str, Any]) -> dict[str, Any]:
+        """Follow a job the daemon has accepted to its end, telling ``on_step``
+        each step as it begins: the job's result, or its problem raised."""
+        current = dict(job)
+        last: str | None = None
+        pause = POLL_FIRST
+        while current.get("state") in UNFINISHED:
+            step = current.get("step") or str(current["state"])
+            if self.on_step is not None and step != last:
+                self.on_step(step)
+            last = step
+            time.sleep(pause)
+            pause = min(pause * 2, POLL_MAX)
+            current = self.get(f"/v1/jobs/{current['id']}")
+        if current.get("state") != "done":
+            raise problem_error(current.get("problem") or {})
+        return dict(current.get("result") or {})
+
     def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
         import httpx
 
@@ -182,6 +206,12 @@ def api_error(response: httpx.Response) -> ApiError:
     )
 
 
+def problem_error(problem: Mapping[str, Any]) -> ApiError:
+    """A failed job's problem document as the error a refused request gives."""
+    status = int(problem.get("status") or 500)
+    return ApiError(status, problem, _describe(status, problem, "job failed"))
+
+
 def describe_problem(response: httpx.Response) -> str:
     """The status and detail on one line; the error entries follow, one per line."""
     try:
@@ -191,8 +221,12 @@ def describe_problem(response: httpx.Response) -> str:
         return f"{response.status_code}: {text}"
     if not isinstance(body, dict):
         return f"{response.status_code}: {response.text.strip()}"
-    detail = body.get("detail") or body.get("title") or response.reason_phrase
-    lines = [f"{response.status_code}: {detail}"]
+    return _describe(response.status_code, body, response.reason_phrase)
+
+
+def _describe(status: int, body: Mapping[str, Any], fallback: str) -> str:
+    detail = body.get("detail") or body.get("title") or fallback
+    lines = [f"{status}: {detail}"]
     for entry in body.get("errors") or []:
         if isinstance(entry, dict):
             lines.append("  " + format_error(entry))

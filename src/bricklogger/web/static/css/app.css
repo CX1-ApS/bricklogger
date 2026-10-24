@@ -85,6 +85,8 @@ td.uri { font-family: var(--mono); font-size: 13px; word-break: break-all; }
 .button { font-family: var(--mono); font-size: 13px; border: 1px solid var(--ink); padding: 7px 16px; background: var(--paper); text-decoration: none; display: inline-block; }
 .button:hover { background: var(--ink); color: var(--paper); }
 .button.quiet { border-color: var(--dim); color: var(--dim); }
+.button:disabled { opacity: .45; cursor: progress; }
+.button:disabled:hover { background: var(--paper); color: inherit; }
 .button-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .field { display: flex; flex-direction: column; gap: 4px; }
 .field label { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }

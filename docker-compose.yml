@@ -1,41 +1,93 @@
 name: bricklogger
 
 services:
+  db:
+    image: timescale/timescaledb-ha:pg18
+    command: ["postgres", "-c", "listen_addresses=127.0.0.1",
+              "-c", "port=${BRICKLOGGER_DB_PORT:-5432}"]
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      BRICKLOGGER_DB_NAME: ${BRICKLOGGER_DB_NAME:-bricklogger}
+      BRICKLOGGER_DB_USER: ${BRICKLOGGER_DB_USER:-bricklogger}
+      BRICKLOGGER_DB_PASSWORD: ${BRICKLOGGER_DB_PASSWORD:?set BRICKLOGGER_DB_PASSWORD in .env}
+    configs:
+      - source: bricklogger-role
+        target: /docker-entrypoint-initdb.d/100-bricklogger-role.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p ${BRICKLOGGER_DB_PORT:-5432} -U postgres"]
+      interval: 5s
+      retries: 24
+    volumes:
+      - db:/home/postgres/pgdata
+
   daemon:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.5
+    image: ghcr.io/cx1-aps/bricklogger:0.3.0
+    command: ["bricklogger", "daemon", "run"]
     network_mode: host
     restart: unless-stopped
     stop_grace_period: 30s
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      BRICKLOGGER_DB_PORT: ${BRICKLOGGER_DB_PORT:-5432}
+      BRICKLOGGER_DB_NAME: ${BRICKLOGGER_DB_NAME:-bricklogger}
+      BRICKLOGGER_DB_USER: ${BRICKLOGGER_DB_USER:-bricklogger}
+      BRICKLOGGER_DB_PASSWORD: ${BRICKLOGGER_DB_PASSWORD:-}
+      BRICKLOGGER_PLUGINS: ${BRICKLOGGER_PLUGINS:-}
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8420/health/live')"]
+      interval: 5s
+      start_period: 5m
     volumes:
       - config:/etc/bricklogger
       - data:/var/lib/bricklogger
       - plugins:/var/lib/bricklogger/plugins
 
   web:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.5
+    image: ghcr.io/cx1-aps/bricklogger:0.3.0
     command: ["bricklogger", "serve"]
-    profiles: ["web"]
-    depends_on: ["daemon"]
     network_mode: host
     restart: unless-stopped
+    depends_on:
+      daemon: { condition: service_healthy }
     volumes:
       - config:/etc/bricklogger
       - data:/var/lib/bricklogger
       - plugins:/var/lib/bricklogger/plugins
 
   mcp:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.5
+    image: ghcr.io/cx1-aps/bricklogger:0.3.0
     command: ["bricklogger", "mcp", "serve", "--http"]
-    profiles: ["mcp"]
-    depends_on: ["daemon"]
     network_mode: host
     restart: unless-stopped
+    depends_on:
+      daemon: { condition: service_healthy }
     volumes:
       - config:/etc/bricklogger
       - data:/var/lib/bricklogger
       - plugins:/var/lib/bricklogger/plugins
 
+configs:
+  bricklogger-role:
+    content: |
+      # Run once, when the database's volume is empty: the role Bricklogger
+      # logs in as, owner of its database and of the extension in it, so the
+      # destination can update the extension itself. "$$" is a "$" for the shell.
+      psql -v ON_ERROR_STOP=1 -U postgres -v db="$$BRICKLOGGER_DB_NAME" \
+        -v user="$$BRICKLOGGER_DB_USER" -v password="$$BRICKLOGGER_DB_PASSWORD" <<'SQL'
+      CREATE ROLE :"user" LOGIN PASSWORD :'password';
+      CREATE DATABASE :"db" OWNER :"user" TEMPLATE template0;
+      \connect :"db"
+      SET ROLE :"user";
+      CREATE EXTENSION IF NOT EXISTS timescaledb;
+      SQL
+
 volumes:
   config:
   data:
   plugins:
+  db:

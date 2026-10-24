@@ -10,6 +10,7 @@ import time
 from collections.abc import Iterable
 from dataclasses import replace
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 
@@ -133,7 +134,7 @@ def database_dsn() -> Iterable[str]:
             "POSTGRES_PASSWORD=bricklogger",
             "-p",
             "127.0.0.1:5433:5432",
-            "timescale/timescaledb:latest-pg16",
+            "timescale/timescaledb-ha:pg18",
         ],
         capture_output=True,
         text=True,
@@ -231,3 +232,75 @@ def test_round_trip_against_a_real_database(database_dsn: str) -> None:
             ).fetchone() == (2,), "a version written again replaces its row"
     finally:
         destination.stop()
+
+
+class _Session:
+    """A connection that answers the version query and records what it ran."""
+
+    def __init__(self, ran: list[str], row: Any, failure: Exception | None) -> None:
+        self.ran, self.row, self.failure = ran, row, failure
+
+    def __enter__(self) -> _Session:
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        return None
+
+    def execute(self, statement: str) -> _Session:
+        if statement.startswith("ALTER") and self.failure is not None:
+            raise self.failure
+        self.ran.append(statement)
+        return self
+
+    def fetchone(self) -> Any:
+        return self.row
+
+
+def _sessions(
+    monkeypatch: pytest.MonkeyPatch, row: Any, failure: Exception | None = None
+) -> list[list[str]]:
+    import psycopg
+
+    opened: list[list[str]] = []
+
+    def connect(*_: Any, **__: Any) -> _Session:
+        opened.append([])
+        return _Session(opened[-1], row, failure)
+
+    monkeypatch.setattr(psycopg, "connect", connect)
+    return opened
+
+
+def test_an_older_extension_is_updated_first_thing_in_a_session_of_its_own(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    opened = _sessions(monkeypatch, ("2.17.2", "2.24.0"))
+    destination = TimescaleDBDestination("tsdb", TimescaleDBConfig(dsn="postgres://x"))
+    with caplog.at_level("INFO"):
+        destination._update_extension({})
+    assert len(opened) == 2, "the versions in one session, the update in another"
+    assert opened[1] == ["ALTER EXTENSION timescaledb UPDATE"]
+    assert "updated from 2.17.2 to 2.24.0" in caplog.text
+
+
+def test_an_extension_at_the_offered_version_or_missing_is_left_alone(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    destination = TimescaleDBDestination("tsdb", TimescaleDBConfig(dsn="postgres://x"))
+    for row in [("2.24.0", "2.24.0"), ("2.25.0", "2.24.0"), None]:
+        opened = _sessions(monkeypatch, row)
+        destination._update_extension({})
+        assert len(opened) == 1, row
+
+
+def test_an_update_the_role_may_not_run_is_told_to_an_administrator(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    import psycopg
+
+    denied = psycopg.errors.InsufficientPrivilege("must be owner of extension")
+    _sessions(monkeypatch, ("2.17.2", "2.24.0"), denied)
+    destination = TimescaleDBDestination("tsdb", TimescaleDBConfig(dsn="postgres://x"))
+    destination._update_extension({})
+    assert "must be owner of extension" in caplog.text
+    assert "ALTER EXTENSION timescaledb UPDATE as the first command" in caplog.text

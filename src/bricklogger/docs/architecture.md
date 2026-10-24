@@ -88,8 +88,8 @@ CLI. Its functionality is defined in the [web document](features/web.md).
 The MCP server is a third process, `bricklogger mcp serve`, that speaks the Model
 Context Protocol to an AI assistant and talks to the daemon's HTTP API as the
 CLI does, with the CLI's fallback to the files when no daemon runs. It is made
-for configuration: it carries the schemas, the documentation and the plugin
-catalogue as resources, and its tools map one to one onto the CLI's
+for configuration: it carries the schemas, the documentation, the installed
+plugins and the catalogue as resources, and its tools map one to one onto the CLI's
 configuration commands and read-only views. It uploads no models and operates
 no instances. Its functionality is defined in the
 [MCP document](features/mcp.md).
@@ -266,7 +266,11 @@ therefore not become invalid that way. The files can also be edited directly.
 **Reload.** When the files are changed outside the API, the changes take
 effect only when the user performs a reload through the CLI. On reload the
 configuration is validated as a whole; if it is invalid, it is rejected with
-an error message and the daemon continues on the running configuration.
+an error message and the daemon continues on the running configuration. A
+write through the API and a reload both run as
+[jobs](features/api.md#jobs), one at a time together with model uploads and
+activations, so the configuration and the model never change at once, and
+the job reports the step it is on.
 
 **Secrets.** The configuration can interpolate environment variables (e.g.
 `${TSDB_PASSWORD}`), which the daemon fills in when loading. Secrets never
@@ -460,8 +464,8 @@ contract stays transport-agnostic.
 **A plugin that cannot be loaded stops nothing.** An entry point whose import
 raises, or whose declaration is of the wrong role or carries another type
 name than the entry point, is recorded with its error instead of ending the
-load. The catalogue lists the plugin with the error where its description
-would be, its configured instances are `failed` in status with the same error
+load. The list of installed plugins shows it with the error where its
+description would be, its configured instances are `failed` in status with the same error
 and raise `instance_failed`, validation warns about them instead of checking
 their settings, and every other instance runs. A configured type that no
 installed plugin provides — a plugin not yet added after an upgrade, one a
@@ -542,9 +546,13 @@ Operation is the plugin's own life in its own thread:
   warnings a source raises with a code of its own, such as `rate_limited`, and
   withdraws again. A device the source reports unreachable raises
   `device_unreachable` in the daemon until the source reports it reachable,
-  so the source says what it sees and the daemon keeps the warning. What
-  status shows is a separate topic; the contract only fixes that the channel
-  exists and what it carries.
+  so the source says what it sees and the daemon keeps the warning. A report
+  on the channel **never waits for the daemon**: the channel records it and
+  returns, and what the daemon makes of it — a fallback, a warning — happens
+  on a thread of the daemon's own. A source that reports while the daemon
+  activates a model or reloads its configuration is never held up, and a stop
+  always reaches it. What status shows is a separate topic; the contract only
+  fixes that the channel exists and what it carries.
 
 Rule semantics stay in the daemon: the plugin never sees a fallback, only the
 method it is asked to run. What a protocol plugin needs to know about a point
@@ -596,8 +604,13 @@ Stopping is **graceful with a deadline**: the plugin cancels subscriptions,
 closes sockets and flushes what it holds into the sink. The deadline is
 `stop_timeout` in `daemon.yaml`, default 10 seconds. A plugin that misses the
 deadline is **abandoned and reported in status** — Python cannot force a
-thread to stop. That is the honest limit of thread isolation, and one more
-reason process isolation can come later without changing the contract.
+thread to stop. The daemon keeps watching the abandoned thread and withdraws
+the report once the thread has ended, which it usually does as soon as
+whatever held it up lets go; until then the instance counts as failed, because
+the old thread can still push into the sink. A reload that replaces the
+instance starts the new one regardless. That is the honest limit of thread
+isolation, and one more reason process isolation can come later without
+changing the contract.
 
 - **Restart of one instance.** A reload that changes an instance's
   configuration stops that instance and starts a new one; the other instances
@@ -612,8 +625,9 @@ reason process isolation can come later without changing the contract.
   the daemon's watchdog, marked **failed** with `instance_failed`, and
   restarted the same way. The daemon emits no observations on behalf of a
   dead plugin — it never stamps anything itself.
-- **Daemon shutdown** stops all instances with the same deadline and then
-  flushes the destinations.
+- **Daemon shutdown** first finishes a configuration write or reload that is
+  queued or running, within `stop_timeout`, then stops all instances with
+  the same deadline and flushes the destinations.
 - **Operator stop.** An instance can be stopped and started from the CLI. A
   stopped instance stays stopped across reload and daemon restart until it is
   started again, shows as `stopped` in status and as the warning

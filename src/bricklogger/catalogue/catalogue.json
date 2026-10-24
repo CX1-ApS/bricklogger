@@ -1,0 +1,11 @@
+{
+  "plugins": [
+    {
+      "package": "bricklogger-ibos",
+      "types": [{ "type": "ibos", "role": "source" }],
+      "description": "Points read from the iBOS Data API",
+      "publisher": "CX1 ApS",
+      "link": "https://github.com/CX1-ApS/bricklogger-ibos"
+    }
+  ]
+}

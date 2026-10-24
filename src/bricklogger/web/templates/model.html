@@ -14,7 +14,7 @@
   <label class="mono"><input type="checkbox" name="activate" value="true" checked> {{ t('model.upload.activate') }}</label>
   <div class="button-row"><button class="button" type="submit">{{ t('model.upload.submit') }}</button></div>
 </form>
-<div id="job"></div>
+<div id="job">{% for job in pending %}{% include "partials/job.html" %}{% endfor %}</div>
 <h2>{{ t('model.versions') }}</h2>
 <div id="versions" hx-get="/partials/model/versions" hx-trigger="every {{ poll }}s" hx-swap="outerHTML">
   {% include "partials/model_versions.html" %}

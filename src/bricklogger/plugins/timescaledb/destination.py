@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import psycopg
+from packaging.version import InvalidVersion, Version
 from pydantic import BaseModel
 
 from bricklogger.plugins.timescaledb.config import TimescaleDBConfig
@@ -33,6 +34,12 @@ REASON_CODES: dict[str, int] = {
     "unreachable": 5,
     "read_error": 6,
 }
+
+EXTENSION_VERSIONS = (
+    "SELECT e.extversion, a.default_version FROM pg_extension e "
+    "JOIN pg_available_extensions a ON a.name = e.extname "
+    "WHERE e.extname = 'timescaledb'"
+)
 
 NUMERIC_TYPES = frozenset({"number", "integer", "boolean", "enum", "null"})
 
@@ -233,6 +240,7 @@ class TimescaleDBDestination(Destination):
         arguments: dict[str, Any] = {}
         if self.settings.password:
             arguments["password"] = self.settings.password
+        self._update_extension(arguments)
         self.connection = psycopg.connect(
             self.settings.dsn, autocommit=False, **arguments
         )
@@ -318,6 +326,50 @@ class TimescaleDBDestination(Destination):
         self._point_ids[uri] = point_id
         return point_id
 
+    def _update_extension(self, arguments: Mapping[str, Any]) -> None:
+        """Bring the extension up to the newest version the server offers.
+
+        A new package or image puts a newer TimescaleDB on the server while the
+        database keeps the version it was created with. The update must be the
+        first command of a session of its own, so the versions are read in one
+        connection and the update runs in another. It needs the role to own the
+        extension; where it does not, an administrator is told the command, and
+        the destination goes on with the version it has.
+        """
+        dsn = self.settings.dsn
+        try:
+            with psycopg.connect(dsn, autocommit=True, **arguments) as probe:
+                row = probe.execute(EXTENSION_VERSIONS).fetchone()
+        except psycopg.Error:
+            return  # the connection that follows says why, and fails the start
+        if row is None or row[0] is None or row[1] is None:
+            return  # not installed: the schema's own step creates it
+        installed, offered = str(row[0]), str(row[1])
+        if not _older(installed, offered):
+            return
+        try:
+            with psycopg.connect(dsn, autocommit=True, **arguments) as session:
+                session.execute("ALTER EXTENSION timescaledb UPDATE")
+        except psycopg.Error as exc:
+            log.warning(
+                "%s: the timescaledb extension is at %s and the server offers %s, "
+                "but it could not be updated (%s); an administrator runs "
+                "ALTER EXTENSION timescaledb UPDATE as the first command of a new "
+                "session in the database, or makes the destination's role the "
+                "extension's owner",
+                self.name,
+                installed,
+                offered,
+                str(exc).strip(),
+            )
+            return
+        log.info(
+            "%s: the timescaledb extension was updated from %s to %s",
+            self.name,
+            installed,
+            offered,
+        )
+
     def _ensure_schema(self) -> None:
         """Create the tables on first start; hypertables if the extension exists."""
         connection = self._require_connection()
@@ -366,3 +418,12 @@ class TimescaleDBDestination(Destination):
         if self.connection is None:
             raise RuntimeError(f"{self.name} is not started")
         return self.connection
+
+
+def _older(installed: str, offered: str) -> bool:
+    """Whether the installed version is behind the one the server offers; two
+    versions that do not parse are compared for equality alone."""
+    try:
+        return Version(installed) < Version(offered)
+    except InvalidVersion:
+        return installed != offered

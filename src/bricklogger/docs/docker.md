@@ -14,8 +14,8 @@ published by GitHub Actions.
 
 | Tag | What it is |
 |-----|------------|
-| `0.2.5` | One released version — what a building's logger should name |
-| `0.2` | The newest patch of that minor version |
+| `0.3.0` | One released version — what a building's logger should name |
+| `0.3` | The newest patch of that minor version |
 | `latest` | The newest release |
 
 Every version is built for `linux/amd64` and `linux/arm64`, and only after the
@@ -40,13 +40,14 @@ That is the same division as the three systemd units, and the same
 
 ## The compose file
 
-Three volumes, and the daemon alone unless more is asked for. The compose file
-brings **no database**: a logger writes to a TimescaleDB that already exists,
-[prepared as it is on any other install](getting-started.md#prepare-the-database),
-and reached over the network.
+Four services and four volumes, and all of them start with one command. The
+database comes with it: `db` is TimescaleDB, prepared at its first start for
+Bricklogger, and the daemon writes to it with no further setup. A site whose
+database lives elsewhere, or that writes to no TimescaleDB at all, removes
+`db` — see [without the database](#without-the-database) below.
 
-The three services carry the names of the three processes — `daemon`, `web`,
-`mcp` — and the stack names itself, so the containers are
+The services carry the names of the processes — `db`, `daemon`, `web`, `mcp`
+— and the stack names itself, so the containers are `bricklogger-db-1`,
 `bricklogger-daemon-1`, `bricklogger-web-1` and `bricklogger-mcp-1` whatever
 the directory holding the file is called.
 
@@ -54,56 +55,133 @@ the directory holding the file is called.
 name: bricklogger
 
 services:
+  db:
+    image: timescale/timescaledb-ha:pg18
+    command: ["postgres", "-c", "listen_addresses=127.0.0.1",
+              "-c", "port=${BRICKLOGGER_DB_PORT:-5432}"]
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      BRICKLOGGER_DB_NAME: ${BRICKLOGGER_DB_NAME:-bricklogger}
+      BRICKLOGGER_DB_USER: ${BRICKLOGGER_DB_USER:-bricklogger}
+      BRICKLOGGER_DB_PASSWORD: ${BRICKLOGGER_DB_PASSWORD:?set BRICKLOGGER_DB_PASSWORD in .env}
+    configs:
+      - source: bricklogger-role
+        target: /docker-entrypoint-initdb.d/100-bricklogger-role.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p ${BRICKLOGGER_DB_PORT:-5432} -U postgres"]
+      interval: 5s
+      retries: 24
+    volumes:
+      - db:/home/postgres/pgdata
+
   daemon:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.5
+    image: ghcr.io/cx1-aps/bricklogger:0.3.0
+    command: ["bricklogger", "daemon", "run"]
     network_mode: host
     restart: unless-stopped
     stop_grace_period: 30s
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      BRICKLOGGER_DB_PORT: ${BRICKLOGGER_DB_PORT:-5432}
+      BRICKLOGGER_DB_NAME: ${BRICKLOGGER_DB_NAME:-bricklogger}
+      BRICKLOGGER_DB_USER: ${BRICKLOGGER_DB_USER:-bricklogger}
+      BRICKLOGGER_DB_PASSWORD: ${BRICKLOGGER_DB_PASSWORD:-}
+      BRICKLOGGER_PLUGINS: ${BRICKLOGGER_PLUGINS:-}
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8420/health/live')"]
+      interval: 5s
+      start_period: 5m
     volumes:
       - config:/etc/bricklogger
       - data:/var/lib/bricklogger
       - plugins:/var/lib/bricklogger/plugins
 
   web:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.5
+    image: ghcr.io/cx1-aps/bricklogger:0.3.0
     command: ["bricklogger", "serve"]
-    profiles: ["web"]
-    depends_on: ["daemon"]
     network_mode: host
     restart: unless-stopped
+    depends_on:
+      daemon: { condition: service_healthy }
     volumes:
       - config:/etc/bricklogger
       - data:/var/lib/bricklogger
       - plugins:/var/lib/bricklogger/plugins
 
   mcp:
-    image: ghcr.io/cx1-aps/bricklogger:0.2.5
+    image: ghcr.io/cx1-aps/bricklogger:0.3.0
     command: ["bricklogger", "mcp", "serve", "--http"]
-    profiles: ["mcp"]
-    depends_on: ["daemon"]
     network_mode: host
     restart: unless-stopped
+    depends_on:
+      daemon: { condition: service_healthy }
     volumes:
       - config:/etc/bricklogger
       - data:/var/lib/bricklogger
       - plugins:/var/lib/bricklogger/plugins
 
+configs:
+  bricklogger-role:
+    content: |
+      # Run once, when the database's volume is empty: the role Bricklogger
+      # logs in as, owner of its database and of the extension in it, so the
+      # destination can update the extension itself. "$$" is a "$" for the shell.
+      psql -v ON_ERROR_STOP=1 -U postgres -v db="$$BRICKLOGGER_DB_NAME" \
+        -v user="$$BRICKLOGGER_DB_USER" -v password="$$BRICKLOGGER_DB_PASSWORD" <<'SQL'
+      CREATE ROLE :"user" LOGIN PASSWORD :'password';
+      CREATE DATABASE :"db" OWNER :"user" TEMPLATE template0;
+      \connect :"db"
+      SET ROLE :"user";
+      CREATE EXTENSION IF NOT EXISTS timescaledb;
+      SQL
+
 volumes:
   config:
   data:
   plugins:
+  db:
 ```
+
+Beside it lies an **`.env`** file, which Compose reads by itself. Two values
+are required, and Compose refuses to start without them rather than run with a
+password from an example:
 
 ```bash
-docker compose up -d                        # the daemon alone
-docker compose --profile web up -d          # and the web interface
-docker compose --profile web --profile mcp up -d
+# .env
+POSTGRES_PASSWORD=...              # the database's admin; only db sees it
+BRICKLOGGER_DB_PASSWORD=...        # the role Bricklogger logs in as
+# optional, with their defaults
+#BRICKLOGGER_DB_NAME=bricklogger
+#BRICKLOGGER_DB_USER=bricklogger
+#BRICKLOGGER_DB_PORT=5432
+#BRICKLOGGER_PLUGINS="bricklogger-ibos"
 ```
 
-The web interface and the MCP server are behind profiles because an
-installation that only logs data needs neither, and the MCP server is of no
-use before its [token](features/mcp.md#the-token) exists. They read the same
-configuration volume, so they are switched on and off without touching it.
+Then:
+
+```bash
+docker compose up -d
+```
+
+starts the database, then the daemon once the database answers, then the web
+interface and the MCP server once the daemon answers. The web interface is on
+`http://127.0.0.1:8421`, where the sources are added and the model uploaded,
+and the MCP server answers on 8422 with no [token](features/mcp.md#the-token)
+as long as it is bound to localhost.
+
+The admin password stays with `db`: the daemon gets only its own role's
+password, and only through its environment. `POSTGRES_INITDB_ARGS` makes the
+database ask for a password on loopback too, which the image would otherwise
+trust: on the host's network, loopback is every process on the host. The daemon's command is written
+out, although it is the image's default, because the
+[first start](#the-first-start) is the work of the container that runs it.
+
+The compose file needs Compose 2.23 or newer, for the inline `configs`.
 
 !!! note "One volume for the plugins"
 
@@ -112,12 +190,28 @@ configuration volume, so they are switched on and off without touching it.
     emptied and rebuilt without touching the runtime state, the model versions
     and the working graph beside it. See [plugins](#plugins) below.
 
+### Without the database
+
+The database is a service like the others, and Compose starts every service in
+the file, so a site that does not want it removes it: the `db` service, its
+volume and the daemon's `depends_on`. What the daemon then writes to follows
+from `BRICKLOGGER_DB_PASSWORD`:
+
+- **Unset**, the first start writes the commented example in
+  `destinations.yaml`, as for any other destination, and the daemon starts
+  with none.
+- **Set**, with `BRICKLOGGER_DB_HOST` naming the database's host in the
+  daemon's `environment`, the first start writes a working TimescaleDB
+  destination against it. That database is prepared by whoever looks after
+  it, as [getting started](getting-started.md#prepare-the-database) shows;
+  the container installs nothing and asks for no admin login.
+
 ## Bind mounts, and the user the container runs as
 
 The compose file uses **named volumes**, and that is the path with the fewest
 surprises: Docker fills a fresh named volume from the image, ownership
-included, so the three directories belong to the container's user from the
-first start.
+included, so Bricklogger's three directories belong to the container's user
+from the first start, and the database's to its own.
 
 Mounting **host directories** instead — `./config:/etc/bricklogger` and its
 two siblings — is a reasonable wish: the configuration is then editable from
@@ -147,8 +241,9 @@ The second is the one to reach for when the files should stay the host user's
 own — `id -u` and `id -g` on the host give the two numbers, the daemon then
 runs as that user, and what it writes is readable and editable without `sudo`.
 Any user works; nothing in the image requires `uid 999` when the directories
-it writes to are mounted from the host. Set it on all three services, so they
-write as the same user.
+it writes to are mounted from the host. Set it on the three Bricklogger
+services, so they write as the same user; the database's container keeps its
+own user and its named volume.
 
 !!! note "A stray directory in the data directory"
 
@@ -178,64 +273,104 @@ the devices' answers back. On the host network the source behaves exactly as
 on an ordinary install — `address` is the host's own IPv4 address with its
 prefix length, and `bricklogger sources <name> discover` answers.
 
-Two consequences are worth knowing:
+Three consequences are worth knowing:
 
-- **The ports are the host's.** 8420, 8421 and 8422 are bound directly, and
-  `ports:` in the compose file does nothing. What the outside world can reach
-  is decided by `api.host`, `web.host` and `mcp.host` in `daemon.yaml`, which
-  default to `127.0.0.1` — the host itself and nothing else.
-- **The three processes share loopback**, so the web interface and the MCP
-  server reach the daemon's API on `127.0.0.1:8420` with no token, exactly as
-  three units on one machine do.
+- **The ports are the host's.** 8420, 8421, 8422 and the database's 5432 are
+  bound directly, and `ports:` in the compose file does nothing. What the
+  outside world can reach is decided by `api.host`, `web.host` and `mcp.host`
+  in `daemon.yaml`, which default to `127.0.0.1` — the host itself and
+  nothing else — and the database listens on `127.0.0.1` alone.
+- **The four processes share loopback**, so the daemon reaches the database
+  on `localhost`, and the web interface and the MCP server reach the daemon's
+  API on `127.0.0.1:8420` with no token, exactly as on a machine where
+  everything is installed side by side.
+- **A host that runs PostgreSQL already** has 5432 taken. Set
+  `BRICKLOGGER_DB_PORT` in `.env` to a free port; the database listens on it
+  and the destination is written with it.
 
 An installation with no BACnet — one that reads a cloud service through a
 plugin, say — can
 run on an ordinary bridge network instead: drop `network_mode: host`, publish
 the ports that should be reachable, set `api.host` to `0.0.0.0` with an
 [`api.token`](features/configuration.md#daemonyaml), which the configuration
-then requires, and point the other two at the daemon with
-`--api http://daemon:8420`.
+then requires, point the other two at the daemon with
+`--api http://daemon:8420`, drop `listen_addresses` from the database's
+command and give the daemon `BRICKLOGGER_DB_HOST: db`.
 
 ## The first start
 
-The first `docker compose up -d` finds an empty configuration volume, writes
-the four files into it and starts the daemon. The files are the ones
-[`init --non-interactive`](features/cli.md#init) writes, with the example
-source and destination **commented out**: they name another building's BACnet
-address and a database whose password nobody has set, and the daemon refuses a
-configuration it cannot resolve — a container that would not start, on a
-restart policy that would try again and again. Commented out, they are an
-example to uncomment and edit, and the daemon starts with an empty
-configuration: no sources, no destinations, nothing accepted, and `status`
-reports `idle` until there is something to do. Nothing is overwritten later.
+The first `docker compose up -d` finds three empty volumes and fills them,
+each once:
 
-To answer the guided questions instead, run `init` **before** the first
-`up`, while the volume is still empty:
+1. **The database.** `db` finds its volume empty, creates the cluster with
+   `POSTGRES_PASSWORD` for the admin `postgres`, and — through the script in
+   the compose file — the role `bricklogger` with `BRICKLOGGER_DB_PASSWORD`
+   and the database `bricklogger` with the `timescaledb` extension, both owned
+   by the role. It listens when that is done, and the daemon waits for it.
+2. **The configuration.** The daemon's container finds the configuration
+   volume empty and writes the four files that
+   [`init --non-interactive`](features/cli.md#init) writes. Its environment
+   carries the database's variables, so `destinations.yaml` gets a working
+   destination and not an example:
+
+    ```yaml
+    tsdb:
+      type: timescaledb
+      dsn: "postgres://bricklogger@localhost:5432/bricklogger"
+      password: ${BRICKLOGGER_DB_PASSWORD}
+    ```
+
+    The password stays in the environment, and the YAML names it. The example
+    source in `sources.yaml` is **commented out**: it names another building's
+    BACnet address, and the daemon refuses a configuration it cannot resolve —
+    a container that would not start, on a restart policy that would try again
+    and again.
+3. **The plugins.** The plugin volume is empty, so the packages in
+   `BRICKLOGGER_PLUGINS` are installed into it, as
+   [`plugins add`](#plugins) would, and recorded in its manifest. A package
+   that cannot be installed is logged and left out, and the daemon starts
+   anyway.
+
+The daemon then starts, the destination creates its tables, and `status`
+reports `idle` until there is a source and a model. The web interface and the
+MCP server start once the daemon answers. The first start is **the work of the
+container that runs `daemon run`**: the other two wait for it, so two
+containers never write the same files.
+
+Each of the three happens **once**. A volume that is not empty is left as it
+is, so the next `up`, an upgrade or a changed `.env` touches nothing: a new
+`BRICKLOGGER_DB_PASSWORD` does not change the role's password, which is
+changed in the database, and a new `BRICKLOGGER_PLUGINS` installs nothing,
+which is what [`plugins add`](#plugins) is for.
+
+From there, the way on is the web interface, which adds sources on the
+configuration screen and installs plugins from the
+[catalogue](features/plugins.md#the-catalogue), or the guided
+[`init`](features/cli.md#init) in the running container:
 
 ```bash
-docker compose run --rm -it daemon bricklogger init
+docker compose exec -it daemon bricklogger init
+docker compose restart daemon
 ```
 
-`init` refuses to overwrite a file that exists, so once the examples are
-there, the way on is one instance at a time — the same questions, asked per
-instance:
+It asks about each file that exists: replace is the default for
+`sources.yaml`, which still holds the commented example, and skip for
+`destinations.yaml`, which no longer does. The database step installs nothing
+and asks for no admin in a container; it writes the destination from the
+database variables when it is replaced. `sources add` and `destinations add`
+do the same one instance at a time:
 
 ```bash
 docker compose exec -it daemon bricklogger sources add bacnet_main --type bacnet-ip
-docker compose exec -it daemon bricklogger destinations add tsdb --type timescaledb
 docker compose exec daemon bricklogger validate
 ```
 
-Or through the web interface's configuration screen, which edits the same
-files.
-
-Secrets go where they always go: the
+Secrets of the instances go where they always go: the
 [`env` file](features/configuration.md#the-env-file) in the configuration
-volume, which `sources add` and `destinations add` write themselves when they
-ask for a password without echo. A value already in the process environment
-wins over the file, so `environment:` in the compose file also works — but
-then the secret lives in a file beside the compose file rather than in the
-volume with mode `600`, which is why the `env` file is the documented place.
+volume, with mode `600`, which `init`, `sources add` and `destinations add`
+write themselves when they ask for a secret without echo. The two passwords
+in `.env` are the exception, because the database's container needs them
+before any configuration exists; keep `.env` readable by its owner alone.
 
 ## Plugins
 
@@ -252,7 +387,8 @@ In a container, `plugins add` installs into the plugin volume instead of into
 the image's environment, and otherwise behaves as
 [the plugins page](features/plugins.md#installing-a-plugin) describes: it
 takes a name, a name with a version, a wheel or a git URL, it prints the
-catalogue when it is done, and it restarts nothing. Two things are its own:
+installed plugins when it is done, and it restarts nothing. Two things are its
+own:
 
 - **What was asked for is written down.** The volume keeps a manifest of the
   packages that were installed into it, so the same set can be laid down again
@@ -268,8 +404,24 @@ catalogue when it is done, and it restarts nothing. Two things are its own:
   duplicates, and the image's is the one on the path.
 
 The `web` service mounts the same volume, so the web interface's
-[Plugins screen](features/web.md#screens) installs into it as well, and
+[Plugins screen](features/web.md#screens), with its
+[catalogue](features/plugins.md#the-catalogue), installs into it as well, and
 `docker compose restart daemon` is the restart in both cases.
+
+**The plugins of a new installation** can be named before it exists, in
+`BRICKLOGGER_PLUGINS` in `.env`: packages written as for `plugins add`,
+separated by spaces, or one per line in double quotes when a package is
+written as `name @ url`, which holds a space itself:
+
+```bash
+BRICKLOGGER_PLUGINS="bricklogger-ibos bricklogger-homeassistant>=0.2,<0.3"
+```
+
+They are installed at the [first start](#the-first-start), when the plugin
+volume is empty, and from then on the manifest is what counts. The variable
+is read **only then**: changing it later installs and removes nothing, so two
+containers of one image never differ because of what their environment said
+at a start.
 
 A plugin installed from a wheel or another path is recorded as that path,
 since that is what was asked for. Keep it reachable from the container, or add
@@ -277,8 +429,8 @@ the plugin again from an index after an upgrade.
 
 `plugins remove TYPE` uninstalls from the volume, with
 [what only that plugin needed](features/plugins.md#removing-a-plugin), and
-drops the line from the manifest. The built-in types live in the image and cannot be removed, as
-everywhere else.
+drops the line from the manifest. The built-in types live in the image and
+cannot be removed, as everywhere else.
 
 ## Upgrading
 
@@ -289,8 +441,8 @@ docker compose pull
 docker compose up -d
 ```
 
-The three volumes are untouched, so the configuration, the data **and the
-plugins** survive. A plugin in the volume was installed against the Python and
+The volumes are untouched, so the configuration, the data, the database **and
+the plugins** survive. A plugin in the volume was installed against the Python and
 the Bricklogger version of the image that installed it, and the volume
 records which. When a new image differs from that record, the first container
 to start lays the manifest down again before the daemon starts:
@@ -320,6 +472,25 @@ The destination migrates its own schema when it starts, and an incompatible
 configuration is rejected at start with the file and the key named — as on
 every other install.
 
+The database's image is named by its **major version alone**, `pg18`, so a
+pull brings PostgreSQL's patch releases and the newest TimescaleDB without
+waiting for a release of Bricklogger:
+
+```bash
+docker compose pull db
+docker compose up -d
+```
+
+The extension in the database stays at its version until it is updated, and
+the destination does that at its next start, as the
+[destinations page](features/destinations.md#timescaledb) describes.
+
+A new **major version of PostgreSQL** is never a pull: the data directory of
+one major version cannot be opened by the next. The compose file keeps
+`pg18`, and moving to another is a dump and a restore, or `pg_upgrade`, done
+deliberately; a release of Bricklogger that names a new major version says so
+in its notes and leaves the move to the operator.
+
 ## Logs and lifecycle
 
 `daemon run` logs to stdout, which Docker collects:
@@ -348,25 +519,45 @@ configuration in place.
 
 ## Without compose
 
-The same thing, by hand:
+The daemon, by hand, writing to a database that already exists:
 
 ```bash
 docker run -d --name bricklogger \
   --network host \
+  -e BRICKLOGGER_DB_HOST=localhost -e BRICKLOGGER_DB_PASSWORD \
   --restart unless-stopped \
   -v bricklogger-config:/etc/bricklogger \
   -v bricklogger-data:/var/lib/bricklogger \
   -v bricklogger-plugins:/var/lib/bricklogger/plugins \
-  ghcr.io/cx1-aps/bricklogger:0.2.5
+  ghcr.io/cx1-aps/bricklogger:0.3.0
 ```
 
-The web interface and the MCP server are two more `docker run` lines with the
-same volumes and their own command.
+`-e BRICKLOGGER_DB_PASSWORD` passes the value from the shell, so it is not on
+the command line. The web interface and the MCP server are two more
+`docker run` lines with the same volumes and their own command, and the
+database one more with the image, the command, the environment, the script
+and the volume of the compose file's `db`.
 
 ## When something is wrong
 
 - **`docker compose logs daemon`** is the first place: a configuration
   the daemon rejects names the file and the key there.
+- **`docker compose up` stops before it starts anything** with
+  `set POSTGRES_PASSWORD in .env`: the two passwords are missing from `.env`,
+  or `.env` is not beside the compose file.
+- **The daemon never starts, waiting for `db`.** `docker compose logs db` says
+  why; a port already in use means a PostgreSQL on the host, and
+  `BRICKLOGGER_DB_PORT` in `.env` moves the database to another.
+- **The destination is refused its login after `.env` was changed.** The role
+  got its password at the database's first start, and a new
+  `BRICKLOGGER_DB_PASSWORD` does not reach it. Set it in the database too, then
+  restart the daemon:
+
+    ```bash
+    docker compose exec db psql -U postgres \
+      -c "ALTER ROLE bricklogger PASSWORD 'the new password'"
+    ```
+
 - **The containers restart in a ring, and nothing answers.** The log says
   `the data directory ... cannot be used`, and a bind mount is behind it: the
   directory belongs to another user than the one the container runs as. See

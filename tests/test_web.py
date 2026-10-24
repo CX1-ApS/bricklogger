@@ -3,6 +3,10 @@ the overview, the points and daemon screens, the forwarded API, and the login.""
 
 from __future__ import annotations
 
+import json
+import re
+import threading
+import time
 from collections.abc import Iterator, Sequence
 from datetime import date
 from pathlib import Path
@@ -22,6 +26,19 @@ from tests.support import (
     free_port,
     wait_for,
 )
+
+
+def followed(web: TestClient, started: Any) -> Any:
+    """Poll the job a partial shows until it has finished; the last answer."""
+    found = re.search(r'id="job-([0-9a-f]+)"', started.text)
+    assert found, started.text
+    answer = started
+    deadline = time.monotonic() + 30
+    while 'hx-trigger="every 1s"' in answer.text:
+        assert time.monotonic() < deadline, "the job did not finish in time"
+        time.sleep(0.05)
+        answer = web.get(f"/partials/job/{found.group(1)}")
+    return answer
 
 
 @pytest.fixture
@@ -98,14 +115,18 @@ def test_daemon_screen_reloads_and_shows_rejections(
     page = web.get("/daemon")
     assert page.status_code == 200 and "Reload the configuration" in page.text
     assert str(served.config_dir) in page.text
-    reloaded = web.post("/actions/daemon/reload", headers={"HX-Request": "true"})
-    assert reloaded.status_code == 200 and "&gt; reloaded" in reloaded.text
+    started = web.post("/actions/daemon/reload", headers={"HX-Request": "true"})
+    assert started.status_code == 200 and "reload job" in started.text
+    reloaded = followed(web, started)
+    assert "&gt; reloaded" in reloaded.text
+    finished = json.loads(reloaded.headers["HX-Trigger"])["job-finished"]
+    assert finished == {"operation": "reload", "state": "done", "file": None}
     (served.config_dir / "rules.yaml").write_text(
         "- match: { class: brick:Point }\n  action: accept\n  method: poll\n"
     )
     try:
-        rejected = web.post("/actions/daemon/reload")
-        assert "rejected" in rejected.text and "interval" in rejected.text
+        rejected = followed(web, web.post("/actions/daemon/reload"))
+        assert "nothing changed" in rejected.text and "interval" in rejected.text
         assert 'class="terminal signal"' in rejected.text
     finally:
         (served.config_dir / "rules.yaml").write_text(RULES_ALL)
@@ -252,17 +273,24 @@ def test_configuration_screen_validates_and_saves(
     assert "&gt; valid" in valid.text
 
     deny = "- match: { class: brick:Point }\n  action: deny\n"
-    saved = web.post("/actions/config/save", data={"file": "rules", "text": deny})
-    assert saved.status_code == 200 and "written and applied" in saved.text
+    started = web.post("/actions/config/save", data={"file": "rules", "text": deny})
+    assert started.status_code == 200 and "config rules.yaml job" in started.text
+    saved = followed(web, started)
+    assert "written and applied" in saved.text
+    finished = json.loads(saved.headers["HX-Trigger"])["job-finished"]
+    assert finished == {"operation": "config", "state": "done", "file": "rules"}
     assert (served.config_dir / "rules.yaml").read_text() == deny
     assert served.daemon.assignment_of("fake_a") == []
-    restored = web.post(
-        "/actions/config/save", data={"file": "rules", "text": RULES_ALL}
+    restored = followed(
+        web, web.post("/actions/config/save", data={"file": "rules", "text": RULES_ALL})
     )
     assert "written and applied" in restored.text
 
-    rejected = web.post("/actions/config/save", data={"file": "rules", "text": broken})
+    rejected = followed(
+        web, web.post("/actions/config/save", data={"file": "rules", "text": broken})
+    )
     assert "nothing written" in rejected.text
+    assert 'data-subject="rule 1"' in rejected.text, "marked at their keys"
     assert (served.config_dir / "rules.yaml").read_text() == RULES_ALL
 
     exists = web.post("/actions/config/init", follow_redirects=False)
@@ -283,6 +311,10 @@ def test_plugins_screen_lists_installs_and_removes(
     assert page.status_code == 200
     assert "fake-source" in page.text and "fake_a" in page.text
     assert 'aria-current="page"' in page.text and ">Remove<" in page.text
+    assert ">Installed<" in page.text and ">Catalogue<" in page.text
+    assert "bricklogger-ibos" in page.text, "the catalogue, from the daemon"
+    assert '"packages": "bricklogger-ibos"' in page.text, "with an Install"
+    assert '<span class="tag">built-in</span>' in page.text, "and every origin"
 
     calls: list[Any] = []
 
@@ -407,6 +439,40 @@ def test_instances_screen_controls_instances_and_runs_tools(
     assert web.post("/actions/instances/fake-source/fake_a/dance").status_code == 404
     partial = web.get("/partials/instances")
     assert partial.status_code == 200 and "sink_a" in partial.text
+
+
+def test_screens_show_a_waiting_job_again_and_hold_save_and_reload(
+    web: TestClient, served: Served
+) -> None:
+    release = threading.Event()
+
+    def hold(job: Any) -> dict[str, Any]:
+        job.step = "activating"
+        release.wait(10)
+        return {}
+
+    held = served.daemon.jobs.submit("activate", hold)
+    try:
+        model = web.get("/model")
+        assert f'id="job-{held.id}"' in model.text, "the model screen shows it"
+        started = web.post(
+            "/actions/config/save", data={"file": "rules", "text": RULES_ALL}
+        )
+        assert "queued" in started.text, "behind the model job, in one queue"
+        page = web.get("/config", params={"file": "rules"})
+        assert 'data-job-group="config" data-job-state="queued"' in page.text
+        save = re.search(r"<button[^>]*actions/config/save[^>]*>", page.text)
+        assert save and " disabled" in save.group(0), "save waits for the job"
+        assert f'id="job-{held.id}"' not in page.text, "only configuration jobs"
+        daemon_page = web.get("/daemon")
+        reload = re.search(r"<button[^>]*actions/daemon/reload[^>]*>", daemon_page.text)
+        assert reload and " disabled" in reload.group(0)
+    finally:
+        release.set()
+    assert "written and applied" in followed(web, started).text
+    page = web.get("/config", params={"file": "rules"})
+    save = re.search(r"<button[^>]*actions/config/save[^>]*>", page.text)
+    assert save and " disabled" not in save.group(0)
 
 
 def test_cross_site_posts_are_refused(web: TestClient) -> None:

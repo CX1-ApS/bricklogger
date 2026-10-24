@@ -10,6 +10,9 @@ import json
 from pathlib import Path
 
 import pytest
+import rdflib
+from rdflib import URIRef, Variable
+from rdflib.query import Processor
 from typer.testing import CliRunner
 
 from bricklogger.cli import app
@@ -28,6 +31,7 @@ from bricklogger.model import (
     upload_model,
     validate_model,
 )
+from bricklogger.model.inference import CachingProcessor, prepared_query
 
 PREFIXES = """\
 @prefix brick: <https://brickschema.org/schema/Brick#> .
@@ -124,6 +128,36 @@ def test_validation_reports_only_the_models_violations() -> None:
 
     valid = validate_model(MODEL_V1.encode(), "turtle")
     assert valid.valid, [v.as_dict() for v in valid.violations]
+
+
+def test_rdflib_queries_go_through_the_caching_processor() -> None:
+    assert rdflib.plugin.get("sparql", Processor) is CachingProcessor
+
+
+def test_validation_parses_each_query_once() -> None:
+    """An upgrade of rdflib or pyshacl that goes around the cache fails here."""
+    prepared_query.cache_clear()
+    validate_model(MODEL_V2.encode(), "turtle")
+    info = prepared_query.cache_info()
+    assert info.misses > 0
+    assert info.hits > info.misses, info
+
+
+def test_a_prepared_query_answers_each_binding_on_its_own() -> None:
+    graph = parse_model(MODEL_V1.encode(), "turtle")
+    query = (
+        "PREFIX brick: <https://brickschema.org/schema/Brick#> "
+        "SELECT ?e WHERE { $this brick:isPointOf ?e }"
+    )
+    ex = "https://example.com/bldg#"
+    answers = [
+        {
+            str(binding[Variable("e")])
+            for binding in graph.query(query, initBindings={"this": point}).bindings
+        }
+        for point in (URIRef(f"{ex}SAT"), URIRef(f"{ex}AHU_01"), URIRef(f"{ex}SAT"))
+    ]
+    assert answers == [{f"{ex}AHU_01"}, set(), {f"{ex}AHU_01"}]
 
 
 @pytest.fixture(scope="module")

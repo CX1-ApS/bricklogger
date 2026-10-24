@@ -30,8 +30,10 @@ running daemon.
   validation; `model upload` and `model activate` validate the model and mark
   the version active in the data directory, and the daemon builds the working
   graph for it at start; protocol tools run in-process.
-- **Writes through the API take effect immediately**, because they are
-  validated. `daemon reload` exists for edits made outside the API.
+- **Writes through the API are jobs the CLI follows.** A configuration write
+  and `daemon reload` run as the daemon's [jobs](api.md#jobs); the CLI shows
+  their steps as they happen and returns when the change has taken effect or
+  been refused. `daemon reload` exists for edits made outside the API.
 - **A group without a subcommand shows its help.** `bricklogger sources`
   lists what can be done with sources; nothing is done until a subcommand is
   named.
@@ -39,7 +41,7 @@ running daemon.
 ## Command tree
 
 ```
-bricklogger init [--non-interactive]
+bricklogger init [--db] [--non-interactive [--plugin PACKAGE]...]
 bricklogger validate
 bricklogger status [warnings [clear [CODE [SUBJECT]]]]
 bricklogger points [--instance NAME] [--outcome STATE] [--warning CODE] [--class CLASS]
@@ -57,6 +59,7 @@ bricklogger destinations …                (the same commands)
 bricklogger rules config show|edit
 bricklogger notify test|status
 bricklogger plugins [<type>]
+bricklogger plugins catalogue
 bricklogger plugins add PACKAGE...
 bricklogger plugins remove TYPE [--force]
 bricklogger update status
@@ -70,35 +73,102 @@ bricklogger mcp auth status|show|generate
 
 ## `init`
 
-`init` is the first command on a new machine. It writes the four files into
-the config directory and refuses to overwrite a file that exists, so it can
-never destroy a configuration.
+`init` sets a machine up in one go: the plugins, the four files, the database
+and the services. It is the first command on a new machine, and it can be run
+again on one that is set up, since it **never replaces anything without
+asking**.
 
-Run in a terminal it is **a guided setup**: it names the config and data
-directories it will use, then asks which sources and which destinations to
-configure, choosing among the installed types. For each instance it asks for
-a name and then for every setting of the type's configuration schema —
-required settings first, optional ones with their default offered, so Enter
-keeps it. A setting the plugin marks as a secret is asked for without echo and
-written to the [`env` file](configuration.md#the-env-file) under a variable
-named after the instance and the key, `TSDB_PASSWORD` for the `password` of
-`tsdb`; the YAML gets `${TSDB_PASSWORD}`. `daemon.yaml` is written with its
-defaults and the resolved `data_dir`, `rules.yaml` with the one rule that
-accepts every point every five minutes, and the result is validated and
-printed with what to do next. A new plugin brings its own questions, since
-they come from its schema, exactly as `add` gets its flags from it.
+Run in a terminal it is **a guided setup**, in this order:
 
-Last, the guided setup **offers the services**: whether to set them up now,
-and if so whether the web interface and the MCP server over HTTP should run
-too. A yes runs [`services install`](#services) with the answers as its
-flags; a no says that the same command does it later. The question is left
-out where `services install` would refuse — without systemd, as root or in a
-container — and so is the daemon, which is then started as the
-[`daemon`](#daemon) commands describe.
+1. **The directories.** It names the config and data directories it will
+   use.
+2. **Plugins.** It shows the [catalogue](plugins.md#the-catalogue), with the
+   plugins already installed marked, and installs the ones chosen; then it
+   asks for other packages, written as for `plugins add`, which are installed
+   as [custom plugins](plugins.md#origin). The install is
+   [`plugins add`](#plugins), with its check that a package can live with the
+   plugins already there. One that cannot be installed — a conflict, no
+   network — is reported, and the setup goes on with the types that are
+   installed.
+3. **Sources and destinations.** It asks which sources and which destinations
+   to configure, choosing among the installed types. For each instance it
+   asks for a name and then for every setting of the type's configuration
+   schema — required settings first, optional ones with their default offered,
+   so Enter keeps it. A setting the plugin marks as a secret is asked for
+   without echo and written to the [`env` file](configuration.md#the-env-file)
+   under a variable named after the instance and the key, `IBOS_TOKEN` for
+   the `token` of `ibos`; the YAML gets `${IBOS_TOKEN}`. A new plugin
+   brings its own questions, since they come from its schema, exactly as
+   `add` gets its flags from it.
+4. **The database.** A TimescaleDB destination is asked about differently:
+   `init` asks where the database is, can install PostgreSQL with TimescaleDB
+   on this machine, prepares the database and the role, and generates the
+   role's password, as
+   [preparing the database](destinations.md#preparing-the-database)
+   describes.
+5. **The rest of the files.** `daemon.yaml` is written with its defaults and
+   the resolved `data_dir`, `rules.yaml` with the one rule that accepts every
+   point every five minutes, and the result is validated and printed with
+   what to do next.
+6. **The services.** Last, it offers the services: whether to set them up
+   now, and if so whether the web interface and the MCP server over HTTP
+   should run too. A yes runs [`services install`](#services) with the
+   answers as its flags; a no says that the same command does it later. The
+   question is left out where `services install` would refuse — without
+   systemd, as root or in a container — and so is the daemon, which is then
+   started as the [`daemon`](#daemon) commands describe.
 
-`init --non-interactive` asks nothing and writes the four files with
-commented examples, for scripts and for a machine set up by hand afterwards;
-it sets up no services. Through `--api` only this form is available.
+The files are written only when the questions are answered, so a setup broken
+off halfway, or a plugin or a database that fails, leaves no half-written
+file behind.
+
+**A file that exists is asked about.** `init` works file by file: for each of
+the four that exists it asks `sources.yaml exists — replace or skip?`, and a
+skipped file's questions are not asked. Skip is the default, except for a
+file that still holds the examples as they were written — by
+`init --non-interactive`, or commented out by a
+[container](../docker.md#the-first-start) at its first start — where replace
+is. A `daemon.yaml` or `rules.yaml` that already holds what `init` would write
+is left without a question. A file that is replaced is first
+copied beside itself as `sources.yaml.<time>.bak`, so a wrong answer can be
+undone. The plugin step replaces nothing, it only adds, and the `env` file is
+never replaced: `init` sets the variables it writes and leaves the rest.
+
+**A daemon that runs is asked about too.** It reads its plugins when it
+starts, so after a setup on a machine where it already runs, `init` asks
+whether to restart it now. The default is no — a restart interrupts
+collection — and a no names the command. In a container it asks nothing and
+names `docker compose restart daemon`.
+
+`init --db` runs **the database step alone**, for a machine that was set up
+without one or a database that has moved. It takes the TimescaleDB
+destination in `destinations.yaml`, asking which when there are several, and
+asks to replace or skip it like any other step; with none configured it asks
+for the settings and adds one, named `tsdb` by default.
+
+`init --non-interactive` asks nothing, for scripts and for a machine set up by
+hand afterwards. It writes the files that are missing, with commented
+examples, and leaves the ones that exist, naming them; it never replaces.
+`--plugin PACKAGE`, repeated, installs the packages first, as the plugin step
+does. When `BRICKLOGGER_DB_PASSWORD` is set in the environment,
+`destinations.yaml` gets a working TimescaleDB destination named `tsdb`
+instead of the example, built from the variables below, with the password as
+the reference `${BRICKLOGGER_DB_PASSWORD}` and not its value; this is how a
+[container](../docker.md#the-first-start) finds its database. It installs and
+prepares no database and sets up no services.
+
+| Variable | Default | |
+|----------|---------|---|
+| `BRICKLOGGER_DB_PASSWORD` | — | The role's password; without it, the example is written |
+| `BRICKLOGGER_DB_HOST` | `localhost` | Where the database is |
+| `BRICKLOGGER_DB_PORT` | `5432` | Its port |
+| `BRICKLOGGER_DB_NAME` | `bricklogger` | The database |
+| `BRICKLOGGER_DB_USER` | `bricklogger` | The role the destination logs in as |
+
+Through `--api` only `--non-interactive` is available, and only into an empty
+config directory, as the [API](api.md#configuration), the web interface's
+configuration screen and the MCP server's `init_config` do it: none of them
+installs plugins or touches a database.
 
 ## `validate`
 
@@ -117,7 +187,8 @@ config`, `destinations config` and `rules config` — with two commands.
 they stand — secrets are never printed — and names the directory it read.
 `… config edit` opens the file in `$EDITOR` on a copy, validates the whole
 directory with the change applied, and writes atomically — through the API
-when the daemon runs, so the change takes effect at once, directly to the file
+when the daemon runs, as a [job](api.md#jobs) whose steps it shows, so the
+change has taken effect when the command returns; directly to the file
 otherwise. A file that does not exist is shown as such and edited as empty.
 A type that is [not installed](plugins.md#a-type-that-is-not-installed) is an
 error for an instance the change adds or changes, and only a warning for one
@@ -132,7 +203,7 @@ Like every group, `… config` alone shows its help.
 | `daemon start` | Starts the daemon as a background process with a PID file in the data directory; refuses if one is already running |
 | `daemon stop` | Graceful stop through the API, falling back to the PID file and a signal; waits for exit within `stop_timeout` |
 | `daemon restart` | `stop`, then `start` |
-| `daemon reload` | Reloads the configuration: validated as a whole, rejected with an error on failure, the running configuration kept |
+| `daemon reload` | Reloads the configuration as a job whose steps it shows: validated as a whole, rejected with an error on failure, the running configuration kept |
 | `daemon config show\|edit` | `daemon.yaml`, shown or edited as [the `config` views](#the-config-views) do |
 
 Under the [services](#services), start, stop and restart are done with
@@ -268,8 +339,8 @@ the file, their state unknown, and says so.
 instance is not a source, so it is left out: on a machine where one of the
 installed plugins is never used, a row for it would say nothing for ever under
 a heading that asks what the sources are doing. `--state unconfigured` asks
-which types are installed and unused, and [`plugins`](#plugins) is the
-catalogue proper.
+which types are installed and unused, and [`plugins`](#plugins) lists the
+installed plugins proper.
 
 **The settings of `add` and `edit` are flags generated from the plugin's
 configuration schema**, as tool flags are generated from the declaration, so
@@ -285,7 +356,7 @@ secret cannot end up in the file by accident.
 
 ```bash
 bricklogger destinations add tsdb --type timescaledb \
-  --dsn "postgres://bricklogger@127.0.0.1:5432/brick" --password-env TSDB_PASSWORD
+  --dsn "postgres://bricklogger@127.0.0.1:5432/bricklogger" --password-env TSDB_PASSWORD
 ```
 
 The variable has to carry a value already: an unset one makes the
@@ -369,17 +440,20 @@ its help.
 
 ## `plugins`
 
-The catalogue: what this installation can do, whichever role a plugin has.
+What this installation can do, whichever role a plugin has, and what the
+[catalogue](plugins.md#the-catalogue) offers to install.
 
 | Command | Effect |
 |---------|--------|
-| `plugins` | Installed plugins: type, role, version; a plugin that could not be loaded shows `failed:` and the error where its description would be |
+| `plugins` | Installed plugins: type, role, version and [origin](plugins.md#origin) — `built-in`, `catalogue` or `custom`; a plugin that could not be loaded shows `failed:` and the error where its description would be |
+| `plugins catalogue` | The catalogue: per entry the package, its types with their role, the description and the publisher, and the version installed or that it is not |
 | `plugins <type>` | The plugin's declaration: reference types, vocabulary, collection methods with their parameters, configuration schema and tools; for a plugin that could not be loaded, the error |
-| `plugins add PACKAGE...` | Installs one or more packages into the uv tool environment the command runs from, holding the other installed plugins at their versions so a package that cannot live with them is refused, and prints the catalogue as it now is. `PACKAGE` is anything uv installs: a name, `name==version`, a wheel on disk or a git URL |
+| `plugins add PACKAGE...` | Installs one or more packages into the uv tool environment the command runs from, holding the other installed plugins at their versions so a package that cannot live with them is refused, and prints the installed plugins as they now are. `PACKAGE` is in the catalogue or not, and is anything uv installs: a name, `name==version`, a wheel on disk or a git URL |
 | `plugins remove TYPE [--force]` | Uninstalls the distribution that provides the type, with every other type it provides and the libraries only it needed; refuses while an instance of the type is configured, unless `--force` |
 
-The first two read the installed declarations themselves when no daemon
-answers, so they answer before anything is configured — which is where a new
+`plugins` and `plugins <type>` read the installed declarations themselves
+when no daemon answers, and `plugins catalogue` reads the catalogue
+Bricklogger ships with, so all three answer before anything is configured — which is where a new
 installation starts, since the configuration schema shown here is what
 [`init`](#init) asks about and [`sources add`](#sources-and-destinations)
 turns into flags. `add` and `remove` change the environment, not the
@@ -453,7 +527,7 @@ whenever it is run, whatever the setting.
 
 | Command | Effect |
 |---------|--------|
-| `model upload <file> [--no-activate]` | Validates the model, stores it as a new version and activates it. The CLI follows the daemon's [job](api.md#models-and-jobs) and shows its steps; the result shows the diff to the previously active version. `--no-activate` stores without activating |
+| `model upload <file> [--no-activate]` | Validates the model, stores it as a new version and activates it. The CLI follows the daemon's [job](api.md#jobs) and shows its steps; the result shows the diff to the previously active version. `--no-activate` stores without activating |
 | `model list` | Versions with upload time, activation history and which one is active |
 | `model activate <version>` | Activates an earlier version with upload semantics: validate, atomic swap, re-evaluate — as a job, like upload |
 | `model diff <a> <b>` | Points added, removed or changed between two versions, computed on the uploaded models |

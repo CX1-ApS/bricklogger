@@ -111,12 +111,25 @@ def test_the_entrypoint_reaches_the_command_on_a_configuration_it_cannot_write(
 def test_every_command_the_entrypoint_names_exists_in_the_cli() -> None:
     text = ENTRYPOINT.read_text(encoding="utf-8")
     named = {tuple(match.group(1).split()) for match in INVOCATION.finditer(text)}
-    assert ("init",) in named, "the entrypoint writes the configuration"
     for command in sorted(named):
         assert cli_has(command), (
             f"the entrypoint runs `bricklogger {' '.join(command)}`, "
             "which the CLI does not have"
         )
+
+
+def test_the_first_start_is_the_daemons_alone() -> None:
+    """The web interface and the MCP server start from the same entrypoint;
+    only the daemon's container writes the configuration and the plugins."""
+    import importlib
+
+    text = ENTRYPOINT.read_text(encoding="utf-8")
+    assert '[ "$3" = "run" ]' in text and '[ "$2" = "daemon" ]' in text
+    assert "python -m bricklogger.ops.first_start" in text
+    assert text.index("bricklogger.ops.first_start") < text.index(
+        '"$CONFIG_DIR/env"'
+    ), "before the env file exists, which would make the volume look used"
+    assert hasattr(importlib.import_module("bricklogger.ops.first_start"), "main")
 
 
 def test_the_image_lays_out_what_the_documentation_promises() -> None:
@@ -148,26 +161,52 @@ def compose_of(text: str) -> dict[str, Any]:
     return data
 
 
-def test_the_compose_file_runs_the_three_processes() -> None:
+def test_the_compose_file_runs_the_database_and_the_three_processes() -> None:
     data = compose_of(COMPOSE.read_text(encoding="utf-8"))
     services = data["services"]
     assert data["name"] == "bricklogger", "the stack names itself, not its directory"
-    assert set(services) == {"daemon", "web", "mcp"}
-    assert "command" not in services["daemon"], "the image's own default"
+    assert set(services) == {"db", "daemon", "web", "mcp"}
+    assert services["daemon"]["command"] == ["bricklogger", "daemon", "run"]
     assert services["web"]["command"] == ["bricklogger", "serve"]
     assert services["mcp"]["command"] == ["bricklogger", "mcp", "serve", "--http"]
-    assert services["daemon"].get("profiles") is None, "the daemon always runs"
-    assert services["web"]["profiles"] == ["web"]
-    assert services["mcp"]["profiles"] == ["mcp"]
     for name, service in services.items():
-        assert service["image"].startswith(f"{IMAGE}:"), name
+        assert "profiles" not in service, f"{name} starts with the others"
         assert service["network_mode"] == "host", name
-        assert f"plugins:{PLUGIN_DIR}" in service["volumes"], name
-    assert set(data["volumes"]) == {"config", "data", "plugins"}
-    assert "db" not in services and "timescaledb" not in services
+        if name != "db":
+            assert service["image"].startswith(f"{IMAGE}:"), name
+            assert f"plugins:{PLUGIN_DIR}" in service["volumes"], name
+    assert set(data["volumes"]) == {"config", "data", "plugins", "db"}
 
 
-def test_no_database_and_no_published_ports() -> None:
+def test_the_database_is_prepared_once_and_waited_for() -> None:
+    data = compose_of(COMPOSE.read_text(encoding="utf-8"))
+    db, daemon = data["services"]["db"], data["services"]["daemon"]
+    assert db["image"] == "timescale/timescaledb-ha:pg18", "named by its major"
+    assert "db:/home/postgres/pgdata" in db["volumes"], "the HA image's data"
+    assert "listen_addresses=127.0.0.1" in db["command"], "loopback alone"
+    assert db["environment"]["POSTGRES_INITDB_ARGS"] == "--auth-host=scram-sha-256", (
+        "the image trusts loopback, which on the host's network is every process"
+    )
+    assert db["environment"]["POSTGRES_PASSWORD"].endswith(
+        ":?set POSTGRES_PASSWORD in .env}"
+    )
+    assert (
+        daemon["environment"]["BRICKLOGGER_DB_PASSWORD"]
+        == "${BRICKLOGGER_DB_PASSWORD:-}"
+    )
+    assert daemon["depends_on"] == {"db": {"condition": "service_healthy"}}
+    for name in ("web", "mcp"):
+        assert data["services"][name]["depends_on"] == {
+            "daemon": {"condition": "service_healthy"}
+        }
+    script = data["configs"]["bricklogger-role"]["content"]
+    assert "SET ROLE" in script and "CREATE EXTENSION" in script, (
+        "the role owns the extension, so the destination can update it"
+    )
+    assert "$$BRICKLOGGER_DB_PASSWORD" in script, "the shell's variable, not compose's"
+
+
+def test_no_published_ports() -> None:
     """Host networking binds the ports itself, and `ports:` would say otherwise."""
     services = compose_of(COMPOSE.read_text(encoding="utf-8"))["services"]
     for name, service in services.items():
@@ -648,32 +687,86 @@ def test_the_lock_is_not_the_one_uv_uses(volume: Path) -> None:
 def test_the_first_start_leaves_a_configuration_the_daemon_can_start_on(
     tmp_path: Path,
 ) -> None:
-    """`init --non-interactive` writes live examples — another building's BACnet
-    address, a database whose password nobody has set — and the daemon refuses a
-    configuration it cannot resolve. The container commented them out; without
-    that the first `docker compose up -d` restarted for ever.
+    """The examples name another building's BACnet address and a database whose
+    password nobody has set, and the daemon refuses a configuration it cannot
+    resolve, so the first start writes them commented out; without that the
+    first `docker compose up -d` restarted for ever."""
+    from bricklogger.ops.first_start import write_configuration
 
-    The expression is taken from the entrypoint, so the two cannot drift apart.
-    """
-    from typer.testing import CliRunner
-
-    from bricklogger.cli import app
-
-    result = CliRunner().invoke(
-        app, ["--config-dir", str(tmp_path), "init", "--non-interactive"]
-    )
-    assert result.exit_code == 0, result.output
-
-    match = re.search(r"sed -i '([^']*)'", ENTRYPOINT.read_text(encoding="utf-8"))
-    assert match, "the entrypoint no longer comments the examples out"
+    said: list[str] = []
+    write_configuration(tmp_path, {}, said.append)
     for name in ("sources", "destinations"):
-        path = tmp_path / f"{name}.yaml"
-        assert yaml.safe_load(path.read_text(encoding="utf-8")), "a live example"
-        subprocess.run(
-            [shell(), "-c", f"sed -i '{match.group(1)}' \"$1\"", "sh", str(path)],
-            check=True,
-        )
-        assert yaml.safe_load(path.read_text(encoding="utf-8")) is None, (
-            f"{name}.yaml still configures an instance, and the daemon would "
-            "refuse to start on it"
-        )
+        text = (tmp_path / f"{name}.yaml").read_text(encoding="utf-8")
+        assert yaml.safe_load(text) is None, f"{name}.yaml configures an instance"
+    assert "commented examples" in said[0]
+
+
+def test_the_first_start_finds_its_database_in_the_environment(
+    tmp_path: Path,
+) -> None:
+    from bricklogger.config import validate_configuration
+    from bricklogger.ops.first_start import write_configuration
+
+    env = {"BRICKLOGGER_DB_PASSWORD": "secret", "BRICKLOGGER_DB_PORT": "5544"}
+    write_configuration(tmp_path, env, lambda _: None)
+    data = yaml.safe_load((tmp_path / "destinations.yaml").read_text("utf-8"))
+    assert data == {
+        "tsdb": {
+            "type": "timescaledb",
+            "dsn": "postgres://bricklogger@localhost:5544/bricklogger",
+            "password": "${BRICKLOGGER_DB_PASSWORD}",
+        }
+    }, "the password named, not written"
+    assert validate_configuration(
+        tmp_path, PluginRegistry.from_entry_points(), env
+    ).valid
+
+
+def test_the_first_start_leaves_a_volume_with_anything_in_it(tmp_path: Path) -> None:
+    from bricklogger.ops.first_start import write_configuration
+
+    (tmp_path / "rules.yaml").write_text("[]\n", encoding="utf-8")
+    write_configuration(tmp_path, {"BRICKLOGGER_DB_PASSWORD": "x"}, lambda _: None)
+    assert not (tmp_path / "destinations.yaml").exists()
+
+
+@pytest.mark.parametrize(
+    ("value", "packages"),
+    [
+        ("", []),
+        ("bricklogger-ibos", ["bricklogger-ibos"]),
+        ("a b>=0.2,<0.3", ["a", "b>=0.2,<0.3"]),
+        ("a\nname @ https://x/y.whl\n# a comment\n", ["a", "name @ https://x/y.whl"]),
+    ],
+)
+def test_the_plugins_variable_is_split_as_documented(
+    value: str, packages: list[str]
+) -> None:
+    from bricklogger.ops.first_start import packages_of
+
+    assert packages_of(value) == packages
+
+
+def test_the_plugins_variable_is_read_only_into_a_volume_never_asked(
+    volume: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from bricklogger.ops import environment
+    from bricklogger.ops.first_start import install_plugins
+
+    monkeypatch.setenv("BRICKLOGGER_PLUGIN_DIR", str(volume))
+    asked: list[list[str]] = []
+
+    def fake_add(packages: Sequence[str], **_: Any) -> None:
+        asked.append(list(packages))
+        remember(volume, packages)
+
+    monkeypatch.setattr(environment, "add_plugins", fake_add)
+    env = {"BRICKLOGGER_PLUGINS": "bricklogger-ibos bricklogger-x"}
+    assert install_plugins(env, lambda _: None) == 0
+    assert asked == [["bricklogger-ibos"], ["bricklogger-x"]]
+    assert read_manifest(volume) == ["bricklogger-ibos", "bricklogger-x"]
+    assert read_stamp(volume) == current_stamp(), "not laid down again at once"
+
+    asked.clear()
+    install_plugins({"BRICKLOGGER_PLUGINS": "bricklogger-y"}, lambda _: None)
+    assert asked == [], "the manifest counts from then on"

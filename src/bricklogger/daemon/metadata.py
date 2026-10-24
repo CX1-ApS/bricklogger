@@ -35,7 +35,10 @@ def graph_metadata(
         equipment = _values(
             graph, values, f"?p <{BRICK}isPointOf> ?x . ?x a <{BRICK}Equipment>"
         )
-        locations = _values(graph, values, location_anchors("?x"))
+        locations: dict[str, list[str]] = {}
+        for pattern in location_anchors("?x"):
+            for uri, found in _values(graph, values, pattern).items():
+                locations.setdefault(uri, []).extend(found)
         units = _values(graph, values, f"?p <{BRICK}hasUnit> ?x")
         for uri in chunk:
             brick_classes = sorted(

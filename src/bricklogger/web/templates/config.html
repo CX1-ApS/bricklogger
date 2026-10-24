@@ -23,13 +23,15 @@
     <form method="post" action="/actions/config/init" style="display:inline"><button class="button" type="submit">{{ t('config.init') }}</button></form>
   </div>
   {% endif %}
+  <div id="config-job">{% for job in pending %}{% include "partials/job.html" %}{% endfor %}</div>
+  <p id="config-changed" class="notice" hidden>{{ t('config.changed') }}</p>
   <form id="editor-form" class="field" hx-target="#config-result" hx-swap="innerHTML">
     <input type="hidden" name="file" value="{{ file }}">
     <label for="editor">{{ file }}.yaml{% if missing %} <span class="dim">({{ t('config.missing') }})</span>{% endif %}</label>
     <textarea id="editor" name="text" rows="24" spellcheck="false">{{ text_body }}</textarea>
     <div class="button-row">
       <button class="button" type="button" hx-post="/actions/config/validate" hx-include="#editor-form">{{ t('config.validate') }}</button>
-      <button class="button" type="button" hx-post="/actions/config/save" hx-include="#editor-form" hx-confirm="{{ t('config.save.confirm', file=file) }}">{{ t('config.save') }}</button>
+      <button class="button" type="button" hx-post="/actions/config/save" hx-include="#editor-form" hx-target="#config-job" hx-swap="innerHTML" hx-confirm="{{ t('config.save.confirm', file=file) }}" data-job-guard="config"{% if pending %} disabled{% endif %}>{{ t('config.save') }}</button>
       <span class="dim">{{ t('config.help') }}</span>
     </div>
   </form>
@@ -44,7 +46,9 @@
     mode: 'yaml', lineNumbers: true, indentUnit: 2, tabSize: 2, indentWithTabs: false,
     viewportMargin: Infinity, lineWrapping: true
   });
-  document.body.addEventListener('htmx:configRequest', function () { editor.save(); });
+  // htmx reads the form before htmx:configRequest, so the textarea follows
+  // the editor at every change rather than being filled at the request
+  editor.on('change', function () { editor.save(); });
   function clearMarks() {
     for (let i = 0; i < editor.lineCount(); i++) editor.removeLineClass(i, 'background', 'line-error');
   }
@@ -63,14 +67,41 @@
     }
     return subject ? start : -1;
   }
-  document.body.addEventListener('htmx:afterSwap', function (event) {
-    if (event.detail.target.id !== 'config-result') return;
+  // the errors of a validation or of a failed save, marked at their keys
+  function markErrors() {
     clearMarks();
-    document.querySelectorAll('#config-result [data-key], #config-result [data-subject]').forEach(function (el) {
+    document.querySelectorAll('#config-result [data-key], #config-result [data-subject], #config-job [data-key], #config-job [data-subject]').forEach(function (el) {
       if (el.dataset.file && el.dataset.file !== '{{ file }}') return;
       const line = findLine(el.dataset.subject || '', el.dataset.key || '');
       if (line >= 0) editor.addLineClass(line, 'background', 'line-error');
     });
+  }
+  document.body.addEventListener('htmx:afterSettle', markErrors);
+  // When a write of this file ends, an editor nobody has changed since it
+  // was loaded is filled from the file on disk; a changed one keeps its text.
+  let loaded = editor.getValue();
+  const changedNote = document.getElementById('config-changed');
+  document.body.addEventListener('job-finished', function (event) {
+    const job = event.detail || {};
+    if (job.operation !== 'config' || job.file !== '{{ file }}' || job.state !== 'done') return;
+    fetch('/api/v1/config/{{ file }}', { headers: { Accept: 'application/yaml' } })
+      .then(function (answer) { return answer.ok ? answer.text() : Promise.reject(answer.status); })
+      .then(function (written) {
+        // a form sends its text with CRLF line breaks; the editor holds LF
+        const onDisk = written.replace(/\r\n/g, '\n');
+        const current = editor.getValue();
+        if (current === onDisk) {
+          changedNote.hidden = true;
+        } else if (current === loaded) {
+          editor.setValue(onDisk);
+          changedNote.hidden = true;
+        } else {
+          changedNote.hidden = false;
+          return;
+        }
+        loaded = onDisk;
+      })
+      .catch(function () {});
   });
 </script>
 {% endif %}

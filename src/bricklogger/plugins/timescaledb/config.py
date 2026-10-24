@@ -16,7 +16,7 @@ class TimescaleDBConfig(BaseModel):
     dsn: str = Field(
         min_length=1,
         description="The connection string without the password, e.g. "
-        "postgres://bricklogger@db.example.com:5432/brick",
+        "postgres://bricklogger@db.example.com:5432/bricklogger",
     )
     password: str | None = Field(
         default=None,

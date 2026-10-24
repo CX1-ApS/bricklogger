@@ -1,8 +1,9 @@
-"""``bricklogger plugins``: the catalogue of what this installation can do,
-and the two commands that change it.
+"""``bricklogger plugins``: what this installation can do, the catalogue of
+approved plugins, and the two commands that change what is installed.
 
 The list and the declarations come from the installed plugins themselves when
-no daemon answers, so they answer before anything is configured. ``add`` and
+no daemon answers, and the catalogue from the package, so they answer before
+anything is configured. ``add`` and
 ``remove`` install and uninstall a plugin with the environment's own uv, and
 say that the daemon must be restarted, since it reads its plugins at start.
 The helpers the two role groups share — the parameters of a tool, the instance
@@ -26,10 +27,10 @@ from typer.main import get_command as typer_command
 from bricklogger.cli.client import ApiClient, reachable_client
 from bricklogger.cli.context import CliContext, cli_context, operations_of
 from bricklogger.cli.output import fail, print_json, stdout
-from bricklogger.ops.catalogue import describe, list_plugins
 from bricklogger.ops.config import is_secret as is_secret
 from bricklogger.ops.environment import add_plugins, remove_plugin
 from bricklogger.ops.errors import OperationError
+from bricklogger.ops.installed import describe, list_catalogue, list_plugins
 from bricklogger.ops.plugin_volume import plugin_directory
 from bricklogger.sdk.registry import PluginError, PluginRegistry
 
@@ -52,17 +53,18 @@ class _PluginsGroup(TyperGroup):
 plugins_app = typer.Typer(
     cls=_PluginsGroup,
     add_completion=False,
-    help="The catalogue: what this installation can do. `plugins` lists the "
-    "installed plugins, `plugins TYPE` describes one, and `add` and `remove` "
-    "change what is installed. The instances of a plugin are configured and "
-    "inspected with `sources` and `destinations`.",
+    help="What this installation can do. `plugins` lists the installed "
+    "plugins, `plugins catalogue` the approved ones that can be added, "
+    "`plugins TYPE` describes one, and `add` and `remove` change what is "
+    "installed. The instances of a plugin are configured and inspected with "
+    "`sources` and `destinations`.",
 )
 
 
 @plugins_app.callback(invoke_without_command=True)
 def plugins_root(ctx: typer.Context, json_output: JsonFlag = False) -> None:
-    """The installed plugins: type, role, version and description, and
-    `failed:` with the error for one that could not be loaded."""
+    """The installed plugins: type, role, version, origin and description,
+    and `failed:` with the error for one that could not be loaded."""
     if ctx.invoked_subcommand is not None:
         return
     context = cli_context(ctx)
@@ -87,6 +89,39 @@ def _describe_command(type_name: str) -> Any:
     return typer_command(sub)
 
 
+@plugins_app.command("catalogue")
+def catalogue_command(ctx: typer.Context, json_output: JsonFlag = False) -> None:
+    """The catalogue: the approved plugins, each with its types, description
+    and publisher, and the version installed or that it is not."""
+    context = cli_context(ctx)
+    try:
+        rows = list_catalogue(operations_of(context), reachable_client(context))
+    except OperationError as exc:
+        raise fail(exc.message) from exc
+    if json_output:
+        print_json(rows)
+        return
+    echo_catalogue(rows)
+    typer.echo("")
+    typer.echo("Install one with: bricklogger plugins add PACKAGE")
+
+
+def echo_catalogue(rows: list[dict[str, Any]]) -> None:
+    """The catalogue as a table; ``init`` shows the same, numbered."""
+    table = Table(box=None)
+    for column in ("Package", "Types", "Installed", "Publisher", "Description"):
+        table.add_column(column)
+    for row in rows:
+        table.add_row(
+            row["package"],
+            ", ".join(f"{t['type']} ({t['role']})" for t in row["types"]),
+            row.get("installed") or "no",
+            row["publisher"],
+            row["description"],
+        )
+    stdout.print(table)
+
+
 @plugins_app.command("add")
 def add_command(
     ctx: typer.Context,
@@ -101,8 +136,9 @@ def add_command(
 ) -> None:
     """Install one or more plugins into this installation's environment.
 
-    Runs the environment's own uv, prints the catalogue as it now is, and
-    says that the daemon must be restarted to see the change.
+    A package in the catalogue or not: runs the environment's own uv, prints
+    the installed plugins as they now are, and says that the daemon must be
+    restarted to see the change.
     """
     context = cli_context(ctx)
     try:
@@ -277,7 +313,7 @@ def _list(context: CliContext, client: ApiClient | None, json_output: bool) -> N
         print_json(rows)
         return
     table = Table(box=None)
-    for column in ("Type", "Role", "Version", "Instances", "Description"):
+    for column in ("Type", "Role", "Version", "Origin", "Instances", "Description"):
         table.add_column(column)
     for row in rows:
         instances = row.get("instances")
@@ -285,6 +321,7 @@ def _list(context: CliContext, client: ApiClient | None, json_output: bool) -> N
             row["type"],
             row["role"],
             str(row.get("version") or ""),
+            str(row.get("origin") or ""),
             ", ".join(instances)
             if instances
             else ("" if instances is None else "none"),

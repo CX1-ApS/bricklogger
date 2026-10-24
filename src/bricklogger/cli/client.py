@@ -19,7 +19,15 @@ __all__ = ["ApiClient", "describe_problem", "format_error", "reachable_client"]
 
 
 class ApiClient(DaemonApi):
-    """Talks to one daemon; raises a CLI exit when it cannot be reached."""
+    """Talks to one daemon; raises a CLI exit when it cannot be reached.
+
+    The steps of a job it follows go to stderr as they begin, so ``--json``
+    keeps stdout to itself.
+    """
+
+    def __init__(self, base_url: str, token: str | None, timeout: float = 30.0) -> None:
+        super().__init__(base_url, token, timeout)
+        self.on_step = _echo_step
 
     @classmethod
     def from_context(cls, context: CliContext) -> Self:
@@ -43,6 +51,10 @@ class ApiClient(DaemonApi):
             return super()._request(method, path, **kwargs)
         except OperationError as exc:
             raise fail(exc.message) from exc
+
+
+def _echo_step(step: str) -> None:
+    typer.echo(f"{step}...", err=True)
 
 
 def reachable_client(context: CliContext) -> ApiClient | None:

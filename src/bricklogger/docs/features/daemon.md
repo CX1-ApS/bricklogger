@@ -245,7 +245,7 @@ runtime state, except where the end is the restart itself.
 | `spool_drop` | `operation` | `failed` | A destination's spool has dropped observations | The spool has been drained again; the dropped total stays in the destination's status |
 | `instance_failed` | `operation` | `failed` | A source or destination instance is failed, including one whose plugin could not be loaded or is not installed | The instance runs again |
 | `instance_stopped` | `operation` | — | An instance stopped by the operator | The instance is started |
-| `stop_timeout` | `operation` | `failed` | An instance did not stop within `stop_timeout` and was abandoned | The daemon starts anew — the abandoned instance died with the old process — or the instance stops cleanly |
+| `stop_timeout` | `operation` | `failed` | An instance did not stop within `stop_timeout` and was abandoned | The abandoned thread ends, which the daemon watches for; or the daemon starts anew — the abandoned thread died with the old process — or the instance stops cleanly |
 | `notify_failed` | `operation` | — | A notification mail could not be sent; the message carries the server's answer | A mail goes through again |
 | `notifications_dormant` | `operation` | — | Notifications are switched on, but no model is active, so nothing can be sent | A model is active again |
 

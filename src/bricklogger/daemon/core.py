@@ -24,6 +24,7 @@ from typing import Any
 import rdflib
 
 from bricklogger import __version__
+from bricklogger.catalogue import catalogue_rows
 from bricklogger.config import (
     Configuration,
     DestinationInstance,
@@ -47,6 +48,7 @@ from bricklogger.daemon.instances import DestinationRunner, InstanceStatus, Sour
 from bricklogger.daemon.jobs import Job, JobFailed, JobRunner
 from bricklogger.daemon.metadata import graph_metadata
 from bricklogger.daemon.notify import Notifier
+from bricklogger.daemon.outcomes import OutcomeQueue
 from bricklogger.daemon.overlay import ValueOverlay
 from bricklogger.daemon.plan import Plan, PlanError, assigned_point, compute_plan
 from bricklogger.daemon.plugins import describe_plugin, summarize_plugins, tool_of
@@ -179,6 +181,38 @@ def model_problem(report: ModelReport) -> dict[str, Any]:
     }
 
 
+def configuration_problem(result: ValidationResult) -> dict[str, Any]:
+    """The problem document for a configuration that does not hold."""
+    count = len(result.errors)
+    return {
+        "type": "urn:bricklogger:problem:configuration-is-invalid",
+        "title": "Configuration is invalid",
+        "status": 422,
+        "detail": f"{count} error{'' if count == 1 else 's'}",
+        "errors": [issue.as_dict() for issue in result.errors],
+    }
+
+
+def _no_step(name: str) -> None:
+    pass
+
+
+def job_step(job: Job) -> Callable[[str], None]:
+    """A step callback that shows the step on the job."""
+
+    def step(name: str) -> None:
+        job.step = name
+
+    return step
+
+
+def applied(result: ValidationResult) -> dict[str, Any]:
+    """A configuration job's result, or its failure when the change does not hold."""
+    if not result.valid:
+        raise JobFailed(configuration_problem(result))
+    return result.as_dict()
+
+
 def unreadable_problem(exc: ModelUnreadable) -> dict[str, Any]:
     return {
         "type": "urn:bricklogger:problem:model-is-unreadable",
@@ -229,6 +263,8 @@ class Daemon:
         self.sources: dict[str, SourceRunner] = {}
         self.destinations: dict[str, DestinationRunner] = {}
         self.unloadable: dict[str, Unloadable] = {}
+        # runners that left at a reload with their thread abandoned
+        self._abandoned: list[SourceRunner | DestinationRunner] = []
         self.spools: dict[str, Spool] = {}
         self.notifier: Notifier | None = None
         self.updates: UpdateWatch | None = None
@@ -243,6 +279,7 @@ class Daemon:
         self._turtle: dict[int, str] = {}
         self._lock = threading.RLock()
         self.jobs = JobRunner()
+        self.outcomes = OutcomeQueue(self._apply_outcomes)
 
     # --- lifecycle -----------------------------------------------------------
 
@@ -266,6 +303,7 @@ class Daemon:
         # an abandoned instance died with the old process
         self.state.clear_warnings(code="stop_timeout")
         self.overlay = ValueOverlay(self.graph, self.state)
+        self.outcomes.start()
         with self._lock:
             self._open_destinations(config.destinations)
             self.sink = DaemonSink(self.state, self.spools, overlay=self.overlay)
@@ -288,9 +326,17 @@ class Daemon:
         log.info("daemon started with config %s", self.config_dir)
 
     def stop(self) -> None:
-        self.jobs.stop()
+        # the configuration jobs accepted are finished first; see
+        # docs/features/api.md, "Jobs"
+        timeout = (
+            self.configuration.daemon.stop_timeout.total_seconds()
+            if self.configuration is not None
+            else 10.0
+        )
+        self.jobs.stop(timeout)
         if self.watch is not None:
             self.watch.stop()
+        self.outcomes.stop()
         if self.updates is not None:
             self.updates.stop()
         if self.notifier is not None:
@@ -311,8 +357,17 @@ class Daemon:
                 self.state.close()
         log.info("daemon stopped")
 
-    def reload(self) -> ValidationResult:
-        """Re-read the configuration; an invalid one is rejected, nothing changes."""
+    def reload(self, on_step: Callable[[str], None] | None = None) -> ValidationResult:
+        """Re-read the configuration; an invalid one is rejected, nothing changes.
+
+        ``on_step`` hears ``validating``, then ``stopping <instance>`` and
+        ``starting <instance>`` for each instance the change stops or starts.
+        """
+        step = on_step or _no_step
+        step("validating")
+        return self._reload(step)
+
+    def _reload(self, step: Callable[[str], None]) -> ValidationResult:
         result = validate_configuration(self.config_dir, self.registry, self.env)
         if result.configuration is None:
             return result
@@ -320,9 +375,9 @@ class Daemon:
         assert self.configuration is not None
         with self._lock:
             self._reconcile_destinations(
-                self.configuration.destinations, new.destinations
+                self.configuration.destinations, new.destinations, step
             )
-            self._reconcile_sources(self.configuration.sources, new.sources)
+            self._reconcile_sources(self.configuration.sources, new.sources, step)
             self.configuration = new
             self._replan()
             self._start_sources()
@@ -345,20 +400,43 @@ class Daemon:
         """Validate the files on disk, or the same with ``texts`` replacing some."""
         return validate_configuration(self.config_dir, self.registry, self.env, texts)
 
-    def replace_config_file(self, name: str, text: str) -> ValidationResult:
+    def replace_config_file(
+        self, name: str, text: str, on_step: Callable[[str], None] | None = None
+    ) -> ValidationResult:
         """Validate the directory with one file replaced; write and apply it if valid.
 
         The text is written verbatim and atomically, then the configuration is
         reloaded from disk, so the change takes effect like a reload does.
+        ``on_step`` hears the steps of a reload, with ``writing`` between
+        validating and the instances.
         """
+        step = on_step or _no_step
         with self._lock:
+            step("validating")
             result = validate_configuration(
                 self.config_dir, self.registry, self.env, {name: text}
             )
             if result.configuration is None:
                 return result
+            step("writing")
             write_text(self.config_dir, name, text)
-            return self.reload()
+            return self._reload(step)
+
+    def submit_config(self, name: str, text: str) -> Job:
+        """Replace one file as a job, validated when the job runs."""
+
+        def work(job: Job) -> dict[str, Any]:
+            return applied(self.replace_config_file(name, text, job_step(job)))
+
+        return self.jobs.submit("config", work, file=name, finish_on_stop=True)
+
+    def submit_reload(self) -> Job:
+        """Reload the configuration from disk as a job."""
+
+        def work(job: Job) -> dict[str, Any]:
+            return applied(self.reload(job_step(job)))
+
+        return self.jobs.submit("reload", work, finish_on_stop=True)
 
     # --- model ---------------------------------------------------------------
 
@@ -826,11 +904,13 @@ class Daemon:
         self,
         old: Mapping[str, DestinationInstance],
         new: Mapping[str, DestinationInstance],
+        step: Callable[[str], None] = _no_step,
     ) -> None:
         for name in set(old) - set(new):
             if self._forget_unloadable(name):
                 continue
-            self.destinations.pop(name).stop()
+            step(f"stopping {name}")
+            self._retire(self.destinations.pop(name))
             self.spools.pop(name).close()
             self._clear_timeseries_graphs(name)
         for name, instance in new.items():
@@ -838,33 +918,51 @@ class Daemon:
                 continue
             self._forget_unloadable(name)
             if name in self.destinations:
-                self.destinations.pop(name).stop()
+                step(f"stopping {name}")
+                self._retire(self.destinations.pop(name))
                 self.spools.pop(name).close()
+            step(f"starting {name}")
             self._open_destination(name, instance)
         assert self.sink is not None
         self.sink.spools = dict(self.spools)
 
     def _reconcile_sources(
-        self, old: Mapping[str, SourceInstance], new: Mapping[str, SourceInstance]
+        self,
+        old: Mapping[str, SourceInstance],
+        new: Mapping[str, SourceInstance],
+        step: Callable[[str], None] = _no_step,
     ) -> None:
         for name in set(old) - set(new):
             if self._forget_unloadable(name):
                 continue
-            self.sources.pop(name).stop()
+            step(f"stopping {name}")
+            self._retire(self.sources.pop(name))
         for name, instance in new.items():
             unchanged = name in old and old[name] == instance
             if unchanged and (name in self.sources or name in self.unloadable):
                 continue
             self._forget_unloadable(name)
             if name in self.sources:
-                self.sources.pop(name).stop()
+                step(f"stopping {name}")
+                self._retire(self.sources.pop(name))
+            step(f"starting {name}")
             self._create_source(name, instance)
+
+    def _retire(self, runner: SourceRunner | DestinationRunner) -> None:
+        """Stop a runner that leaves the daemon; one whose thread is abandoned
+        is kept, so the watch sees the thread end."""
+        if not runner.stop():
+            self._abandoned.append(runner)
 
     # --- plugins -------------------------------------------------------------
 
     def plugins(self) -> list[dict[str, Any]]:
         """The installed plugins with their configured instances."""
         return summarize_plugins(self.registry, self.configuration)
+
+    def catalogue(self) -> list[dict[str, Any]]:
+        """The catalogue, with the version of each entry the daemon has loaded."""
+        return catalogue_rows(self.registry)
 
     def plugin(self, type_name: str) -> dict[str, Any]:
         """One plugin's declaration; raises NotFound."""
@@ -1004,13 +1102,23 @@ class Daemon:
         for code in PLAN_WARNINGS:
             self.state.clear_warnings(code=code)
 
-    def _on_outcomes(self, instance: str, outcomes: Sequence[Outcome]) -> None:
-        """Apply the rule's fallback when a source reports a point as unsupported."""
+    def _on_outcomes(self, status: InstanceStatus, outcomes: Sequence[Outcome]) -> None:
+        """Queue a source's report for the outcomes thread; returns at once, so
+        a source never waits for the daemon's lock."""
+        self.outcomes.put(status, outcomes)
+
+    def _apply_outcomes(self, status: InstanceStatus, outcomes: list[Outcome]) -> None:
+        """Apply the rule's fallback when a source reports a point as unsupported.
+
+        A report from an instance that has since been replaced is dropped: the
+        new instance reports for itself.
+        """
         assert self.state is not None
+        instance = status.name
         with self._lock:
             plan = self.plan
             runner = self.sources.get(instance)
-            if plan is None or runner is None:
+            if plan is None or runner is None or runner.status is not status:
                 return
             changed = False
             stale = self.state.has_warning("no_fallback")
@@ -1072,7 +1180,10 @@ class Daemon:
         return assess(names, self.state.warnings(), owners, self.registry.severities())
 
     def _revive_ended(self) -> None:
-        """The watch's first task: restart an instance whose thread ended unseen."""
+        """The watch's first task: restart an instance whose thread ended unseen,
+        and withdraw ``stop_timeout`` once an abandoned thread has ended — while
+        it lives it can still push into the sink, so until then it stands."""
+        assert self.state is not None
         with self._lock:
             runners: list[SourceRunner | DestinationRunner] = [
                 *self.sources.values(),
@@ -1081,6 +1192,20 @@ class Daemon:
             for runner in runners:
                 if runner.ended_unseen():
                     runner.revive()
+            ended = {
+                runner.name
+                for runner in [*runners, *self._abandoned]
+                if runner.abandoned_ended()
+            }
+            self._abandoned = [r for r in self._abandoned if r.abandoned is not None]
+            alive = {
+                runner.name
+                for runner in [*runners, *self._abandoned]
+                if runner.abandoned is not None
+            }
+            for name in sorted(ended - alive):
+                log.info("the abandoned thread of %s has ended", name)
+                self.state.clear_warnings(code="stop_timeout", subject=name)
 
     def _watched(self) -> dict[str, Watched]:
         """What the watch judges staleness by, per source instance."""

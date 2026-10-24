@@ -6,6 +6,8 @@ from __future__ import annotations
 import gc
 import json
 import os
+import threading
+import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -15,9 +17,9 @@ from fastapi.testclient import TestClient
 
 from bricklogger.daemon.api import create_app
 from bricklogger.daemon.core import Daemon, DaemonError
-from bricklogger.daemon.instances import backoff
+from bricklogger.daemon.instances import InstanceStatus, backoff
 from bricklogger.model.timeseries import REF
-from bricklogger.sdk.contract import Observation
+from bricklogger.sdk.contract import Observation, Outcome
 from tests.fakes import FakeDestination, FakeSource
 from tests.support import (
     DESTINATIONS,
@@ -167,6 +169,34 @@ def test_reload_applies_a_new_rule_set_and_rejects_an_invalid_one(
         daemon.stop()
 
 
+def test_a_write_and_a_reload_report_their_steps(
+    tmp_path: Path, template: Path
+) -> None:
+    config_dir = make_config(
+        tmp_path, template, sources=SOURCES, destinations=DESTINATIONS
+    )
+    daemon = Daemon(config_dir, registry=REGISTRY, env={})
+    daemon.start()
+    try:
+        steps: list[str] = []
+        changed = DESTINATIONS.replace("size: 5", "size: 6")
+        assert daemon.replace_config_file("destinations", changed, steps.append).valid
+        assert steps == ["validating", "writing", "stopping sink_a", "starting sink_a"]
+
+        steps.clear()
+        assert daemon.reload(steps.append).valid
+        assert steps == ["validating"], "an unchanged instance is left alone"
+
+        steps.clear()
+        refused = daemon.replace_config_file(
+            "rules", "- action: accept\n", steps.append
+        )
+        assert not refused.valid
+        assert steps == ["validating"], "nothing is written or changed"
+    finally:
+        daemon.stop()
+
+
 def test_a_crashed_source_is_restarted_with_its_assignment(
     tmp_path: Path, template: Path
 ) -> None:
@@ -282,6 +312,95 @@ def test_unsupported_points_get_the_rules_fallback(
             if item["uri"] == f"{EX}Unsupported_Damper"
         )
         assert damper["fallback_active"] is True and damper["method"] == "poll"
+    finally:
+        daemon.stop()
+
+
+def test_reporting_outcomes_never_waits_for_the_daemon(
+    tmp_path: Path, template: Path
+) -> None:
+    """A source reports on its status channel from its own loop. While the
+    daemon holds its lock — an activation, a reload — the report must return
+    at once, or the source's loop stalls and a stop cannot reach it; the
+    daemon applies the fallback once the lock is free. A report from a channel
+    whose instance has since been replaced changes nothing."""
+    rules = (
+        "- match: { class: brick:Point }\n  action: accept\n  method: subscribe\n"
+        "  fallback: { method: poll, interval: 1m }\n"
+    )
+    config_dir = make_config(
+        tmp_path, template, sources=SOURCES, destinations=DESTINATIONS, rules=rules
+    )
+    daemon = Daemon(config_dir, registry=REGISTRY, env={})
+    daemon.start()
+    try:
+        runner = daemon.sources["fake_a"]
+        zat = f"{EX}ZAT_1_17"
+
+        def method_of(uri: str) -> str:
+            points = daemon.assignment_of("fake_a")
+            return next(point.method for point in points if point.uri == uri)
+
+        assert method_of(zat) == "subscribe"
+        replaced = InstanceStatus(
+            "fake_a", "fake-source", runner.status.state, daemon._on_outcomes
+        )
+        replaced.outcomes([Outcome(f"{EX}SAT", "unsupported", "an old channel")])
+
+        reported = threading.Event()
+
+        def report() -> None:
+            runner.status.outcomes([Outcome(zat, "unsupported", "cannot subscribe")])
+            reported.set()
+
+        with daemon._lock:
+            reporter = threading.Thread(target=report, daemon=True)
+            reporter.start()
+            assert reported.wait(2.0), "the report waited for the daemon's lock"
+            assert method_of(zat) == "subscribe", "applied only once the lock is free"
+        wait_for(lambda: method_of(zat) == "poll")
+        assert method_of(f"{EX}SAT") == "subscribe", "the replaced channel is ignored"
+    finally:
+        daemon.stop()
+
+
+def test_stop_timeout_is_withdrawn_when_the_abandoned_thread_ends(
+    tmp_path: Path, template: Path
+) -> None:
+    """A reload replaces a source whose stop hangs: the old thread is abandoned
+    and the warning stands while it lives, though the new instance runs. Once
+    the old thread ends, the daemon's watch withdraws the warning by itself."""
+    config_dir = make_config(
+        tmp_path,
+        template,
+        sources=SOURCES,
+        destinations=DESTINATIONS,
+        daemon_extra="stop_timeout: 1s\n",
+    )
+    daemon = Daemon(config_dir, registry=REGISTRY, env={}, watch_period=0.05)
+    daemon.start()
+    try:
+        wait_for(lambda: daemon.status_sources()[0]["state"] == "running")
+        old = daemon.sources["fake_a"]
+        hung = old.source
+        assert isinstance(hung, FakeSource)
+        hung.stop = lambda: None  # type: ignore[method-assign]
+        (config_dir / "sources.yaml").write_text(
+            "fake_a:\n  type: fake-source\n  claims: [SAT, ZAT_1_17]\n"
+        )
+        assert daemon.reload().valid
+        state = daemon.state
+        assert state is not None
+        assert state.has_warning("stop_timeout", "fake_a")
+        assert daemon.sources["fake_a"] is not old
+        wait_for(lambda: daemon.status_sources()[0]["state"] == "running")
+        time.sleep(0.3)  # several looks of the watch
+        assert state.has_warning("stop_timeout", "fake_a"), (
+            "the old thread still lives and can still push into the sink"
+        )
+        hung._stop.set()
+        wait_for(lambda: not state.has_warning("stop_timeout", "fake_a"))
+        assert daemon.instance_health()["fake_a"].health == "ok"
     finally:
         daemon.stop()
 
@@ -415,14 +534,22 @@ def test_api_config_endpoints_read_validate_and_replace(
 
         broken = "- match: { class: brick:Point }\n  action: accept\n  method: poll\n"
         rejected = client.put("/v1/config/rules", content=broken)
-        assert rejected.status_code == 422
-        assert rejected.headers["content-type"] == "application/problem+json"
-        assert "interval" in json.dumps(rejected.json()["errors"])
+        assert rejected.status_code == 202, "refused inside the job, not before it"
+        assert rejected.headers["location"] == f"/v1/jobs/{rejected.json()['id']}"
+        assert rejected.json()["operation"] == "config"
+        assert rejected.json()["file"] == "rules"
+        failed = finished_job(client, rejected.json()["id"])
+        assert failed["state"] == "failed"
+        assert failed["problem"]["status"] == 422
+        assert failed["problem"]["title"] == "Configuration is invalid"
+        assert "interval" in json.dumps(failed["problem"]["errors"])
         assert (config_dir / "rules.yaml").read_text() == RULES_ALL, "not written"
 
         deny = "- match: { class: brick:Point }\n  action: deny\n"
         applied = client.put("/v1/config/rules", content=deny)
-        assert applied.status_code == 200 and applied.json()["valid"] is True
+        assert applied.status_code == 202
+        done = finished_job(client, applied.json()["id"])
+        assert done["state"] == "done" and done["result"]["valid"] is True
         assert (config_dir / "rules.yaml").read_text() == deny
         assert daemon.assignment_of("fake_a") == []
         assert client.get("/v1/status").json()["points"]["accepted"] == 0
@@ -433,6 +560,20 @@ def test_api_config_endpoints_read_validate_and_replace(
         assert on_disk.status_code == 200 and on_disk.json()["valid"] is True
         assert client.post("/v1/config/validate", json={"web": "x"}).status_code == 422
         assert client.post("/v1/config/init").status_code == 409
+
+        # only a body that cannot be read is refused before a job
+        assert client.put("/v1/config/rules", content=b"\xff\xfe").status_code == 400
+        assert client.put("/v1/config/web", content=deny).status_code == 404
+        reload = client.post("/v1/daemon/reload")
+        assert reload.status_code == 202 and reload.json()["operation"] == "reload"
+        assert finished_job(client, reload.json()["id"])["state"] == "done"
+        listed = client.get("/v1/jobs", params={"state": ["done", "failed"]}).json()
+        assert [job["id"] for job in listed] == [
+            reload.json()["id"],
+            applied.json()["id"],
+            rejected.json()["id"],
+        ], "newest first"
+        assert client.get("/v1/jobs", params={"state": "queued"}).json() == []
     finally:
         daemon.stop()
 
@@ -795,7 +936,7 @@ def test_the_value_overlay_follows_the_observations_and_the_plan(
             "/v1/config/rules",
             content="- match: { class: brick:Point }\n  action: deny\n",
         )
-        assert applied.status_code == 200
+        assert finished_job(client, applied.json()["id"])["state"] == "done"
         daemon.overlay.flush()
         gone = client.get("/v1/sparql", params={"query": query}).json()["results"]
         assert gone["bindings"] == [], "a point that leaves the plan leaves the overlay"
@@ -1100,7 +1241,8 @@ def test_the_model_lies_beside_the_data(tmp_path: Path, template: Path) -> None:
             "/v1/config/destinations",
             content=DESTINATIONS.replace("size: 5", "size: 6"),
         )
-        assert changed.status_code == 200, changed.text
+        assert changed.status_code == 202, changed.text
+        assert finished_job(client, changed.json()["id"])["state"] == "done"
         wait_for(
             lambda: (
                 {m.version for m in FakeDestination.models_received["sink_a"]} == {1, 2}

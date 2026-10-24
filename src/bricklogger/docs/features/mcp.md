@@ -30,8 +30,8 @@ could not be done by hand.
   `--port` override them.
 - **Without a daemon.** The server starts whether or not the daemon runs,
   exactly as the CLI works without one: configuration is read and written on
-  the files with the same validation, the catalogue comes from the installed
-  plugins, protocol tools run in-process, and the tools that need the daemon —
+  the files with the same validation, the installed plugins are read from
+  the environment and the catalogue from the package, protocol tools run in-process, and the tools that need the daemon —
   status, warnings, points, the model tree and queries — say so plainly. That
   is deliberate: the first configuration of a new machine is made before the
   daemon can start.
@@ -113,8 +113,9 @@ server carries its knowledge with it, in three forms:
   evaluated top down, the first match wins and points no rule matches are not
   logged; that secrets stand as `${VAR}` and live in the `env` file; how
   durations, sizes and times of day are written; that a write is validated as
-  a whole and refused as a whole; and that it must validate before it writes
-  and never ask for a secret's value.
+  a whole and refused as a whole; that it must validate before it writes
+  and never ask for a secret's value; and that it installs no plugins, but
+  names one from the catalogue for the operator to install.
 - **Schemas with descriptions.** Every setting of `daemon.yaml`, every key of
   a rule and every setting of every installed plugin carries a one-line
   description in its schema — the same text the CLI's `plugins <type>`, the
@@ -135,7 +136,8 @@ URIs begin with `bricklogger://`.
 |----------|---------|
 | `bricklogger://config/{file}` | One of the four files as written, environment variables left as they stand |
 | `bricklogger://schema/{file}` | The JSON Schema of `daemon` or `rules`; for `sources` and `destinations` the shape of an instance, with one alternative per installed type |
-| `bricklogger://plugins` | The catalogue: the installed plugins with type, role, version, description and instances, and the error of a plugin that could not be loaded |
+| `bricklogger://plugins` | The installed plugins with type, role, version, origin, description and instances, and the error of a plugin that could not be loaded |
+| `bricklogger://catalogue` | The [catalogue](plugins.md#the-catalogue): the approved plugins with package, types, description, publisher and link, and the version installed of each |
 | `bricklogger://plugins/{type}` | One plugin's declaration — configuration schema, reference types, collection methods and tools — as the [API](api.md#plugins) gives it |
 | `bricklogger://validation` | The validation result for the configuration as it stands |
 | `bricklogger://docs` | The index of the documentation pages |
@@ -159,7 +161,8 @@ such confirmation.
 |------|------|-----|
 | `get_config` | One of the four files, or all four, as written, and the directory they came from | `… config show` |
 | `validate_config` | Validates the configuration as it stands, or a proposed set of files given as text — the dry run before a write | `validate` |
-| `list_plugins` | The catalogue | `plugins` |
+| `list_plugins` | The installed plugins | `plugins` |
+| `list_catalogue` | The catalogue, so the assistant can name the plugin for a system and the command that installs it | `plugins catalogue` |
 | `describe_plugin` | One plugin's declaration with its configuration schema | `plugins <type>` |
 | `get_schema` | The JSON Schema of one file, as the resource gives it | — |
 | `read_docs` | A documentation page, or the list of pages | — |
@@ -185,7 +188,8 @@ such confirmation.
 **Writes behave as they do everywhere else.** The whole configuration is
 validated with the change applied and refused as a whole when it does not
 hold, the file is written atomically, and the write goes through the API
-whenever a daemon answers, so the change takes effect at once. A refused
+whenever a daemon answers, where the tool waits for the daemon's
+[job](api.md#jobs) and answers once the change has taken effect. A refused
 write answers with the errors — file, instance or rule, key and message — so
 the assistant can correct and try again, and `validate_config` with the
 proposed text is the way to check first. Nothing here uploads a model, starts

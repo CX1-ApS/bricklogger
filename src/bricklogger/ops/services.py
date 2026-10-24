@@ -232,6 +232,18 @@ def status(host: Host | None = None, run: Runner | None = None) -> ServicesStatu
     return ServicesStatus(states, linger, reachable)
 
 
+def daemon_active(run: Runner | None = None) -> bool:
+    """Whether the daemon runs as the login's service."""
+    if shutil.which("systemctl") is None and run is None:
+        return False
+    return _active(run, units.DAEMON)
+
+
+def restart_daemon(run: Runner | None = None) -> None:
+    """Restart the daemon's service; raises OperationError when it fails."""
+    _call(run, [*SYSTEMCTL, "restart", units.DAEMON])
+
+
 def command_path() -> str:
     """The ``bricklogger`` command of the environment this process runs in,
     by its absolute path, so a unit does not depend on the service's path."""

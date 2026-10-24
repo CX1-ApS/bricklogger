@@ -28,8 +28,9 @@ DESTINATIONS_GROUP = "bricklogger.destinations"
 BUILT_IN_DISTRIBUTION = "bricklogger"
 """The distribution the built-in plugins come from; it cannot be removed."""
 
-RESERVED_TYPE_NAMES = frozenset({"all", "core", "status"})
-"""Words of ``bricklogger update`` that therefore cannot name a type."""
+RESERVED_TYPE_NAMES = frozenset({"all", "catalogue", "core", "status"})
+"""Words of ``bricklogger update`` and ``bricklogger plugins`` that therefore
+cannot name a type."""
 
 Declaration = TypeVar("Declaration", SourceDeclaration, DestinationDeclaration)
 
@@ -203,7 +204,7 @@ def _load(name: str, value: str, expected: type[Declaration]) -> Declaration:
         raise PluginError(
             f"plugin {name!r} cannot use that type name: "
             f"{', '.join(sorted(RESERVED_TYPE_NAMES))} are words of "
-            "`bricklogger update`"
+            "`bricklogger update` and `bricklogger plugins`"
         )
     try:
         loaded = EntryPoint(name=name, value=value, group="").load()

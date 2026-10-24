@@ -46,6 +46,9 @@ PACKAGE_DIR = Path(__file__).parent
 SESSION_COOKIE = "bricklogger_session"
 SESSION_MAX_AGE = 12 * 3600
 POLL_SECONDS = 5
+# the jobs each screen shows again when it opens; see docs/features/web.md
+MODEL_JOBS = ("upload", "activate")
+CONFIG_JOBS = ("config", "reload")
 FILTERS = ("instance", "outcome", "warning", "class")
 INSTANCE_ACTIONS = ("start", "stop", "restart")
 MUTATING = frozenset({"POST", "PUT", "DELETE", "PATCH"})
@@ -116,6 +119,7 @@ def create_web_app(
         login_required=password is not None,
     )
     templates.env.filters["when"] = format_time
+    templates.env.filters["waited"] = waited
 
     def logged_in(request: Request) -> bool:
         if password is None:
@@ -554,7 +558,13 @@ def create_web_app(
 
     @app.get("/model", response_class=HTMLResponse)
     async def model(request: Request) -> Response:
-        return await render(request, "model.html", "model", **await model_context())
+        return await render(
+            request,
+            "model.html",
+            "model",
+            pending=await pending_jobs(MODEL_JOBS),
+            **await model_context(),
+        )
 
     @app.get("/partials/model/versions", response_class=HTMLResponse)
     async def model_versions(request: Request) -> Response:
@@ -563,7 +573,8 @@ def create_web_app(
         )
 
     async def job_partial(request: Request, job: Mapping[str, Any]) -> HTMLResponse:
-        return await render(
+        """A job as it stands; a finished one tells the page, which may refresh."""
+        response = await render(
             request,
             "partials/job.html",
             "model",
@@ -571,6 +582,14 @@ def create_web_app(
             prefixes=await client.prefixes(),
             problem_text=None,
         )
+        if job.get("state") in ("done", "failed"):
+            finished = {
+                "operation": job.get("operation"),
+                "state": job.get("state"),
+                "file": job.get("file"),
+            }
+            response.headers["HX-Trigger"] = json.dumps({"job-finished": finished})
+        return response
 
     @app.post("/actions/model/upload", response_class=HTMLResponse)
     async def model_upload(
@@ -626,6 +645,15 @@ def create_web_app(
 
     # --- configuration -------------------------------------------------------
 
+    async def pending_jobs(operations: tuple[str, ...]) -> list[dict[str, Any]]:
+        """The queued and running jobs of these operations, oldest first, so a
+        screen shows again what it started; none when the daemon is away."""
+        try:
+            jobs = await client.get("/v1/jobs", state=["queued", "running"])
+        except (ApiProblem, DaemonUnavailable):
+            return []
+        return [job for job in reversed(jobs) if job.get("operation") in operations]
+
     @app.get("/config", response_class=HTMLResponse)
     async def config(request: Request, file: str = "daemon") -> Response:
         if file not in CONFIG_FILES:
@@ -661,6 +689,7 @@ def create_web_app(
             text_body=bodies[file],
             missing=not bodies[file].strip(),
             empty_directory=not any(body.strip() for body in bodies.values()),
+            pending=await pending_jobs(CONFIG_JOBS),
         )
 
     @app.post("/actions/config/validate", response_class=HTMLResponse)
@@ -691,37 +720,15 @@ def create_web_app(
         if file not in CONFIG_FILES:
             return Response(status_code=404)
         try:
-            result = await client.json(
+            job = await client.json(
                 "PUT",
                 f"/v1/config/{file}",
                 content=body.encode("utf-8"),
                 headers={"Content-Type": "application/yaml"},
             )
-        except ApiProblem as exc:
-            if exc.status == 422 and exc.errors:
-                return await render(
-                    request,
-                    "partials/config_result.html",
-                    "config",
-                    result={"valid": False, "errors": exc.errors, "warnings": []},
-                    applied=False,
-                    problem_text=None,
-                )
-            return await problem_partial(
-                request, "partials/config_result.html", "config", exc
-            )
-        except DaemonUnavailable as exc:
-            return await problem_partial(
-                request, "partials/config_result.html", "config", exc
-            )
-        return await render(
-            request,
-            "partials/config_result.html",
-            "config",
-            result=result,
-            applied=True,
-            problem_text=None,
-        )
+        except (ApiProblem, DaemonUnavailable) as exc:
+            return await problem_partial(request, "partials/job.html", "config", exc)
+        return await job_partial(request, job)
 
     @app.post("/actions/config/init")
     async def config_init() -> Response:
@@ -786,26 +793,21 @@ def create_web_app(
 
     @app.get("/daemon", response_class=HTMLResponse)
     async def daemon(request: Request) -> Response:
-        return await render(request, "daemon.html", "daemon", **await daemon_context())
+        return await render(
+            request,
+            "daemon.html",
+            "daemon",
+            pending=await pending_jobs(CONFIG_JOBS),
+            **await daemon_context(),
+        )
 
     @app.post("/actions/daemon/reload", response_class=HTMLResponse)
     async def daemon_reload(request: Request) -> Response:
         try:
-            result = await client.post("/v1/daemon/reload")
-        except ApiProblem as exc:
-            lines = [text("daemon.rejected", detail=exc.detail)]
-            lines += [f"  {describe_error(entry)}" for entry in exc.errors]
-            context = await daemon_context("\n".join(lines), signal=True)
-        except DaemonUnavailable:
-            context = await daemon_context(text("status.unreachable"), signal=True)
-        else:
-            lines = [text("daemon.reloaded")]
-            lines += [
-                text("daemon.warning", message=w.get("message", ""))
-                for w in result.get("warnings", [])
-            ]
-            context = await daemon_context("\n".join(lines))
-        return await render(request, "partials/daemon.html", "daemon", **context)
+            job = await client.post("/v1/daemon/reload")
+        except (ApiProblem, DaemonUnavailable) as exc:
+            return await problem_partial(request, "partials/job.html", "daemon", exc)
+        return await job_partial(request, job)
 
     @app.post("/actions/daemon/stop", response_class=HTMLResponse)
     async def daemon_stop(request: Request) -> Response:
@@ -822,21 +824,25 @@ def create_web_app(
         return await render(request, "partials/daemon.html", "daemon", **context)
 
     # --- plugins ---------------------------------------------------------------
-    # The catalogue is the daemon's; installing and removing happen in this
-    # process, against the environment it runs from, as `plugins add` and
-    # `plugins remove` do. uv runs in a thread, so the other pages keep answering.
+    # The installed plugins and the catalogue are the daemon's; installing and
+    # removing happen in this process, against the environment it runs from, as
+    # `plugins add` and `plugins remove` do. uv runs in a thread, so the other
+    # pages keep answering.
 
     async def plugins_context(**extra: Any) -> dict[str, Any]:
         context = await frame()
         rows: list[dict[str, Any]] | None
+        catalogue: list[dict[str, Any]] | None
         try:
             rows = list(await client.get("/v1/plugins"))
+            catalogue = list(await client.get("/v1/plugins/catalogue"))
         except (DaemonUnavailable, ApiProblem):
-            rows = None
+            rows = catalogue = None
         in_container = plugin_directory() is not None
         context.update(
             reachable=context["status"] is not None,
             rows=rows,
+            catalogue=catalogue,
             restart_hint=text(
                 "plugins.restart.container" if in_container else "plugins.restart.host"
             ),
@@ -1026,6 +1032,16 @@ def describe_error(entry: Mapping[str, Any]) -> str:
     )
     message = str(entry.get("message", ""))
     return f"{where}: {message}" if where else message
+
+
+def waited(job: Mapping[str, Any], now: datetime) -> int:
+    """Whole seconds since a job started, or since it was queued."""
+    stamp = job.get("started") or job.get("created")
+    try:
+        since = datetime.fromisoformat(str(stamp))
+    except ValueError:
+        return 0
+    return max(0, int((now - since).total_seconds()))
 
 
 def format_time(value: object) -> str:

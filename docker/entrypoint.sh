@@ -1,10 +1,11 @@
 #!/bin/sh
-# The container's entrypoint: the configuration on the first start, the plugins
-# in the volume after an upgrade, then the command it was given.
+# The container's entrypoint: the plugins in the volume after an upgrade, the
+# configuration and the plugins on the daemon's first start, then the command
+# it was given.
 #
 # Neither step stops the container. A daemon with an empty configuration runs
 # and reports `idle`, and a plugin that cannot be installed shows as failed in
-# the catalogue — see docs/docker.md.
+# `bricklogger plugins` — see docs/docker.md.
 
 set -eu
 
@@ -12,22 +13,14 @@ CONFIG_DIR="${BRICKLOGGER_CONFIG_DIR:-/etc/bricklogger}"
 
 say() { printf 'bricklogger: %s\n' "$*" >&2; }
 
-# The configuration, written once, while the volume is still empty. `init`
-# refuses to overwrite a file that exists, so nothing written later is touched.
-if [ -d "$CONFIG_DIR" ] && [ -z "$(ls -A "$CONFIG_DIR" 2>/dev/null)" ]; then
-	say "$CONFIG_DIR is empty; writing the four files with commented examples"
-	if bricklogger init --non-interactive; then
-		# The instances it writes are examples — another building's BACnet
-		# address, a database with a password nobody has set — and the daemon
-		# refuses a configuration it cannot resolve. They go in commented out,
-		# so the daemon starts idle and the examples are there to uncomment.
-		for file in sources destinations; do
-			sed -i '/^[[:space:]]*#/!{/^[[:space:]]*$/!s/^/# /;}' \
-				"$CONFIG_DIR/$file.yaml"
-		done
-	else
-		say "init could not write the configuration; the daemon starts with none"
-	fi
+# The first start is the daemon's container's alone, so two containers never
+# write the same files: an empty configuration volume gets the four files — a
+# working destination when the database's variables are set, the examples
+# commented out — and a plugin volume never asked for anything gets the
+# packages in BRICKLOGGER_PLUGINS. Each happens once; see docs/docker.md. It
+# runs before the env file below exists, which would make the volume look used.
+if [ "$#" -ge 3 ] && [ "$1" = "bricklogger" ] && [ "$2" = "daemon" ] && [ "$3" = "run" ]; then
+	python -m bricklogger.ops.first_start || true
 fi
 
 # The env file, for the secrets the YAML interpolates as ${NAME}. `touch` and

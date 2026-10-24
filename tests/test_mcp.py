@@ -25,6 +25,7 @@ TOOLS = [
     "get_config",
     "validate_config",
     "list_plugins",
+    "list_catalogue",
     "describe_plugin",
     "get_schema",
     "read_docs",
@@ -94,6 +95,7 @@ async def test_the_tools_are_listed_in_a_fixed_order_with_their_hints(
         resources = await client.list_resources()
         assert {str(item.uri) for item in resources.resources} == {
             "bricklogger://plugins",
+            "bricklogger://catalogue",
             "bricklogger://validation",
             "bricklogger://docs",
         }

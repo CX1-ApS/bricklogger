@@ -3,4 +3,5 @@
 {% block content %}
 <div class="page-head"><h1>{{ t('daemon.title') }}</h1></div>
 {% include "partials/daemon.html" %}
+<div id="daemon-job">{% for job in pending %}{% include "partials/job.html" %}{% endfor %}</div>
 {% endblock %}

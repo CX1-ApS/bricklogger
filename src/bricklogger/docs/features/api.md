@@ -29,13 +29,14 @@ the responses unchanged. The API binds to localhost by default, as set in
   `offset`, with `total` in the response. The [entity document](#entities) is
   not paged — a tree cut into pages is no tree — and is narrowed by its
   filters instead.
-- **Writes take effect immediately**, because they are validated first. An
-  invalid change is rejected as a whole with `422`, and the running
-  configuration is kept.
-- **Long operations run as jobs.** Model upload and activation answer `202`
-  with a job, because validation and inference take from seconds to minutes;
-  everything else answers synchronously, including protocol tools, which
-  declare their own duration.
+- **Writes are validated before they take effect.** An invalid change is
+  rejected as a whole with `422` — for a configuration write, as the problem
+  of its job — and the running configuration is kept.
+- **Long operations run as [jobs](#jobs).** Model upload and activation, a
+  configuration write and a reload answer `202` with a job, because
+  validation and inference take from seconds to minutes and a reload stops
+  and starts the instances it changes; everything else answers
+  synchronously, including protocol tools, which declare their own duration.
 
 ```json
 {
@@ -60,7 +61,7 @@ the responses unchanged. The API binds to localhost by default, as set in
 |--------|------|---------|-----|
 | GET | `/health/live` | Alive: 200 while the daemon runs, with its `pid` and `started_at` | `status` |
 | GET | `/health` | Doing its job: 200 for `ok`, `idle` and `degraded`, 503 while an instance is `failed` | — |
-| POST | `/v1/daemon/reload` | Reload the configuration from disk, validated as a whole | `daemon reload` |
+| POST | `/v1/daemon/reload` | Reload the configuration from disk, validated as a whole. Answers `202` with a job | `daemon reload` |
 | POST | `/v1/daemon/stop` | Graceful stop within `stop_timeout` | `daemon stop` |
 
 ### Status and points
@@ -121,7 +122,7 @@ operation here that reaches outside the machine.
 |--------|------|---------|-----|
 | GET | `/v1/config` | All four files as one JSON document, environment variables left as written | the web interface |
 | GET | `/v1/config/{file}` | One file — `daemon`, `sources`, `destinations` or `rules` — as `application/yaml`, or parsed as JSON on `Accept: application/json` | `daemon config show`, `sources config show`, `destinations config show`, `rules config show` |
-| PUT | `/v1/config/{file}` | Replace one file with the YAML text in the body: the directory is validated with the change applied, the text is written atomically and verbatim, and the change takes effect | `… config edit`, `sources add`, `edit`, `remove` |
+| PUT | `/v1/config/{file}` | Replace one file with the YAML text in the body: the directory is validated with the change applied, the text is written atomically and verbatim, and the change takes effect. Answers `202` with a job | `… config edit`, `sources add`, `edit`, `remove` |
 | POST | `/v1/config/validate` | Validate without writing: the files on disk, or a proposed set of files given in the body | `validate` |
 | POST | `/v1/config/init` | Write the four files with commented examples into the config directory; refused with `409` if any of them exists | `init --non-interactive` |
 
@@ -131,7 +132,20 @@ API returns. A validation result carries `valid`, the `errors` and the
 `warnings`; a configuration that accepts points but has no destination is a
 warning, not an error.
 
-### Models and jobs
+**A write and a reload run as [jobs](#jobs).** A `config` job validates the
+directory as it is when the job starts, with the change applied, writes the
+file and applies the configuration; a `reload` job validates and applies the
+files on disk. Its `step` is `validating`, then `writing` for a write, then
+`stopping <instance>` and `starting <instance>` for each instance the change
+stops or starts, so a slow stop shows whose it is. A configuration that does
+not hold fails the job with the `422` problem shown above, its `errors`
+naming the file, the instance or rule and the key, and nothing is written or
+changed. A job that is done carries the validation result, with its
+`warnings`, as its `result`. Only a body that cannot be read is refused
+before a job is created: `400` when it is not UTF-8, `404` for a file that is
+not one of the four.
+
+### Models
 
 | Method | Path | Purpose | CLI |
 |--------|------|---------|-----|
@@ -140,17 +154,11 @@ warning, not an error.
 | POST | `/v1/models/{version}/activate` | Activate a stored version. Answers `202` with a job | `model activate` |
 | GET | `/v1/models/diff?a=&b=` | Points added, removed or changed between two versions, computed on the uploaded models | `model diff` |
 | GET | `/v1/models/{version}` | The model as uploaded, as `text/turtle`; `?inferred=true` adds the inferred graph, `?values=true` the value overlay and `?timeseries=true` the time-series references of the destination that stores the model, or `?timeseries=<instance>` those of a named one | `model export` |
-| GET | `/v1/jobs/{id}` | The state of a job | followed by the CLI |
 
-Versions are numbered in upload order. Model operations run **one at a
-time**; a second one is queued behind the first. A job carries its `id`, the
-`operation`, a `state` of `queued`, `running`, `done` or `failed`, the current
-`step` — `validating`, `inferring` or `activating` — the times it `started`
-and `finished`, and on completion either a `result` or a `problem` in the
-error format above. Finished jobs stay readable until the daemon restarts.
+Versions are numbered in upload order. Upload and activation run as
+[jobs](#jobs), whose `step` is `validating`, `inferring` or `activating`.
 Validation and inference run in a child process, so the API answers as
 usual while a job runs, however large the model.
-The `202` answer carries the job and a `Location` header pointing at it.
 
 A `result` carries the stored `version`, the validation `report` with its
 warnings, whether the model was `activated`, the `previous` active version,
@@ -170,6 +178,31 @@ and `?timeseries=<instance>` with `404` when that instance does not store
 it. `GET /v1/models` lists
 every version with its upload time, whether it is active and when it was
 activated, together with the prefixes of the active model.
+
+### Jobs
+
+| Method | Path | Purpose | CLI |
+|--------|------|---------|-----|
+| GET | `/v1/jobs` | The jobs the daemon keeps, newest first; `?state=` narrows them to a state and may be given more than once | the web interface |
+| GET | `/v1/jobs/{id}` | The state of a job | followed by the CLI |
+
+Four operations run as jobs: `upload` and `activate` of a
+[model](#models), `config` for a [configuration write](#configuration) and
+`reload` for a [reload](#health-and-daemon). They run **one at a time**, in
+one queue for all four, so the configuration and the model never change at
+once; a job that has to wait is `queued` until the jobs before it are done.
+A job carries its `id`, the `operation`, for a `config` job the `file` it
+writes, a `state` of `queued`, `running`, `done` or `failed`, the current
+`step`, the times it `started` and `finished`, and on completion either a
+`result` or a `problem` in the error format above. Finished jobs stay
+readable until the daemon restarts. The `202` answer that creates a job
+carries it and a `Location` header pointing at it.
+
+**A stop finishes the configuration jobs it has accepted.** When the daemon
+stops, a `config` or `reload` job that is queued or running is finished
+first, within `stop_timeout`, so a write the API has accepted is not lost on
+the way; one that does not finish in time fails with a problem saying so. A
+model job that is still queued is dropped.
 
 ### Entities
 
@@ -303,7 +336,8 @@ with `415`.
 
 | Method | Path | Purpose | CLI |
 |--------|------|---------|-----|
-| GET | `/v1/plugins` | Installed plugins: type, role, version, description, instances, and `error`, the reason a plugin could not be loaded, `null` otherwise | `plugins` |
+| GET | `/v1/plugins` | Installed plugins: type, role, version, `origin` — `built-in`, `catalogue` or `custom` — description, instances, and `error`, the reason a plugin could not be loaded, `null` otherwise | `plugins` |
+| GET | `/v1/plugins/catalogue` | The [catalogue](plugins.md#the-catalogue): per entry `package`, `types` with their role, `description`, `publisher`, `link`, and `installed`, the version installed or `null` | `plugins catalogue` |
 | GET | `/v1/plugins/{type}` | The declaration: reference types, vocabulary, collection methods with parameter schemas, configuration schema and tools — each with its parameter schema, whether its result is a document and, if so, on which tool's rows it is offered — schemas as JSON Schema. For a plugin that could not be loaded: type, role, version and `error`, without schemas | `plugins <type>` |
 | POST | `/v1/plugins/{type}/instances/{name}/tools/{tool}` | Run a tool with its parameters as the JSON body; the structured result is returned unchanged | `sources NAME <tool>` |
 | POST | `/v1/plugins/{type}/instances/{name}/start` | Start the instance; likewise `stop` and `restart`. A stop persists across reload and restart | `sources start NAME` |

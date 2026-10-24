@@ -10,6 +10,7 @@
     <button class="button quiet" hx-post="/actions/plugins/check" hx-target="#plugins" hx-swap="outerHTML">{{ t('plugins.check') }}</button>
   </div>
   {% for error in look_errors %}<p class="dim">{{ t('plugins.look.error', error=error) }}</p>{% endfor %}
+  <h2>{{ t('plugins.installed.title') }}</h2>
   <div class="table-wrap">
     <table>
       <thead>
@@ -17,6 +18,7 @@
           <th>{{ t('plugins.type') }}</th>
           <th>{{ t('plugins.role') }}</th>
           <th>{{ t('plugins.version') }}</th>
+          <th>{{ t('plugins.origin') }}</th>
           <th>{{ t('plugins.newest') }}</th>
           <th>{{ t('plugins.description') }}</th>
           <th>{{ t('plugins.instances') }}</th>
@@ -29,6 +31,7 @@
           <td class="mono">{{ row.type }}</td>
           <td>{{ row.role }}</td>
           <td>{{ row.version or '' }}</td>
+          <td>{% if row.origin == 'custom' %}<span class="tag signal">{{ row.origin }}</span>{% elif row.origin %}<span class="tag">{{ row.origin }}</span>{% endif %}</td>
           <td>{% if update_to.get(row.type) %}<button class="button" hx-post="/actions/plugins/{{ row.type }}/update" hx-target="#plugins" hx-swap="outerHTML" hx-confirm="{{ t('plugins.update.confirm', type=row.type, version=update_to[row.type]) }}">{{ t('plugins.update', version=update_to[row.type]) }}</button>{% endif %}</td>
           <td>{% if row.error %}<span class="signal">{{ t('plugins.error', error=row.error) }}</span>{% else %}{{ row.description or '' }}{% endif %}</td>
           <td class="mono">{{ row.instances | join(', ') if row.instances else t('common.none') }}</td>
@@ -38,6 +41,38 @@
       </tbody>
     </table>
   </div>
+  {% endif %}
+  {% if catalogue is not none %}
+  <h2>{{ t('plugins.catalogue.title') }}</h2>
+  <p class="dim">{{ t('plugins.catalogue.help') }}</p>
+  {% if not catalogue %}
+  <p class="empty">{{ t('plugins.catalogue.none') }}</p>
+  {% else %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ t('plugins.package') }}</th>
+          <th>{{ t('plugins.types') }}</th>
+          <th>{{ t('plugins.description') }}</th>
+          <th>{{ t('plugins.publisher') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in catalogue %}
+        <tr>
+          <td class="mono"><a href="{{ entry.link }}" target="_blank" rel="noopener">{{ entry.package }}</a></td>
+          <td class="mono">{% for item in entry.types %}{{ item.type }} ({{ item.role }}){% if not loop.last %}, {% endif %}{% endfor %}</td>
+          <td>{{ entry.description }}</td>
+          <td>{{ entry.publisher }}</td>
+          <td>{% if entry.installed %}{{ t('plugins.catalogue.installed', version=entry.installed) }}{% else %}<button class="button" hx-post="/actions/plugins/add" hx-vals='{"packages": "{{ entry.package }}"}' hx-target="#plugins" hx-swap="outerHTML" hx-confirm="{{ t('plugins.catalogue.confirm', package=entry.package) }}">{{ t('plugins.add') }}</button>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
   {% endif %}
   <form class="field" hx-post="/actions/plugins/add" hx-target="#plugins" hx-swap="outerHTML">
     <label for="packages">{{ t('plugins.add.label') }}</label>

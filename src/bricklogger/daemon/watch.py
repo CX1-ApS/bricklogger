@@ -1,9 +1,10 @@
 """The daemon's watch: a thread that looks over the instances at a steady pace.
 
 It restarts an instance whose thread has ended without the daemon having seen
-a failure, and raises or withdraws ``stale`` on the points of the running
-sources. See ``docs/architecture.md``, "Stop", and ``docs/features/daemon.md``,
-"Stale points".
+a failure, withdraws ``stop_timeout`` once an abandoned thread has ended, and
+raises or withdraws ``stale`` on the points of the running sources. See
+``docs/architecture.md``, "Stop", and ``docs/features/daemon.md``, "Stale
+points".
 """
 
 from __future__ import annotations
@@ -70,7 +71,8 @@ class Watch:
                 log.exception("the watch failed; it looks again in %gs", self.period)
 
     def check(self, now: datetime | None = None) -> None:
-        """One look: revive what ended unseen, then judge every point's staleness."""
+        """One look: revive what ended unseen and see whether abandoned threads
+        have ended, then judge every point's staleness."""
         self._revive()
         self.stale(now or datetime.now(UTC))
 

@@ -12,7 +12,7 @@
   </dl>
   {% endif %}
   <div class="button-row">
-    <button class="button" hx-post="/actions/daemon/reload" hx-target="#daemon" hx-swap="outerHTML">{{ t('daemon.reload') }}</button>
+    <button class="button" hx-post="/actions/daemon/reload" hx-target="#daemon-job" hx-swap="innerHTML" data-job-guard="config"{% if pending %} disabled{% endif %}>{{ t('daemon.reload') }}</button>
     <button class="button quiet" hx-post="/actions/daemon/stop" hx-target="#daemon" hx-swap="outerHTML" hx-confirm="{{ t('daemon.stop.confirm') }}">{{ t('daemon.stop') }}</button>
   </div>
   <p class="dim">{{ t('daemon.reload.help') }} {{ t('daemon.stop.help') }}</p>

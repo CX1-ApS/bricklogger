@@ -9,7 +9,6 @@ from typer.testing import CliRunner
 
 from bricklogger import __version__
 from bricklogger.cli import app
-from bricklogger.ops import services
 from bricklogger.ops import status as status_module
 from bricklogger.ops.client import DaemonApi
 from tests.fakes import write_distribution
@@ -45,93 +44,6 @@ def test_a_group_without_a_subcommand_shows_its_help(tmp_path: Path) -> None:
         assert word in result.output, word
     bare = runner.invoke(app, ["--config-dir", str(tmp_path), "sources", "config"])
     assert "Usage" in bare.output and "show" in bare.output and "edit" in bare.output
-
-
-def test_init_writes_the_examples_once(tmp_path: Path) -> None:
-    config_dir = tmp_path / "etc" / "bricklogger"
-    result = runner.invoke(
-        app, ["--config-dir", str(config_dir), "init", "--non-interactive"]
-    )
-    assert result.exit_code == 0, result.output
-    assert sorted(path.name for path in config_dir.iterdir()) == [
-        "daemon.yaml",
-        "destinations.yaml",
-        "rules.yaml",
-        "sources.yaml",
-    ]
-    again = runner.invoke(
-        app, ["--config-dir", str(config_dir), "init", "--non-interactive"]
-    )
-    assert again.exit_code == 1
-    assert "refusing to overwrite" in again.output
-
-
-def test_init_guided_asks_from_the_schemas_and_keeps_the_secret_apart(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(services, "refusal", lambda *_: "no systemd here")
-    answers = [
-        "1",  # add a source: bacnet-ip
-        "",  # its name: the suggested bacnet_ip_main
-        "192.168.10.5/24",  # address, required
-        "1200",  # device_instance, required
-        "",  # device_name
-        "",  # vendor_id
-        "",  # devices
-        "",  # subnet
-        "",  # bbmd
-        "",  # timeout
-        "",  # retries
-        "",  # max_in_flight
-        "",  # another source? no
-        "1",  # add a destination: timescaledb
-        "tsdb",  # its name
-        "postgres://bricklogger@db:5432/brick",  # dsn, required
-        "hunter2",  # password, a secret
-        "",  # another destination? no
-    ]
-    result = runner.invoke(
-        app, ["--config-dir", str(tmp_path), "init"], input="\n".join(answers) + "\n"
-    )
-    assert result.exit_code == 0, result.output
-    sources = (tmp_path / "sources.yaml").read_text()
-    assert "bacnet_ip_main:" in sources
-    assert "address: 192.168.10.5/24" in sources
-    assert "device_instance: 1200" in sources, "typed by the schema"
-    assert "device_name" not in sources, "an optional setting left at its default"
-    destinations = (tmp_path / "destinations.yaml").read_text()
-    assert "tsdb:" in destinations
-    assert "password: ${TSDB_PASSWORD}" in destinations
-    assert "hunter2" not in destinations
-    assert "TSDB_PASSWORD=hunter2" in (tmp_path / "env").read_text()
-    assert "hunter2" not in result.output, "asked for without echo"
-    assert "ok:" in result.output, "validated with the secret from the env file"
-    assert (tmp_path / "rules.yaml").exists() and (tmp_path / "daemon.yaml").exists()
-
-    again = runner.invoke(app, ["--config-dir", str(tmp_path), "init"], input="\n")
-    assert again.exit_code == 1 and "refusing to overwrite" in again.output
-
-
-def test_init_offers_the_services_last(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    asked: list[dict[str, object]] = []
-
-    def fake_install(**kwargs: object) -> services.Installed:
-        asked.append(kwargs)
-        return services.Installed(units=["bricklogger.service"])
-
-    monkeypatch.setattr(services, "refusal", lambda *_: None)
-    monkeypatch.setattr(services, "install", fake_install)
-    answers = ["", "", "y", "y", "n"]  # no source, no destination, yes, web, no mcp
-    result = runner.invoke(
-        app, ["--config-dir", str(tmp_path), "init"], input="\n".join(answers) + "\n"
-    )
-    assert result.exit_code == 0, result.output
-    assert asked == [{"config_dir": tmp_path, "web": True, "mcp": False}]
-    assert "Next: upload the model." in result.output
-    assert "daemon start" not in result.output
-    assert (tmp_path / "env").exists(), "the env file is there for the secrets"
 
 
 def test_validate_after_init(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

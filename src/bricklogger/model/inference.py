@@ -8,12 +8,15 @@ the wild. The source plugins' own vocabularies join both the ontology and the
 rules, so a reference type of a plugin's own is typed the same way. Then the
 OWL-RL closure of model plus ontology is derived with the Rust reasoner
 ``reasonable``. See ``docs/architecture.md``, "Inference".
+
+Importing the module registers :class:`CachingProcessor` as rdflib's SPARQL
+processor, which parses each query once instead of once per focus node.
 """
 
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from functools import lru_cache
 from importlib.resources import files
@@ -23,6 +26,13 @@ import pyshacl
 import rdflib
 import reasonable
 from rdflib import RDF, Namespace, URIRef
+from rdflib.plugins.sparql.algebra import translateQuery
+from rdflib.plugins.sparql.evaluate import evalQuery
+from rdflib.plugins.sparql.parser import parseQuery
+from rdflib.plugins.sparql.processor import SPARQLProcessor
+from rdflib.plugins.sparql.sparql import Query
+from rdflib.query import Processor
+from rdflib.term import Identifier
 
 from bricklogger.model.ontology import brick_ontology
 from bricklogger.sdk.declaration import Vocabulary
@@ -96,6 +106,42 @@ class Inference:
 
 
 Vocabularies = tuple[Vocabulary, ...]
+
+
+@lru_cache(maxsize=256)
+def prepared_query(
+    text: str, base: str | None, namespaces: tuple[tuple[str, Any], ...] | None
+) -> Query:
+    """A query parsed and translated once; rdflib alone does both on every call."""
+    initial = dict(namespaces) if namespaces is not None else None
+    return translateQuery(parseQuery(text), base, initial)
+
+
+class CachingProcessor(SPARQLProcessor):
+    """rdflib's SPARQL processor with :func:`prepared_query` in front.
+
+    pyshacl hands the same few queries of Brick's shapes and rules to rdflib
+    once for every focus node, with the node as a binding, and parsing them
+    anew was half of a validation. A prepared query is evaluated with the
+    bindings of each call, so the answers are rdflib's own.
+    """
+
+    # SPARQLProcessor's own signature, which already differs from Processor's
+    def query(  # type: ignore[override]
+        self,
+        strOrQuery: str | Query,
+        initBindings: Mapping[str, Identifier] | None = None,
+        initNs: Mapping[str, Any] | None = None,
+        base: str | None = None,
+        DEBUG: bool = False,
+    ) -> Mapping[str, Any]:
+        if isinstance(strOrQuery, str):
+            namespaces = tuple(sorted(initNs.items())) if initNs else None
+            strOrQuery = prepared_query(strOrQuery, base, namespaces)
+        return evalQuery(self.graph, strOrQuery, initBindings, base)
+
+
+rdflib.plugin.register("sparql", Processor, __name__, "CachingProcessor")
 
 
 @lru_cache(maxsize=4)

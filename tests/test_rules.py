@@ -372,3 +372,76 @@ def test_metadata_location_is_the_nearest_space(
     assert by_name["ex:AHU_01_Fan_Speed"].location == "ex:Plant_Room"
     assert by_name["ex:Meter_kWh"].equipment == "ex:Main_Meter"
     assert by_name["ex:Meter_kWh"].location is None
+
+
+LOCATED_MODEL = (
+    MODEL
+    + """\
+ex:Corridor_1 a brick:Room ; brick:isPartOf ex:Floor_1 .
+ex:Corridor_1_PIR a brick:Occupancy_Sensor ; rec:locatedIn ex:Corridor_1 .
+ex:Room_3_02_Lux a brick:Illuminance_Sensor ; rec:locatedIn ex:Room_3_02 .
+ex:Room_3_02_Panel a brick:Lighting_Equipment ; rec:locatedIn ex:Room_3_02 .
+ex:Room_3_02_Dim a brick:Luminance_Command ; brick:isPointOf ex:Room_3_02_Panel .
+"""
+)
+
+
+def one_query_locations(graph: WorkingGraph) -> dict[str, set[str]]:
+    """Every point's locations by the single UNION query the split replaced,
+    kept here as the reference the split must agree with."""
+    brick, rec = "https://brickschema.org/schema/Brick#", "https://w3id.org/rec#"
+    part_of = f"<{brick}isPartOf>|<{rec}isPartOf>"
+    has_part = f"<{brick}hasPart>|<{rec}hasPart>"
+    located_in = f"<{brick}hasLocation>|<{rec}locatedIn>"
+    upward = f"({part_of}|{located_in})*"
+    query = (
+        f"SELECT ?p ?x WHERE {{ ?p a <{brick}Point> . "
+        f"{{ ?p <{brick}isPointOf> ?d . "
+        f"{{ ?d a <{brick}Location> }} UNION {{ ?d a <{rec}Space> }} }} UNION "
+        f"{{ ?p <{brick}isPointOf> ?e . ?e a <{brick}Equipment> . "
+        f"?e ({part_of})* ?a . ?a ({located_in}) ?d }} UNION "
+        f"{{ ?p ({located_in}) ?d }} "
+        f"{{ ?d {upward} ?x }} UNION "
+        f"{{ {{ ?d a <{rec}Zone> }} UNION {{ ?d a <{brick}Zone> }} "
+        f"?d ({has_part}) ?r . "
+        f"{{ ?r a <{rec}Space> }} UNION {{ ?r a <{brick}Location> }} "
+        f"?r {upward} ?x }} }}"
+    )
+    found: dict[str, set[str]] = {}
+    for solution in graph.query(query):
+        found.setdefault(solution["p"].value, set()).add(solution["x"].value)
+    return found
+
+
+def test_locations_from_split_queries_match_the_single_query(
+    tmp_path: Path,
+) -> None:
+    """Rule evaluation and metadata read a point's anchors with one query per
+    kind and merge them. The answer must be the one a single UNION query gives:
+    a location the point is a point of, its equipment's location, and a
+    location the point is located in itself, each with the closure upward."""
+    store = ModelStore(tmp_path)
+    store.store(LOCATED_MODEL.encode(), "turtle")
+    graph = WorkingGraph(tmp_path / "graph")
+    activate_version(store, graph, 1)
+    facts = collect_points(graph)
+    split = {uri: set(fact.locations) for uri, fact in facts.items() if fact.locations}
+    assert split == one_query_locations(graph)
+    assert facts[f"{EX}Corridor_1_PIR"].locations == {
+        f"{EX}Corridor_1",
+        f"{EX}Floor_1",
+        f"{EX}Building",
+    }, "a point located in a room itself"
+    assert facts[f"{EX}Room_3_02_Dim"].locations == {
+        f"{EX}Room_3_02",
+        f"{EX}Zone_3_AB",
+        f"{EX}Level_3",
+        f"{EX}Campus",
+    }, "through equipment located in a space, and the zone that has it as a part"
+    prefixes = prefixes_of(parse_model(LOCATED_MODEL.encode(), "turtle"))
+    entries = graph_metadata(graph, prefixes, facts)
+    by_name = {compact(uri, prefixes): entry for uri, entry in entries.items()}
+    assert by_name["ex:Corridor_1_PIR"].location == "ex:Corridor_1"
+    assert by_name["ex:Room_3_02_Lux"].location == "ex:Room_3_02"
+    assert by_name["ex:Room_3_02_Dim"].location == "ex:Room_3_02"
+    assert by_name["ex:AHU_01_Fan_Speed"].location == "ex:Plant_Room"

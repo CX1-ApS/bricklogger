@@ -1,9 +1,27 @@
 {% if problem_text %}
 <pre class="terminal signal">{{ t('status.prompt') }} {{ problem_text }}</pre>
 {% else %}
-<div id="job-{{ job.id }}"{% if job.state in ('queued', 'running') %} hx-get="/partials/job/{{ job.id }}" hx-trigger="every 1s" hx-swap="outerHTML"{% endif %}>
-  <pre class="terminal{% if job.state == 'failed' %} signal{% endif %}">{{ t('status.prompt') }} {{ t('job.line', operation=job.operation, id=job.id, state=job.state) }}{% if job.step %} · {{ job.step }}{% endif %}
+{% set unfinished = job.state in ('queued', 'running') %}
+{% set configuration = job.operation in ('config', 'reload') %}
+<div id="job-{{ job.id }}" data-job-group="{{ 'config' if configuration else 'model' }}" data-job-state="{{ job.state }}"{% if unfinished %} hx-get="/partials/job/{{ job.id }}" hx-trigger="every 1s" hx-swap="outerHTML"{% endif %}>
+  <pre class="terminal{% if job.state == 'failed' %} signal{% endif %}">{{ t('status.prompt') }} {{ t('job.line', operation=job.operation ~ ((' ' ~ job.file ~ '.yaml') if job.file else ''), id=job.id, state=job.state) }}{% if job.step %} · {{ job.step }}{% endif %}{% if unfinished %} · {{ job | waited(now) }} s{% endif %}
+{%- if configuration %}
 {%- if job.state == 'done' and job.result %}
+{{ t('status.prompt') }} {{ t('config.applied') if job.operation == 'config' else t('daemon.reloaded') }}
+{%- for w in job.result.warnings or [] %}
+{{ t('status.prompt') }} warning {{ w.file }}.yaml{% if w.subject %} [{{ w.subject }}]{% endif %}{% if w.key %} {{ w.key }}{% endif %}: {{ w.message }}
+{%- endfor %}
+{%- elif job.state == 'failed' and job.problem %}
+{%- if job.problem.errors %}
+{{ t('status.prompt') }} {{ t('config.invalid' if job.operation == 'config' else 'config.rejected', count=job.problem.errors | length) }}
+{%- for e in job.problem.errors %}
+<span data-file="{{ e.file }}" data-subject="{{ e.subject or '' }}" data-key="{{ e.key or '' }}">  {{ e.file }}.yaml{% if e.subject %} [{{ e.subject }}]{% endif %}{% if e.key %} {{ e.key }}{% endif %}: {{ e.message }}</span>
+{%- endfor %}
+{%- else %}
+{{ t('status.prompt') }} {{ job.problem.detail or job.problem.title }}
+{%- endif %}
+{%- endif %}
+{%- elif job.state == 'done' and job.result %}
 {% set r = job.result %}{{ t('status.prompt') }} {{ t('job.stored', version=r.version.version, size=r.version.size, format=r.version.format) }}
 {%- if r.activated and r.activation %}
 {{ t('status.prompt') }} {{ t('job.activated', version=r.version.version, seconds=r.activation.seconds, model=r.activation.model_triples, inferred=r.activation.inferred_triples) }}

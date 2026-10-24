@@ -195,7 +195,11 @@ def stop(ctx: typer.Context) -> None:
 @daemon_app.command("restart")
 def restart(ctx: typer.Context) -> None:
     """Stop the daemon if it runs, then start it."""
-    context = cli_context(ctx)
+    restart_started_by_hand(cli_context(ctx))
+
+
+def restart_started_by_hand(context: CliContext) -> None:
+    """Stop the daemon if it runs, then start it in the background."""
     settings = _settings(context)
     _stop(context, settings, quiet=True)
     _start(context, settings)
@@ -204,7 +208,11 @@ def restart(ctx: typer.Context) -> None:
 @daemon_app.command("reload")
 def reload(ctx: typer.Context, json_output: JsonFlag = False) -> None:
     """Reload the configuration; an invalid one is rejected and the running one kept."""
-    result = ApiClient.from_context(cli_context(ctx)).post("/v1/daemon/reload")
+    client = ApiClient.from_context(cli_context(ctx))
+    try:
+        result = client.finish(client.post("/v1/daemon/reload"))
+    except OperationError as exc:
+        raise fail(exc.message) from exc
     if json_output:
         print_json(result)
         return

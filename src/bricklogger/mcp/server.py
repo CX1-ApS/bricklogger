@@ -19,7 +19,7 @@ from mcp.types import INVALID_PARAMS, ToolAnnotations
 from pydantic import Field
 
 from bricklogger.mcp.instructions import INSTRUCTIONS
-from bricklogger.ops import OperationError, Operations, catalogue, config, docs
+from bricklogger.ops import OperationError, Operations, config, docs, installed
 from bricklogger.ops import status as status_ops
 from bricklogger.ops import tools as tool_ops
 from bricklogger.ops.tree import SORTS, render_tree
@@ -127,12 +127,27 @@ def create_mcp_server(ops: Operations) -> MCPServer:
 
     @server.tool(title="List the installed plugins", annotations=READS)
     def list_plugins() -> list[dict[str, Any]]:
-        """The catalogue: every installed plugin with type, role, version,
-        description and its configured instances."""
+        """Every installed plugin with type, role, version, origin —
+        built-in, catalogue or custom — description and its configured
+        instances."""
 
         def run() -> list[dict[str, Any]]:
             with ops.session() as client:
-                return catalogue.list_plugins(ops, client)
+                return installed.list_plugins(ops, client)
+
+        return attempt(run)
+
+    @server.tool(title="List the catalogue", annotations=READS)
+    def list_catalogue() -> list[dict[str, Any]]:
+        """The catalogue of approved plugins: package, the types it provides,
+        description, publisher, link and the version installed, or null. A
+        plugin is installed by the operator with `bricklogger plugins add
+        PACKAGE` or on the web interface's Plugins screen; this server
+        installs nothing."""
+
+        def run() -> list[dict[str, Any]]:
+            with ops.session() as client:
+                return installed.list_catalogue(ops, client)
 
         return attempt(run)
 
@@ -145,7 +160,7 @@ def create_mcp_server(ops: Operations) -> MCPServer:
 
         def run() -> dict[str, Any]:
             with ops.session() as client:
-                return catalogue.describe(ops, client, type)
+                return installed.describe(ops, client, type)
 
         return attempt(run)
 
@@ -156,7 +171,7 @@ def create_mcp_server(ops: Operations) -> MCPServer:
 
         def run() -> dict[str, Any]:
             with ops.session() as client:
-                return catalogue.file_schema(ops, client, file)
+                return installed.file_schema(ops, client, file)
 
         return attempt(run)
 
@@ -467,8 +482,8 @@ def create_mcp_server(ops: Operations) -> MCPServer:
 
         def run() -> dict[str, Any]:
             with ops.session() as client:
-                result: dict[str, Any] = ops.require(client).post("/v1/daemon/reload")
-                return result
+                api = ops.require(client)
+                return api.finish(api.post("/v1/daemon/reload"))
 
         return attempt(run)
 
@@ -500,7 +515,7 @@ def create_mcp_server(ops: Operations) -> MCPServer:
 
         def run() -> dict[str, Any]:
             with ops.session() as client:
-                return catalogue.file_schema(ops, client, file)
+                return installed.file_schema(ops, client, file)
 
         return resource(run)
 
@@ -510,11 +525,27 @@ def create_mcp_server(ops: Operations) -> MCPServer:
         title="The installed plugins",
     )
     def plugins_resource() -> list[dict[str, Any]]:
-        """The catalogue: type, role, version, description and instances."""
+        """The installed plugins: type, role, version, origin, description and
+        instances."""
 
         def run() -> list[dict[str, Any]]:
             with ops.session() as client:
-                return catalogue.list_plugins(ops, client)
+                return installed.list_plugins(ops, client)
+
+        return resource(run)
+
+    @server.resource(
+        "bricklogger://catalogue",
+        mime_type="application/json",
+        title="The catalogue of approved plugins",
+    )
+    def catalogue_resource() -> list[dict[str, Any]]:
+        """The approved plugins: package, types, description, publisher, link
+        and the version installed, or null."""
+
+        def run() -> list[dict[str, Any]]:
+            with ops.session() as client:
+                return installed.list_catalogue(ops, client)
 
         return resource(run)
 
@@ -528,7 +559,7 @@ def create_mcp_server(ops: Operations) -> MCPServer:
 
         def run() -> dict[str, Any]:
             with ops.session() as client:
-                return catalogue.describe(ops, client, type)
+                return installed.describe(ops, client, type)
 
         return resource(run)
 
@@ -569,8 +600,9 @@ def create_mcp_server(ops: Operations) -> MCPServer:
         """The first configuration of a new machine."""
         return (
             "Set up Bricklogger on this machine with me. Start with get_status and "
-            "get_config to see what is there, and list_plugins for the installed "
-            "types. If the config directory is empty, write the examples with "
+            "get_config to see what is there, list_plugins for the installed "
+            "types and list_catalogue for the approved plugins I could add. If "
+            "the config directory is empty, write the examples with "
             "init_config, then replace them: ask me which sources and destinations "
             "to configure, and for each instance ask for the settings its schema "
             "requires (describe_plugin), one at a time, offering the defaults. Put "

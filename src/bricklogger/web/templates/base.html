@@ -8,7 +8,7 @@
   <script src="/static/vendor/htmx.min.js?v={{ version }}"></script>
   {% block head %}{% endblock %}
 </head>
-<body{% if request.cookies.get('sidebar') == 'collapsed' %} class="collapsed"{% endif %}>
+<body{% if request.cookies.get('sidebar') == 'collapsed' %} class="collapsed"{% endif %} data-prompt="{{ t('status.prompt') }}" data-working="{{ t('common.working') }}">
   <header class="topbar">
     <a class="wordmark" href="/">{{ t('wordmark') }}</a>
     <span class="spacer"></span>
@@ -57,6 +57,7 @@
       document.cookie = 'sidebar=' + (collapsed ? 'collapsed' : 'open') + '; path=/; max-age=31536000; samesite=lax';
     }
   </script>
+  <script src="/static/js/busy.js?v={{ version }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -87,6 +87,60 @@ A `null` observation becomes a row without a value, with the reason as a
 therefore takes up practically no space. The destination keeps no state per
 point.
 
+### Preparing the database
+
+The destination needs a database with the `timescaledb` extension and a role
+that owns it. [`init`](cli.md#init) sets that up as one of its steps, and
+[`init --db`](cli.md#init) runs the step alone. It is the one place where
+Bricklogger knows a destination by its type; the destination itself follows
+the same contract as any other.
+
+1. **Where.** `init` asks for the host, the port, the database and the role,
+   offering `localhost`, `5432`, `bricklogger` and `bricklogger`. The role's
+   password is **never asked for**: it is generated and written to the
+   [`env` file](configuration.md#the-env-file) under the instance's name,
+   `TSDB_PASSWORD` for `tsdb`, with `${TSDB_PASSWORD}` in the YAML. A password
+   already in the file that still logs in is kept; otherwise a new one is set
+   on the role.
+2. **Installing**, when the host is `localhost`. `init` asks whether to
+   install PostgreSQL with TimescaleDB on this machine. On a yes it looks
+   first: when they are installed already it says that the packages will be
+   upgraded and that PostgreSQL's configuration will be tuned again, and asks
+   before it goes on. The install adds Timescale's package repository and
+   installs PostgreSQL 18 with TimescaleDB, copies `postgresql.conf` beside
+   itself as `postgresql.conf.<time>.bak`, runs `timescaledb-tune`, and
+   enables and restarts the service. The commands run through `sudo` in the terminal, which asks
+   for the password itself; Bricklogger never sees it.
+3. **Preparing.** `init` creates the role and the database, owned by the
+   role, and creates the extension **as the role**, so the role owns it too
+   and the destination can [update it](#timescaledb) itself. On this machine it does so as `postgres` through `sudo`, with
+   no password; on another host it asks for an admin login, `postgres` by
+   default, with the password without echo, uses it for this step and keeps
+   nothing.
+
+`timescaledb-tune` sets PostgreSQL's memory and workers from the machine,
+which suits a machine that does little else; `init` says what it changed, and
+it is run again with `sudo timescaledb-tune`. The install supports Debian and
+Ubuntu. On another distribution, without `sudo` rights or when a command
+fails, `init` prints the commands that remain, for an administrator to run,
+and goes on.
+
+Every step can be run again: what exists is used as it is, and **no
+database, table or row is ever deleted** — not by a replace either, which
+writes the destination's settings anew and sets the role's password. Nor
+does a database stop the setup: the files are written whatever it answers,
+and `init --db` is the way to try again. A database looked after by someone
+else needs none of this: they create the database, the extension and the
+role as the [getting started](../getting-started.md#prepare-the-database)
+page shows, and the instance is written with
+[`destinations add`](cli.md#sources-and-destinations) and the password they
+give.
+
+In a container the database is the compose file's own and is prepared by its
+own container, so the step installs nothing and asks for no admin: the
+destination is written from the database variables the container is given,
+as the [Docker page](../docker.md#the-first-start) describes.
+
 ### Schema
 
 ```sql
@@ -135,6 +189,15 @@ model_activations  (version integer, activated_at timestamptz)
   and writes to plain PostgreSQL tables, without hypertables or compression.
   Installing the extension later does not convert tables that already hold
   data, so start with the extension in place.
+- **The destination keeps the extension up to date.** At start it compares
+  the version installed in the database with the newest the server offers,
+  and when the installed one is older it runs
+  `ALTER EXTENSION timescaledb UPDATE` and logs both versions. A new package
+  or a new image therefore takes effect at the next start of the daemon,
+  without anyone running SQL. An update needs the role to own the extension,
+  as [`init`](#preparing-the-database) and the compose file's database
+  arrange it; where it does not, the destination logs a warning with the
+  command for an administrator and goes on with the version it has.
 - **Metadata arrives whole.** The daemon merges the graph's part and the
   source's part before it offers the entry, so `points` is written from one
   entry; a field the entry does not carry keeps its stored value.

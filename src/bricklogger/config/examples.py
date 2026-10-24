@@ -1,4 +1,6 @@
-"""The four example files that ``bricklogger config init`` writes."""
+"""The four example files that ``bricklogger init --non-interactive`` writes,
+the commented form a container's first start writes, and a working
+destination written from the database's variables."""
 
 from __future__ import annotations
 
@@ -52,7 +54,7 @@ bacnet_main:
 # destinations.yaml: one entry per destination instance, with the name as the key.
 tsdb:
   type: timescaledb
-  dsn: "postgres://bricklogger@db.example.com:5432/brick"
+  dsn: "postgres://bricklogger@db.example.com:5432/bricklogger"
   password: ${TSDB_PASSWORD}
 """,
     "rules": """\
@@ -89,6 +91,57 @@ class FilesExist(ConfigError):
         self.paths = paths
         names = ", ".join(path.name for path in paths)
         super().__init__(f"refusing to overwrite existing files: {names}")
+
+
+def commented(text: str) -> str:
+    """The text with every line that is not blank or a comment commented out:
+    an example to uncomment, which the daemon reads as empty."""
+    return "".join(
+        line if not line.strip() or line.lstrip().startswith("#") else f"# {line}"
+        for line in text.splitlines(keepends=True)
+    )
+
+
+def untouched(config_dir: Path, name: str, text: str) -> bool:
+    """Whether a file still holds an example as it was written, plain or
+    commented, so that replacing it loses nothing anyone wrote."""
+    example = examples_for(config_dir)[name]
+    return text in (example, commented(example))
+
+
+DESTINATION_HEADER = (
+    "# destinations.yaml: one entry per destination instance, with the name as "
+    "the key.\n"
+)
+
+
+def destination_text(name: str, dsn: str, password_variable: str) -> str:
+    """``destinations.yaml`` with one working TimescaleDB destination, whose
+    password is named and not written."""
+    return (
+        f"{DESTINATION_HEADER}{name}:\n"
+        "  type: timescaledb\n"
+        f'  dsn: "{dsn}"\n'
+        f"  password: ${{{password_variable}}}\n"
+    )
+
+
+def write_missing(
+    config_dir: Path, texts: dict[str, str]
+) -> tuple[list[Path], list[Path]]:
+    """Write the files that do not exist and leave the others: what was
+    written, and what was left."""
+    config_dir.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    left: list[Path] = []
+    for name in CONFIG_FILES:
+        path = config_file(config_dir, name)
+        if path.exists():
+            left.append(path)
+            continue
+        path.write_text(texts[name], encoding="utf-8")
+        written.append(path)
+    return written, left
 
 
 def write_examples(config_dir: Path) -> list[Path]:

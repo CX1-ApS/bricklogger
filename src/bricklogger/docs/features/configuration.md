@@ -123,7 +123,8 @@ updates:
   container; `init` writes the resolved path
   into the file, so a written configuration never leaves it implicit.
 - `stop_timeout`: how long a plugin instance gets to stop gracefully before it
-  is abandoned and reported in status. The default is **`10s`**.
+  is abandoned and reported in status until its thread has ended. The default
+  is **`10s`**.
 - `log.level`, `log.format`: the daemon's own [logging](daemon.md#logging):
   `debug`, `info`, `warning` or `error`, as `text` or `json`.
 - `log.file`, `log.max_size`, `log.keep`: the log file and its rotation by
@@ -200,7 +201,7 @@ bacnet_main:
 # destinations.yaml
 tsdb:
   type: timescaledb
-  dsn: "postgres://bricklogger@db.example.com:5432/brick"
+  dsn: "postgres://bricklogger@db.example.com:5432/bricklogger"
   password: ${TSDB_PASSWORD}
 ```
 
@@ -228,7 +229,7 @@ reach the plugin: `spool` and `batch`.
 # destinations.yaml
 tsdb:
   type: timescaledb
-  dsn: "postgres://bricklogger@db.example.com:5432/brick"
+  dsn: "postgres://bricklogger@db.example.com:5432/bricklogger"
   password: ${TSDB_PASSWORD}
   spool:
     max_size: 1GB     # default

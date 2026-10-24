@@ -1,11 +1,12 @@
-"""The catalogue: the installed plugins, one plugin's declaration, and the
-shape of each configuration file as JSON Schema."""
+"""The installed plugins, one plugin's declaration, the catalogue of approved
+plugins, and the shape of each configuration file as JSON Schema."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from bricklogger import __version__
+from bricklogger.catalogue import catalogue_rows, origin_of
 from bricklogger.config.schema import (
     BatchSettings,
     DaemonSettings,
@@ -32,7 +33,8 @@ FILE_TITLES = {
 
 
 def list_plugins(ops: Operations, client: DaemonApi | None) -> list[dict[str, Any]]:
-    """Every installed plugin: type, role, version, description and instances."""
+    """Every installed plugin: type, role, version, origin, description and
+    instances."""
     if client is not None:
         return [dict(row) for row in client.get("/v1/plugins")]
     registry = ops.plugins()
@@ -45,6 +47,7 @@ def list_plugins(ops: Operations, client: DaemonApi | None) -> list[dict[str, An
             "type": name,
             "role": declaration.role,
             "version": registry.version_of(name) or __version__,
+            "origin": origin_of(registry.distribution_of(name)),
             "description": declaration.description,
             "instances": None,
             "error": None,
@@ -56,6 +59,7 @@ def list_plugins(ops: Operations, client: DaemonApi | None) -> list[dict[str, An
             "type": name,
             "role": failure.role,
             "version": failure.version or None,
+            "origin": origin_of(failure.distribution),
             "description": None,
             "instances": None,
             "error": failure.error,
@@ -64,6 +68,13 @@ def list_plugins(ops: Operations, client: DaemonApi | None) -> list[dict[str, An
     ]
     rows.sort(key=lambda row: str(row["type"]))
     return rows
+
+
+def list_catalogue(ops: Operations, client: DaemonApi | None) -> list[dict[str, Any]]:
+    """The catalogue, each entry with the version installed or ``None``."""
+    if client is not None:
+        return [dict(row) for row in client.get("/v1/plugins/catalogue")]
+    return catalogue_rows(ops.plugins())
 
 
 def describe(
