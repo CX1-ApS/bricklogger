@@ -215,8 +215,11 @@ reference lookups — run as SPARQL. The store holds these named graphs:
 is derived with the Rust-based reasoner (`reasonable`), and the
 inferred triples are placed in the inferred graph. The SHACL rules of Brick's
 reference schema run in the same step, together with Bricklogger's own
-supplementary rules and the rules of the source plugins' vocabularies, so a
-reference node the model leaves untyped — Brick's own examples do — gets its
+supplementary rules and the rules of the source plugins' vocabularies, and
+are applied again until a pass adds nothing, since one rule can derive what
+another needs — an `owl:equivalentClass` type that a class's tag rules act
+on, say — so what an activation derives does not depend on the order in
+which they run. A reference node the model leaves untyped — Brick's own examples do — gets its
 type: `ref:BACnetReference`, derived in either of the two BACnet vocabularies
 found in models, or the reference type of an installed plugin's vocabulary;
 the daemon's classification of

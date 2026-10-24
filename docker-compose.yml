@@ -24,7 +24,7 @@ services:
       - db:/home/postgres/pgdata
 
   daemon:
-    image: ghcr.io/cx1-aps/bricklogger:0.3.0
+    image: ghcr.io/cx1-aps/bricklogger:0.3.1
     command: ["bricklogger", "daemon", "run"]
     network_mode: host
     restart: unless-stopped
@@ -48,7 +48,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   web:
-    image: ghcr.io/cx1-aps/bricklogger:0.3.0
+    image: ghcr.io/cx1-aps/bricklogger:0.3.1
     command: ["bricklogger", "serve"]
     network_mode: host
     restart: unless-stopped
@@ -60,7 +60,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   mcp:
-    image: ghcr.io/cx1-aps/bricklogger:0.3.0
+    image: ghcr.io/cx1-aps/bricklogger:0.3.1
     command: ["bricklogger", "mcp", "serve", "--http"]
     network_mode: host
     restart: unless-stopped

@@ -31,7 +31,11 @@ from bricklogger.model import (
     upload_model,
     validate_model,
 )
-from bricklogger.model.inference import CachingProcessor, prepared_query
+from bricklogger.model.inference import (
+    CachingProcessor,
+    prepared_query,
+    validate_and_infer,
+)
 
 PREFIXES = """\
 @prefix brick: <https://brickschema.org/schema/Brick#> .
@@ -173,6 +177,21 @@ def activated(
     assert activation.version == 2
     assert activation.inferred_triples > 0
     return store, graph
+
+
+def test_rules_that_need_another_rules_result_always_apply() -> None:
+    # AHU_01 is a brick:AHU; a rule makes it an Air_Handling_Unit, whose own
+    # rules give the tags. pyshacl runs the shapes in an order that follows the
+    # hash seed, so without a second pass the tags came only in some runs.
+    inferred = validate_and_infer(MODEL_V1.encode(), "turtle", vocabularies=()).inferred
+    brick = "https://brickschema.org/schema/Brick#"
+    tags = {
+        str(o).rsplit("#", 1)[-1]
+        for s, p, o in inferred
+        if s == URIRef("https://example.com/bldg#AHU_01")
+        and p == URIRef(brick + "hasTag")
+    }
+    assert {"AHU", "Air", "Handling", "Unit", "Equipment"} <= tags
 
 
 def test_activation_loads_the_four_graphs(

@@ -14,4 +14,4 @@ The package is laid out after the architecture in ``docs/architecture.md``:
   external plugins.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"

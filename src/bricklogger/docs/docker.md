@@ -14,7 +14,7 @@ published by GitHub Actions.
 
 | Tag | What it is |
 |-----|------------|
-| `0.3.0` | One released version — what a building's logger should name |
+| `0.3.1` | One released version — what a building's logger should name |
 | `0.3` | The newest patch of that minor version |
 | `latest` | The newest release |
 
@@ -78,7 +78,7 @@ services:
       - db:/home/postgres/pgdata
 
   daemon:
-    image: ghcr.io/cx1-aps/bricklogger:0.3.0
+    image: ghcr.io/cx1-aps/bricklogger:0.3.1
     command: ["bricklogger", "daemon", "run"]
     network_mode: host
     restart: unless-stopped
@@ -102,7 +102,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   web:
-    image: ghcr.io/cx1-aps/bricklogger:0.3.0
+    image: ghcr.io/cx1-aps/bricklogger:0.3.1
     command: ["bricklogger", "serve"]
     network_mode: host
     restart: unless-stopped
@@ -114,7 +114,7 @@ services:
       - plugins:/var/lib/bricklogger/plugins
 
   mcp:
-    image: ghcr.io/cx1-aps/bricklogger:0.3.0
+    image: ghcr.io/cx1-aps/bricklogger:0.3.1
     command: ["bricklogger", "mcp", "serve", "--http"]
     network_mode: host
     restart: unless-stopped
@@ -529,7 +529,7 @@ docker run -d --name bricklogger \
   -v bricklogger-config:/etc/bricklogger \
   -v bricklogger-data:/var/lib/bricklogger \
   -v bricklogger-plugins:/var/lib/bricklogger/plugins \
-  ghcr.io/cx1-aps/bricklogger:0.3.0
+  ghcr.io/cx1-aps/bricklogger:0.3.1
 ```
 
 `-e BRICKLOGGER_DB_PASSWORD` passes the value from the shell, so it is not on

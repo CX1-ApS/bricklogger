@@ -5,9 +5,11 @@ and the SHACL rules run in place: Brick's own, which type a BACnet reference
 written in the vocabulary the bundled Brick knows, and Bricklogger's
 supplementary ones in ``shapes.ttl``, which type it in the other vocabulary in
 the wild. The source plugins' own vocabularies join both the ontology and the
-rules, so a reference type of a plugin's own is typed the same way. Then the
-OWL-RL closure of model plus ontology is derived with the Rust reasoner
-``reasonable``. See ``docs/architecture.md``, "Inference".
+rules, so a reference type of a plugin's own is typed the same way. The rules
+are applied again until they add nothing, so the result does not depend on the
+order pyshacl runs them in. Then the OWL-RL closure of model plus ontology is
+derived with the Rust reasoner ``reasonable``. See ``docs/architecture.md``,
+"Inference".
 
 Importing the module registers :class:`CachingProcessor` as rdflib's SPARQL
 processor, which parses each query once instead of once per focus node.
@@ -252,6 +254,31 @@ def validate_with_rules(
     return report, set(model) - before
 
 
+def apply_rules_until_settled(
+    model: rdflib.Graph, vocabularies: Vocabularies = ()
+) -> None:
+    """Apply the SHACL rules to a validated model until a pass adds nothing.
+
+    pyshacl applies each shape's rules once, in an order that follows the hash
+    seed, so a rule that needs another's result — the tags of a class an
+    ``owl:equivalentClass`` rule types the entity as — may run before it. The
+    validation already mixed the ontology into the model; mixing it in again
+    would add a fresh copy of its blank nodes at every pass and never settle.
+    """
+    while True:
+        size = len(model)
+        pyshacl.shacl_rules(
+            model,
+            shacl_graph=shapes_graph(vocabularies),
+            advanced=True,
+            inplace=True,
+            inference="none",
+            iterate_rules=False,
+        )
+        if len(model) == size:
+            return
+
+
 def infer_owlrl(model: rdflib.Graph, vocabularies: Vocabularies = ()) -> set[Triple]:
     """The OWL-RL closure of the model plus the ontology and the vocabularies."""
     combined = rdflib.Graph()
@@ -291,11 +318,13 @@ def validate_and_infer(
     model_triples = set(model)
     if on_step is not None:
         on_step("validating")
-    report, rule_added = validate_with_rules(model, loaded)
+    report, _ = validate_with_rules(model, loaded)
     if not report.valid:
         raise ModelInvalid(report)
     if on_step is not None:
         on_step("inferring")
+    apply_rules_until_settled(model, loaded)
+    rule_added = set(model) - model_triples
     owl = infer_owlrl(model, loaded)
     ontology = set(ontology_graph(loaded))
     inferred = (rule_added | owl) - model_triples - ontology
